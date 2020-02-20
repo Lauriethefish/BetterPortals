@@ -27,6 +27,11 @@ public class VisibilityChecker {
         return (a.getX() >= b.getX()) && (a.getY() >= b.getY()) && (a.getZ() >= b.getZ());
     }
 
+    // Swaps around the X and Z coordinates if the direction is north/south
+    public static Vector orientVector(PortalDirection direction, Vector vec)   {
+        return direction == PortalDirection.EAST_WEST ? vec : new Vector(vec.getZ(), vec.getY(), vec.getX());
+    }
+
     // Casts ray from the origin location to the destination. Returns true if it passes through the box
     public boolean checkIfBlockVisible(Vector destination, Vector boxBL, Vector boxTR) {
         Vector currentPos = position.toVector();

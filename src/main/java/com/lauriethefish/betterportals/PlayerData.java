@@ -27,7 +27,6 @@ public class PlayerData {
 
     // Player's velocity as measured by the PlayerMoveEvent, this gives us a more accurate velocity
     public Vector velocity = new Vector(0.0, 0.0, 0.0);
-    public Location lastKnownLocation = null;
 
     public PlayerData(BetterPortals pl, Player player) {
         this.player = player;

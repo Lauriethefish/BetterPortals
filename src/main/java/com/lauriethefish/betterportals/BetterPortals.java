@@ -15,7 +15,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import net.md_5.bungee.api.ChatColor;
 
-// Main class for the plugin, created by spigot on intialisation
+// Main class for the plugin
 public class BetterPortals extends JavaPlugin {
     // Stores players previous portal positions
     public HashMap<UUID, PlayerData> players = new HashMap<UUID, PlayerData>();

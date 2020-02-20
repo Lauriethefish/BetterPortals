@@ -48,11 +48,8 @@ public class PortalCreate implements Listener {
             return;
         }
 
-        // Wheather all of the blocks are on the same z coordinate. If this is true then the portal is
-        // oriented east/west, otherwise it is north/south
-        boolean allSameZ = true;
-        double currentZ = Double.NaN; // Set our current z to NaN so that no values are the same as it
-        // Find the portal block closest to the bottom left, this is used for positioning the portal
+        // Find the portal block closest to the bottom left and top right, this is used for positioning the portal
+        Vector largestLocation = null;
         Vector smallestLocation = null;
 
         // Loop through all of the associated blocks
@@ -67,30 +64,19 @@ public class PortalCreate implements Listener {
             if(smallestLocation == null || VisibilityChecker.vectorGreaterThan(smallestLocation, blockLoc)) {
                 smallestLocation = blockLoc;
             }
-
-            // Update the currentZ and allSameZ
-            if(blockLoc.getZ() != currentZ) {
-                if(!Double.isNaN(currentZ))    {
-                    allSameZ = false;
-                    break;
-                }
-                currentZ = blockLoc.getZ();
+            if(largestLocation == null || VisibilityChecker.vectorGreaterThan(blockLoc, largestLocation))   {
+                largestLocation = blockLoc;
             }
-
         }
 
         // Get the direction of the portal, based on wheather the blocks are on the same z coordinate
-        PortalDirection direction = allSameZ ? PortalDirection.EAST_WEST : PortalDirection.NORTH_SOUTH;
+        PortalDirection direction = largestLocation.getZ() == smallestLocation.getZ() ? PortalDirection.EAST_WEST : PortalDirection.NORTH_SOUTH;
         // Get the location of the bottom left of the portal blocks
         Location location = smallestLocation.toLocation(event.getWorld());
 
         // Subtract 1 from the x and y of the location to get the location relative to the bottom left block of obisidan
         // This changes to z and y if the portal is oriented north/south
-        if(direction == PortalDirection.EAST_WEST)  {
-            location.subtract(1.0, 1.0, 0.0);
-        }   else    {
-            location.subtract(0.0, 1.0, 1.0);
-        }
+        location.subtract(VisibilityChecker.orientVector(direction, new Vector(1.0, 1.0, 0.0)));
 
         // Find a suitable location for spawning the portal
         Location spawnLocation = pl.spawningSystem.findSuitablePortalLocation(location, direction);
@@ -111,10 +97,7 @@ public class PortalCreate implements Listener {
         // Add to the portals position, as the PlayerRayCast requires coordinates to be at
         // the absolute center of the portal
         // Swap around the x and z offsets if the portal is facing a different direction
-        Vector portalAddAmount = new Vector(2.0, 2.5, 0.5);
-        if(direction == PortalDirection.NORTH_SOUTH) {
-            portalAddAmount = new Vector(0.5, 2.5, 2.0);
-        }
+        Vector portalAddAmount = VisibilityChecker.orientVector(direction, new Vector(2.0, 2.5, 0.5));
         location.add(portalAddAmount);
         spawnLocation.add(portalAddAmount);
 

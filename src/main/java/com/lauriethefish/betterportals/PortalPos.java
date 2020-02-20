@@ -19,6 +19,11 @@ public class PortalPos {
     public Location destinationPosition;
     public PortalDirection destinationDirection;
 
+    // Collision box of all portals, relative to the absolute center
+    // Will soon be configurable
+    public static final Vector collisionBoxBL = new Vector(-1.38, -1.85, -0.25);
+    public static final Vector collisionBoxTR = new Vector(1.38, 1.85, 0.25);
+
     // The two directions are used to make sure that the portal effect
     // is generated in the right direction
 
@@ -34,13 +39,8 @@ public class PortalPos {
         this.destinationDirection = destinationDirection;
             
         // Set the portals collision box. NOTE: The east/west collision box is different to the north/south one
-        if(portalDirection == PortalDirection.EAST_WEST)  {
-            portalBL = portalPosVec.clone().add(new Vector(-1.38, -1.85, -0.25));
-            portalTR = portalPosVec.clone().add(new Vector(1.38, 1.85, 0.25));
-        }   else    {
-            portalBL = portalPosVec.clone().add(new Vector(-0.25, -1.85, -1.38));
-            portalTR = portalPosVec.clone().add(new Vector(0.25, 1.85, 1.38));
-        }
+        portalBL = portalPosVec.clone().add(VisibilityChecker.orientVector(portalDirection, collisionBoxBL));
+        portalTR = portalPosVec.clone().add(VisibilityChecker.orientVector(portalDirection, collisionBoxTR));
     }
 
     // Transforms the vector input, which should be relative to the center of the portal,

@@ -66,11 +66,11 @@ public class PortalSpawnSystem {
                     // Find the location of the current potential portal spawn
                     Location newLoc = new Location(prefferedLocation.getWorld(), prefferedLocation.getX() + x, y, prefferedLocation.getZ() + z);
 
-                    // Check if it is suitable
-                    if(checkSuitableSpawnLocation(newLoc.clone(), direction))  {
-                        // If it is, check if the distance is shorter than the previous portal
-                        double distance = prefferedLocation.distance(newLoc);
-                        if(distance < closestSuitableDistance)  {
+                    // Check if the distance is less than the closest distance first, for performance
+                    double distance = prefferedLocation.distance(newLoc);
+                    if(distance < closestSuitableDistance)  {
+                        // Check if it is suitable
+                        if(checkSuitableSpawnLocation(newLoc.clone(), direction))  {
                             closestSuitableLocation = newLoc;
                             closestSuitableDistance = distance;
                         }
@@ -96,12 +96,7 @@ public class PortalSpawnSystem {
         outer:
         for(double x = 1.0; x <= 2.0; x++)  {
             // Get our current position on the x/z
-            Location currentPosX;
-            if(direction == PortalDirection.EAST_WEST)  {
-                currentPosX = location.clone().add(x, 0.0, 0.0);
-            }   else    {
-                currentPosX = location.clone().add(0.0, 0.0, x);
-            }
+            Location currentPosX = location.clone().add(VisibilityChecker.orientVector(direction, new Vector(x, 0.0, 0.0)));
 
             // If the ground is not solid, it is not suitable 
             if(!currentPosX.getBlock().getType().isSolid())  {
@@ -131,9 +126,7 @@ public class PortalSpawnSystem {
         // Loop through all four corners
         for(Vector offset : portalCornerLocations)  {
             // If the portal is facing north/south, invert the x and z coordinates
-            if(direction == PortalDirection.NORTH_SOUTH)    {
-                offset = new Vector(offset.getZ(), offset.getY(), offset.getX());
-            }
+            offset = VisibilityChecker.orientVector(direction, offset);
 
             // Find the location of the block
             Location newLoc = location.clone().add(offset);
@@ -155,12 +148,7 @@ public class PortalSpawnSystem {
             for(double y = 0.0; y <= 4.0; y++)  {
                 for(double x = 0.0; x <= 3.0; x++)  {
                     // Calculate the location next to the portal
-                    Location newLoc = location.clone();
-                    if(direction == PortalDirection.EAST_WEST)  {
-                        newLoc.add(x, y, z);
-                    }   else    {
-                        newLoc.add(z, y, x);
-                    }
+                    Location newLoc = location.clone().add(VisibilityChecker.orientVector(direction, new Vector(x, y, z)));
 
                     // If the z is not 0, generate the blocks at the sides of the portal
                     if(z != 0.0)    {
