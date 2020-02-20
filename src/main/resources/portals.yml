@@ -1,0 +1,5 @@
+# This file stores all of the active portals in the world,
+# Each item in this list is ONE direction of a portal
+# (Each portal has two list items, one for each end)
+
+portals:
