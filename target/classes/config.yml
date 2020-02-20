@@ -1,0 +1,42 @@
+# This is the BetterPortals configuration file
+# Many of these values should not be changed unless you know what you are doing
+# In most places, higher numbers effect performance
+
+# The number of blocks that the portal effect will render
+# to the up, down, forwards and backwards of the portal
+portalEffectSizeXZ: 6
+
+# Same as the previous, but up/down instead
+portalEffectSizeY: 5
+
+# The closest portal in this range will be activated
+# All others are discarded
+portalActivationDistance: 20
+# The distance that the ray from the ray cast system used to calculate
+# the view frustrum will be advanced each iteration
+# Increasing this beyond 0.7 can cause strange behaviour, but should help performance
+rayCastIncrement: 0.5
+# The maximum distance that the ray will travel before assuming that it will never reach
+# a portal.
+# This should be at least 3 higher than the portalActivationDistance
+# Set to -1 to calculate automatically.
+maxRayCastDistance: -1
+
+# Stores the links between worlds. By default this links the overworld and the nether with portals
+# There are two links for the overworld and the nether - one for each way.
+# This is to allow one way links between dimensions
+# The x and z coordinates of the portals are multiplied by the coordinateRescalingFactor to spawn portals
+# The min and max spawn y limit where portals can spawn - for instance you should not be able to spawn portals above the nether ceiling
+worldConnections:
+  '0':
+    originWorld: 'world'
+    destinationWorld: 'world_nether'
+    minSpawnY: 5
+    maxSpawnY: 122
+    coordinateRescalingFactor: 0.125
+  '1':
+    originWorld: 'world_nether'
+    destinationWorld: 'world'
+    minSpawnY: 5
+    maxSpawnY: 250
+    coordinateRescalingFactor: 8.0
