@@ -8,6 +8,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 import net.md_5.bungee.api.ChatColor;
 
@@ -27,24 +28,24 @@ public class SpawnPortal implements CommandExecutor {
         }
 
         Player player = (Player) sender;
-        if(args.length != 1)    {
-            player.sendMessage(ChatColor.RED + "Error: Wrong number of arguments. Usage: /spawnportal <eastwest/northsouth>");
+        if(args.length != 3)    {
             return false;
         }
 
-        String directionStr = args[0].toLowerCase();
+        String directionStr = args[0];
         PortalDirection direction;
 
-        if(directionStr.equals("eastwest")) {
+        Vector portalSize = new Vector(Double.parseDouble(args[1]), Double.parseDouble(args[2]), 0.0);
+
+        if(directionStr.equalsIgnoreCase("eastwest")) {
             direction = PortalDirection.EAST_WEST;
-        }   else if(directionStr.equals("northsouth"))   {
+        }   else if(directionStr.equalsIgnoreCase("northsouth"))   {
             direction = PortalDirection.NORTH_SOUTH;
         }   else    {
-            player.sendMessage(ChatColor.RED + "Error: Invalid argument. Usage: /spawnportal <eastwest/northsouth>");
             return false;
         }
-        Location suitableLoc = pl.spawningSystem.findSuitablePortalLocation(player.getLocation(), direction);
-        pl.spawningSystem.spawnPortal(suitableLoc, direction);
+        Location suitableLoc = pl.spawningSystem.findSuitablePortalLocation(player.getLocation(), direction, portalSize);
+        pl.spawningSystem.spawnPortal(suitableLoc, direction, portalSize);
 
         player.sendMessage(ChatColor.GREEN + "Portal spawned successfully");
         player.sendMessage(ChatColor.GREEN + String.format("Location: %s", suitableLoc));

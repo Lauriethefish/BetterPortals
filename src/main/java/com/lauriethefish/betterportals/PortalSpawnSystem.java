@@ -9,13 +9,6 @@ import org.bukkit.util.Vector;
 public class PortalSpawnSystem {
     private BetterPortals pl;
 
-    public static final Vector[] portalCornerLocations = {
-        new Vector(0.0, 0.0, 0.0),
-        new Vector(3.0, 0.0, 0.0),
-        new Vector(0.0, 4.0, 0.0),
-        new Vector(3.0, 4.0, 0.0)
-    };
-
     public PortalSpawnSystem(BetterPortals pl)  {
         this.pl = pl;
     }
@@ -27,7 +20,8 @@ public class PortalSpawnSystem {
     // The location returned is the bottom left block of the portal
     // This function will try to find and link to use for scaling the coordinates,
     // if no link is found it will return null
-    public Location findSuitablePortalLocation(Location originLocation, PortalDirection direction) {
+    // The portalSize should be on the x and y coordinates, even if the portal is oriented along the z, it is the size of the portal window, not including the obsidian
+    public Location findSuitablePortalLocation(Location originLocation, PortalDirection direction, Vector portalSize) {
         // Loop through all of the links between worlds, and try to find a link for this portal
         WorldLink link = null;
         for(WorldLink currentLink : pl.config.worldLinks)   {
@@ -48,7 +42,7 @@ public class PortalSpawnSystem {
         destinationLoc.setY(originLocation.getY());
         destinationLoc.setWorld(link.destinationWorld);
         // Limit the Y by the correct values
-        destinationLoc.setY(Math.min(link.maxSpawnY, destinationLoc.getY()));
+        destinationLoc.setY(Math.min(link.maxSpawnY - portalSize.getY(), destinationLoc.getY()));
         destinationLoc.setY(Math.max(link.minSpawnY, destinationLoc.getY()));
 
         // Convert the location to a block and back, this should floor the location so it is all whole numbers
@@ -70,7 +64,7 @@ public class PortalSpawnSystem {
                     double distance = prefferedLocation.distance(newLoc);
                     if(distance < closestSuitableDistance)  {
                         // Check if it is suitable
-                        if(checkSuitableSpawnLocation(newLoc.clone(), direction))  {
+                        if(checkSuitableSpawnLocation(newLoc.clone(), direction, portalSize))  {
                             closestSuitableLocation = newLoc;
                             closestSuitableDistance = distance;
                         }
@@ -90,11 +84,11 @@ public class PortalSpawnSystem {
 
     // Checks if the position is given is suitable for spawning a portal
     // See definition of a suitable location above
-    public boolean checkSuitableSpawnLocation(Location location, PortalDirection direction)   {
+    public boolean checkSuitableSpawnLocation(Location location, PortalDirection direction, Vector portalSize)   {
         boolean allSuitable = true;
         // Loop through the two columbs of portal blocks
         outer:
-        for(double x = 1.0; x <= 2.0; x++)  {
+        for(double x = 1.0; x <= portalSize.getX(); x++)  {
             // Get our current position on the x/z
             Location currentPosX = location.clone().add(VisibilityChecker.orientVector(direction, new Vector(x, 0.0, 0.0)));
 
@@ -105,7 +99,7 @@ public class PortalSpawnSystem {
             }
 
             // If the air above the columns is solid, it is not suitable
-            for(double y = 1.0; y <= 3.0; y++)    {
+            for(double y = 1.0; y <= portalSize.getY(); y++)    {
                 // Get our current position including the y
                 Location currentPos = currentPosX.clone().add(0.0, y, 0.0);
 
@@ -122,7 +116,14 @@ public class PortalSpawnSystem {
 
     // Checks all four corners of the portal given to see if they are solid blocks
     // If they are not, they are set to stone
-    public void fixPortalCorners(Location location, PortalDirection direction)  {
+    public void fixPortalCorners(Location location, PortalDirection direction, Vector portalSize)  {
+        Vector[] portalCornerLocations = {
+            new Vector(0.0, 0.0, 0.0),
+            new Vector(portalSize.getX() + 1.0, 0.0, 0.0),
+            new Vector(0.0, portalSize.getY() + 1.0, 0.0),
+            new Vector(portalSize.getX() + 1.0, portalSize.getY() + 1.0, 0.0),
+        };
+
         // Loop through all four corners
         for(Vector offset : portalCornerLocations)  {
             // If the portal is facing north/south, invert the x and z coordinates
@@ -140,13 +141,13 @@ public class PortalSpawnSystem {
     // Spawns a portal at the given location, with the correct orientation
     // Also spawns four blocks at the sides of the portal to stand on if they are not solid
     @SuppressWarnings("deprecation")
-    public void spawnPortal(Location location, PortalDirection direction)  {
+    public void spawnPortal(Location location, PortalDirection direction, Vector portalSize)  {
         // Loop through the x, y and z coordinates around the portal
         // Portal is only generated at z == 0,
         // The other two z coordinates are used for generating the blocks at the sides of portals
         for(double z = -1.0; z <= 1.0; z++) {
-            for(double y = 0.0; y <= 4.0; y++)  {
-                for(double x = 0.0; x <= 3.0; x++)  {
+            for(double y = 0.0; y <= portalSize.getY() + 1.0; y++)  {
+                for(double x = 0.0; x <= portalSize.getX() + 1.0; x++)  {
                     // Calculate the location next to the portal
                     Location newLoc = location.clone().add(VisibilityChecker.orientVector(direction, new Vector(x, y, z)));
 
@@ -155,7 +156,7 @@ public class PortalSpawnSystem {
                         // If the y is 0 and the x and 1 or 2 then the ground blocks need
                         // to be put down
                         if(y == 0.0)    {
-                            if(x == 1.0 || x == 2.0)    {
+                            if(x <= portalSize.getX() && x != 0.0)    {
                                 // Only update the ground blocks if they are not solid
                                 if(!newLoc.getBlock().getType().isSolid()) {
                                     newLoc.getBlock().setType(Material.OBSIDIAN);
@@ -172,7 +173,7 @@ public class PortalSpawnSystem {
                     // Note that we do NOT update physics when generating these blocks.
                     // This is because the physics deletes portal blocks that shouldn't be there
                     Block block = newLoc.getBlock();
-                    if(x == 0 || x == 3.0 || y == 0.0 || y == 4.0)  {
+                    if(x == 0 || x == portalSize.getX() + 1.0 || y == 0.0 || y == portalSize.getY() + 1.0)  {
                         // Set the sides of the portal to obsidian
                         block.setType(Material.OBSIDIAN, false);
                     }   else    {

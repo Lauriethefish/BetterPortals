@@ -12,6 +12,7 @@ import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.util.Vector;
 
 // Deals with saving and loading all of the active portals to portals.yml
 public class PortalStorage {
@@ -73,6 +74,21 @@ public class PortalStorage {
         );
     }
 
+    // Loads the x and y size of a portal
+    public Vector loadPortalSize(ConfigurationSection section)  {
+        return new Vector(
+            section.getInt("x"),
+            section.getInt("y"),
+            0.0
+        );
+    }
+
+    // Set the x and y of a portal's size. The z component is not required
+    public void setPortalSize(ConfigurationSection section, Vector size)  {
+        section.set("x", (int) size.getX());
+        section.set("y", (int) size.getY());
+    }
+
     // Saves the given portals to disk in portals.yml,
     // May throw an IOException if something goes wrong reading the file
     public void savePortals(List<PortalPos> portals) throws IOException {
@@ -90,6 +106,9 @@ public class PortalStorage {
             portalSection.set("portalDirection", portal.portalDirection.toString());
             setLocation(portalSection.createSection("destinationPosition"), portal.destinationPosition);
             portalSection.set("destinationDirection", portal.destinationDirection.toString());
+
+            // Set the portal's size
+            setPortalSize(portalSection.createSection("portalSize"), portal.portalSize);
         }
 
         // Save the storage file
@@ -124,8 +143,11 @@ public class PortalStorage {
             Location destinationPosition = loadLocation(nextPortalSection.getConfigurationSection("destinationPosition"));
             PortalDirection destinationDirection = PortalDirection.valueOf(nextPortalSection.getString("destinationDirection"));
 
+            // Load thr portal's size
+            Vector portalSize = loadPortalSize(nextPortalSection.getConfigurationSection("portalSize"));
+
             // Add a new portal to the list with the given values
-            portals.add(new PortalPos(portalPosition, portalDirection, destinationPosition, destinationDirection));
+            portals.add(new PortalPos(portalPosition, portalDirection, destinationPosition, destinationDirection, portalSize));
         }
 
         // Return the list of all portals
