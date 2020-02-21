@@ -106,7 +106,6 @@ public class PortalStorage {
             portalSection.set("portalDirection", portal.portalDirection.toString());
             setLocation(portalSection.createSection("destinationPosition"), portal.destinationPosition);
             portalSection.set("destinationDirection", portal.destinationDirection.toString());
-            // Ello
             // Set the portal's size
             setPortalSize(portalSection.createSection("portalSize"), portal.portalSize);
         }
