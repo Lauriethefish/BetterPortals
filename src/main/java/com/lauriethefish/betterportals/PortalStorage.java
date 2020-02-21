@@ -83,7 +83,7 @@ public class PortalStorage {
         );
     }
 
-    // Set the x and y of a portal's size. The z component is not required
+    // Set the x and y of a portal's size. The z component is not required since portals only need a width and height
     public void setPortalSize(ConfigurationSection section, Vector size)  {
         section.set("x", (int) size.getX());
         section.set("y", (int) size.getY());
