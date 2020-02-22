@@ -5,13 +5,13 @@ It is intended to provide an experience similar to the BetterPortals mod, but as
 
 This plugin is quite configurable, if you wish to change the size and nature of the portal effect you can
 
-## Upcoming Features
-* Lag compensation to make it work better for players with higher ping
-* Performance optimizations (hopefully!), to allow for larger render distances
-
 ## Benefits
 * Since this is a plugin, players don't need to install a mod on the client side
 * While it does still cause *some* lag, it is overall much faster than the BetterPortals mod
+
+## Upcoming Features
+* Lag compensation to make it work better for players with higher ping
+* Performance optimizations (hopefully!), to allow for larger render distances
 
 ## Limitations
 * BetterPortals essentially just changes the blocks in the player's view through the portal. Because of this is is more of an illusion.
