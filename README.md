@@ -16,6 +16,6 @@ This plugin is quite configurable, if you wish to change the size and nature of 
 * Portals have a very low render distance
 * There is still a loading screen when moving between worlds
 
-## Benifits
+## Benefits
 * Since this is a plugin, players don't need to install a mod on the client side
 * While it does still cause *some* lag, it is overall much faster than the BetterPortals mod
