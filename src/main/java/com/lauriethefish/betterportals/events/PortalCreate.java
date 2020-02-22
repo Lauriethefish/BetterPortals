@@ -66,6 +66,14 @@ public class PortalCreate implements Listener {
         Vector portalSize = VisibilityChecker.orientVector(direction, largestLocation.clone().subtract(smallestLocation))
             .add(new Vector(1.0, 1.0, 0.0));
 
+        // Check that the portal is smaller than the max size
+        Vector maxPortalSize = pl.config.maxPortalSize;
+        if(portalSize.getX() > maxPortalSize.getX() || portalSize.getY() > maxPortalSize.getY())    {
+            // Cancel the event
+            event.setCancelled(true);
+            return;
+        }
+
         // Subtract 1 from the x and y of the location to get the location relative to the bottom left block of obisidan
         // This changes to z and y if the portal is oriented north/south
         location.subtract(VisibilityChecker.orientVector(direction, new Vector(1.0, 1.0, 0.0)));

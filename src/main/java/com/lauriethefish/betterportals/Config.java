@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.util.Vector;
 
 // Stores all of the configuration for the BetterPortals plugin, so that it can be
 // easy sent between events
@@ -32,6 +33,9 @@ public class Config {
     public int zMultip;
     public int totalArrayLength;
 
+    // Maximum size of portals
+    public Vector maxPortalSize;
+
     // Loads the configuration from the given file, setting all the parameters of the class
     public Config(BetterPortals pl, FileConfiguration file)   {
         // Load all of the parameters from the config file
@@ -54,6 +58,14 @@ public class Config {
         if(maxRayCastDistance == -1)    {
             maxRayCastDistance = portalActivationDistance + 3.0;
         }
+
+        // Load the max portal size
+        ConfigurationSection maxSizeSection = file.getConfigurationSection("maxPortalSize");
+        maxPortalSize = new Vector(
+            maxSizeSection.getInt("x"),
+            maxSizeSection.getInt("y"),
+            0.0
+        );
 
         // Get the list that contains all of the world links
         ConfigurationSection worldLinksSection = file.getConfigurationSection("worldConnections");

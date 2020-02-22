@@ -4,7 +4,7 @@
 
 # The number of blocks that the portal effect will render
 # to the up, down, forwards and backwards of the portal
-portalEffectSizeXZ: 6
+portalEffectSizeXZ: 8
 
 # Same as the previous, but up/down instead
 portalEffectSizeY: 5
@@ -21,6 +21,11 @@ rayCastIncrement: 0.5
 # This should be at least 3 higher than the portalActivationDistance
 # Set to -1 to calculate automatically.
 maxRayCastDistance: -1
+
+# The maximum size of portals in blocks. The x is width and y is height
+maxPortalSize:
+  x: 5
+  y: 5
 
 # Stores the links between worlds. By default this links the overworld and the nether with portals
 # There are two links for the overworld and the nether - one for each way.
