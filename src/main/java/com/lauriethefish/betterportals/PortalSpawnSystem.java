@@ -82,6 +82,11 @@ public class PortalSpawnSystem {
         return prefferedLocation;
     }
 
+    // Checks if a material is any type of fluid
+    private boolean isMaterialFluid(Material mat)  {
+        return mat == Material.WATER || mat == Material.STATIONARY_WATER || mat == Material.LAVA || mat == Material.STATIONARY_LAVA;
+    }
+
     // Checks if the position is given is suitable for spawning a portal
     // See definition of a suitable location above
     public boolean checkSuitableSpawnLocation(Location location, PortalDirection direction, Vector portalSize)   {
@@ -91,19 +96,20 @@ public class PortalSpawnSystem {
         for(double x = 1.0; x <= portalSize.getX(); x++)  {
             // Get our current position on the x/z
             Location currentPosX = location.clone().add(VisibilityChecker.orientVector(direction, new Vector(x, 0.0, 0.0)));
-
+            
             // If the ground is not solid, it is not suitable 
             if(!currentPosX.getBlock().getType().isSolid())  {
                 allSuitable = false;
                 break outer;
             }
 
-            // If the air above the columns is solid, it is not suitable
+            // If the air above the columns is solid or lava/water then it is not suitable
             for(double y = 1.0; y <= portalSize.getY(); y++)    {
                 // Get our current position including the y
                 Location currentPos = currentPosX.clone().add(0.0, y, 0.0);
+                Material currentType = currentPos.getBlock().getType();
 
-                if(currentPos.getBlock().getType().isSolid())  {
+                if(currentType.isSolid() || isMaterialFluid(currentType))   {
                     allSuitable = false;
                     break outer;
                 }
