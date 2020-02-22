@@ -22,16 +22,9 @@ public class PortalPos {
     // The size of the portal's gateway in blocks
     public Vector portalSize;
 
-    // Collision box of all portals, relative to the absolute center
-    // Will soon be configurable
-    public static final Vector collisionBox = new Vector(0.38, 0.35, 0.25);
-
-    // The two directions are used to make sure that the portal effect
-    // is generated in the right direction
-
     // Constructor to generate the collision box for a given portal
     // NOTE: The portalPosition must be the EXACT center of the portal on the x, y and z
-    public PortalPos(Location portalPosition, PortalDirection portalDirection, 
+    public PortalPos(BetterPortals pl, Location portalPosition, PortalDirection portalDirection, 
                     Location destinationPosition, PortalDirection destinationDirection, Vector portalSize) {
         Vector portalPosVec = portalPosition.toVector();
 
@@ -48,6 +41,9 @@ public class PortalPos {
         // Get the bottom left and top right blocks by subtracting our modified size
         Vector bottomLeftBlock = portalPosVec.clone().subtract(orientedSize);
         Vector topRightBlock = portalPosVec.clone().add(orientedSize);
+
+        // Get the correct collision box from the config
+        Vector collisionBox = pl.config.portalCollisionBox;
 
         // Set the portals collision box. NOTE: The east/west collision box is different to the north/south one
         portalBL = bottomLeftBlock.clone().subtract(VisibilityChecker.orientVector(portalDirection, collisionBox));

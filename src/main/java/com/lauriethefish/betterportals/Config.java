@@ -36,6 +36,9 @@ public class Config {
     // Maximum size of portals
     public Vector maxPortalSize;
 
+    // The offset of the portal's collision box
+    public Vector portalCollisionBox;
+
     // Loads the configuration from the given file, setting all the parameters of the class
     public Config(BetterPortals pl, FileConfiguration file)   {
         // Load all of the parameters from the config file
@@ -65,6 +68,14 @@ public class Config {
             maxSizeSection.getInt("x"),
             maxSizeSection.getInt("y"),
             0.0
+        );
+
+        // Load the portal's collision box
+        ConfigurationSection cBoxSection = file.getConfigurationSection("portalCollisionBox");
+        portalCollisionBox = new Vector(
+            cBoxSection.getDouble("x"),
+            cBoxSection.getDouble("y"),
+            cBoxSection.getDouble("z")
         );
 
         // Get the list that contains all of the world links

@@ -1,9 +1,10 @@
 # This is the BetterPortals configuration file
 # Many of these values should not be changed unless you know what you are doing
-# In most places, higher numbers effect performance
 
+# WARNING: The portal effect size is the biggest performance sink, higher numbers can cause tons of lag!
 # The number of blocks that the portal effect will render
 # to the up, down, forwards and backwards of the portal
+# (the total width of the effect is twice this)
 portalEffectSizeXZ: 8
 
 # Same as the previous, but up/down instead
@@ -23,9 +24,20 @@ rayCastIncrement: 0.5
 maxRayCastDistance: -1
 
 # The maximum size of portals in blocks. The x is width and y is height
+# This should never be larger than twice the portal effect size
+# Larger portals tend to look less good, so the default values work well
 maxPortalSize:
   x: 5
   y: 5
+
+# Stores the offset from the corners of the portal where the collision box will be
+# This collision box is how the portal effect is calculated
+# (if the ray from the player's view to the block being tested intersects this box it will be considered visible through the portal)
+# The default values are tuned to work fairly well, so I don't recommend changing these
+portalCollisionBox:
+  x: 0.38
+  y: 0.35
+  z: 0.25
 
 # Stores the links between worlds. By default this links the overworld and the nether with portals
 # There are two links for the overworld and the nether - one for each way.

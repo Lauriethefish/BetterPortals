@@ -147,7 +147,7 @@ public class PortalStorage {
             Vector portalSize = loadPortalSize(nextPortalSection.getConfigurationSection("portalSize"));
 
             // Add a new portal to the list with the given values
-            portals.add(new PortalPos(portalPosition, portalDirection, destinationPosition, destinationDirection, portalSize));
+            portals.add(new PortalPos(pl, portalPosition, portalDirection, destinationPosition, destinationDirection, portalSize));
         }
 
         // Return the list of all portals
