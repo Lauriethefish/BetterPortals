@@ -9,7 +9,6 @@ import com.lauriethefish.betterportals.events.PortalCreate;
 import com.lauriethefish.betterportals.runnables.PlayerRayCast;
 
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -28,8 +27,6 @@ public class BetterPortals extends JavaPlugin {
     // This method is called once when our plugin is enabled
     @Override
     public void onEnable() {
-        PluginDescriptionFile pdfFile = getDescription();
-
         // If any errors occur while loading the config/portal data, we return from this function
         // This essentially terminates the plugin as the runnable will not start
 
@@ -62,9 +59,6 @@ public class BetterPortals extends JavaPlugin {
             getLogger().info(ChatColor.RED + "Error parsing portal data file, this is likely because it is invalid yaml");
             e.printStackTrace();
         }
-
-        // Print an enable message that contains the name of our plugin and the version
-        getLogger().info(String.format("%s has been enabled. Version: %s", pdfFile.getName(), pdfFile.getVersion()));
     }
 
     // This method is called when the plugin is disabled
@@ -76,11 +70,6 @@ public class BetterPortals extends JavaPlugin {
         }   catch(Exception e)    {
             getLogger().info(ChatColor.RED + "Error saving portal data. This could be due to lack of write file access");
         }
-
-        // No need to register commands/start runnables, since the plugin is shutting down
-        PluginDescriptionFile pdfFile = getDescription();
-
-        getLogger().info(String.format("%s has been disabled.", pdfFile.getName()));
     }
 
     // This function is currently empty, as we have no commands
