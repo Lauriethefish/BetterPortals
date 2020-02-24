@@ -1,8 +1,10 @@
 package com.lauriethefish.betterportals;
 
+import org.bukkit.Axis;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.Orientable;
 import org.bukkit.util.Vector;
 
 // Handles finding a suitable location for spawning a portal, can also deal with the actual building of the portal
@@ -84,7 +86,7 @@ public class PortalSpawnSystem {
 
     // Checks if a material is any type of fluid
     private boolean isMaterialFluid(Material mat)  {
-        return mat == Material.WATER || mat == Material.STATIONARY_WATER || mat == Material.LAVA || mat == Material.STATIONARY_LAVA;
+        return mat == Material.WATER || mat == Material.LAVA;
     }
 
     // Checks if the position is given is suitable for spawning a portal
@@ -146,7 +148,6 @@ public class PortalSpawnSystem {
 
     // Spawns a portal at the given location, with the correct orientation
     // Also spawns four blocks at the sides of the portal to stand on if they are not solid
-    @SuppressWarnings("deprecation")
     public void spawnPortal(Location location, PortalDirection direction, Vector portalSize)  {
         // Loop through the x, y and z coordinates around the portal
         // Portal is only generated at z == 0,
@@ -184,9 +185,11 @@ public class PortalSpawnSystem {
                         block.setType(Material.OBSIDIAN, false);
                     }   else    {
                         // Set the centre to portal. NOTE: The portal must be rotated if the portal faces north/south
-                        block.setType(Material.PORTAL, false);
+                        block.setType(Material.NETHER_PORTAL, false);
                         if(direction == PortalDirection.NORTH_SOUTH)    {
-                            block.setData((byte) 2, false);
+                            Orientable portalOrient = (Orientable) block.getBlockData();
+                            portalOrient.setAxis(Axis.Z);
+                            block.setBlockData(portalOrient);
                         }
                     }
                 }

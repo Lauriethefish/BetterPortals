@@ -9,7 +9,7 @@ import com.lauriethefish.betterportals.VisibilityChecker;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.PortalCreateEvent;
@@ -29,19 +29,19 @@ public class PortalCreate implements Listener {
     public void onPortalCreate(PortalCreateEvent event) {
         // If the portal was created by the vanilla portal generator (due to a player manually generating one)
         // then return from this event. This should not happen, but this is here in case it does
-        if(event.getReason() == CreateReason.OBC_DESTINATION)   {
+        if(event.getReason() != CreateReason.FIRE)   {
             return;
         }
 
         // Get all of the blocks associated with the portal. This includes some of the obsidian and all of the portal blocks
-        List<Block> blocks = event.getBlocks();
+        List<BlockState> blocks = event.getBlocks();
 
         // Find the portal block closest to the bottom left and top right, this is used for positioning the portal
         Vector largestLocation = null;
         Vector smallestLocation = null;
 
         // Loop through all of the associated blocks
-        for(Block block : blocks)   {
+        for(BlockState block : blocks)   {
             // If the block is obsidian, skip it as we only care about portal blocks
             if(block.getType() == Material.OBSIDIAN)  {continue;}
 

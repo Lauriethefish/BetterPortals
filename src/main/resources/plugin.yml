@@ -2,3 +2,4 @@ main: com.lauriethefish.betterportals.BetterPortals
 name: BetterPortals
 version: 0.11
 author: lauriethefish@outlook.com
+api-version: 1.15

@@ -144,7 +144,6 @@ public class PlayerRayCast implements Runnable {
 
     // This function is responsible for iterating over all of the blocks surrounding the portal,
     // and performing a raycast on each of them to check if they should be visible
-    @SuppressWarnings("deprecation")
     public void iterateOverBlocks(PlayerData playerData, PortalPos portal) {
         Player player = playerData.player;
         
@@ -186,14 +185,14 @@ public class PlayerRayCast implements Runnable {
                         if((x == config.minXZ || x == config.maxXZ - 1.0 ||
                             y == config.minY || y == config.maxY - 1.0 || z == config.minXZ || z == config.maxXZ - 1.0)
                             && !block.getType().isSolid()) {
-                            newState = new BlockConfig(aRelativeLoc, Material.CONCRETE, (byte) 15);
+                            newState = new BlockConfig(aRelativeLoc, pl.getServer().createBlockData(Material.BLACK_CONCRETE));
                         }   else    {
-                            newState = new BlockConfig(aRelativeLoc, block.getType(), block.getData());
+                            newState = new BlockConfig(aRelativeLoc, block.getBlockData());
                         }
                     }   else    {
                         // Otherwise, reset the block back to what it should be
                         Block block = aRelativeLoc.getBlock();
-                        newState = new BlockConfig(aRelativeLoc, block.getType(), block.getData());
+                        newState = new BlockConfig(aRelativeLoc, block.getBlockData());
                     }
 
                     // Calculate the index of this block in the players block array
@@ -213,7 +212,7 @@ public class PlayerRayCast implements Runnable {
                     // If we are overwriting the block, change it in the player's block array and send them a block update
                     if(overwrite) {
                         playerData.surroundingPortalBlockStates[index] = newState;
-                        player.sendBlockChange(aRelativeLoc, newState.material, newState.data);
+                        player.sendBlockChange(aRelativeLoc, newState.data);
                     }
                 }
             }

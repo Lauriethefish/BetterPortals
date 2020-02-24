@@ -77,6 +77,6 @@ public class PortalPos {
     // This is used to remove the portal from the plugins list of active portals
     public boolean checkIfStillActive() {
         // Check if the block at the centre of the portal is a portal block
-        return portalPosition.getBlock().getType() == Material.PORTAL;
+        return portalPosition.getBlock().getType() == Material.NETHER_PORTAL;
     }
 }

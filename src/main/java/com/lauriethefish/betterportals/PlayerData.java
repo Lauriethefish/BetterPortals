@@ -49,7 +49,7 @@ public class PlayerData {
             // Check if the block is in an incorrect state,
             // if it is, set it back to what it should be
             Block block = state.location.getBlock();
-            if(block.getType() != state.material)   {
+            if(!(block.getBlockData().equals(state.data)))   {
                 player.sendBlockChange(state.location, block.getType(), block.getData());
             }
         }
