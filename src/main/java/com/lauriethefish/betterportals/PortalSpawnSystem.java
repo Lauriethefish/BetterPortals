@@ -3,6 +3,7 @@ package com.lauriethefish.betterportals;
 import org.bukkit.Axis;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.WorldBorder;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Orientable;
 import org.bukkit.util.Vector;
@@ -13,6 +14,25 @@ public class PortalSpawnSystem {
 
     public PortalSpawnSystem(BetterPortals pl)  {
         this.pl = pl;
+    }
+
+    // Limits the coordinates so that they are not outside the allowed are in the given world
+    public void maxCoordinatesInsideWorld(Location destLoc, WorldLink link, Vector realPSize, PortalDirection direction) {
+        // Limit the Y by the correct values
+        destLoc.setY(Math.min(link.maxSpawnY - realPSize.getY(), destLoc.getY()));
+        destLoc.setY(Math.max(link.minSpawnY, destLoc.getY()));
+
+        // Get the world's border
+        WorldBorder worldBorder = destLoc.getWorld().getWorldBorder();
+        // Find half of the diameter to get the radius, then subtract a small amount so that portals don't spawn on the very edge of the border
+        double wbRadius = (worldBorder.getSize() / 2.0) - 3.0;
+        Vector wbCenter = worldBorder.getCenter().toVector();
+        Vector lowXZLimit = wbCenter.clone().subtract(new Vector(wbRadius, 0.0, wbRadius));
+        Vector highXZLimit = wbCenter.clone().add(new Vector(wbRadius, 0.0, wbRadius)).subtract(VisibilityChecker.orientVector(direction, realPSize.clone()));
+
+        // Limit the X and Z values by the world border
+        destLoc.setX(Math.min(destLoc.getX(), highXZLimit.getX())); destLoc.setX(Math.max(destLoc.getX(), lowXZLimit.getX()));
+        destLoc.setZ(Math.min(destLoc.getZ(), highXZLimit.getZ())); destLoc.setZ(Math.max(destLoc.getZ(), lowXZLimit.getZ()));
     }
 
     // Find a suitable location for spawning the portal
@@ -43,10 +63,14 @@ public class PortalSpawnSystem {
         // Reset the Y coordinate since it should not be effected by coordinate rescaling
         destinationLoc.setY(originLocation.getY());
         destinationLoc.setWorld(link.destinationWorld);
-        // Limit the Y by the correct values
-        destinationLoc.setY(Math.min(link.maxSpawnY - portalSize.getY(), destinationLoc.getY()));
-        destinationLoc.setY(Math.max(link.minSpawnY, destinationLoc.getY()));
 
+        // Get the actual side of the portal, not just the size of the area of portal blocks
+        Vector realPSize = portalSize.clone().add(new Vector(2.0, 2.0, 0.0));
+        
+        // Make sure that the portal does not spawn outside the world
+        maxCoordinatesInsideWorld(destinationLoc, link, realPSize, direction);
+        WorldBorder border = link.destinationWorld.getWorldBorder();
+        
         // Convert the location to a block and back, this should floor the location so it is all whole numbers
         Location prefferedLocation = destinationLoc.getBlock().getLocation();
 
@@ -61,6 +85,11 @@ public class PortalSpawnSystem {
                 for(double x = -35.0; x < 35.0; x += 5.0)  {
                     // Find the location of the current potential portal spawn
                     Location newLoc = new Location(prefferedLocation.getWorld(), prefferedLocation.getX() + x, y, prefferedLocation.getZ() + z);
+
+                    // Check that both corners of the portal are inside the world border
+                    if(!border.isInside(newLoc) || !border.isInside(newLoc.clone().add(realPSize)))    {
+                        continue;
+                    }
 
                     // Check if the distance is less than the closest distance first, for performance
                     double distance = prefferedLocation.distance(newLoc);

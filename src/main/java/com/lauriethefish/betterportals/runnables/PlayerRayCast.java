@@ -65,6 +65,7 @@ public class PlayerRayCast implements Runnable {
             // If it does, remove it and add its destination to the list
             // of portals that need to be removed.
             if(!portal.checkIfStillActive())    {
+                portal.portalPosition.getBlock().setType(Material.AIR);
                 newRemovedDestionations.add(portal.destinationPosition);
                 iter.remove();
                 continue;

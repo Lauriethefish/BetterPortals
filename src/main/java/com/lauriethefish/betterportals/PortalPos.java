@@ -2,6 +2,7 @@ package com.lauriethefish.betterportals;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.WorldBorder;
 import org.bukkit.util.Vector;
 
 // Stores all of the attributes required for one direction of a portal
@@ -76,7 +77,15 @@ public class PortalPos {
     // Checks if the portal has been broken
     // This is used to remove the portal from the plugins list of active portals
     public boolean checkIfStillActive() {
+        // Get the offset from the portals absolute center to the top left and bottom right corners of the portal blocks
+        Vector subAmount = VisibilityChecker.orientVector(portalDirection, portalSize.clone().multiply(0.5).add(new Vector(0.0, 0.0, 0.5)));
+        WorldBorder border = portalPosition.getWorld().getWorldBorder();
+
         // Check if the block at the centre of the portal is a portal block
-        return portalPosition.getBlock().getType() == Material.NETHER_PORTAL;
+        return portalPosition.getBlock().getType() == Material.NETHER_PORTAL &
+                // Check that the bottom left and top right of the portal are both inside the worldborder,
+                // since portals outside the worldborder should be broken
+                border.isInside(portalPosition.clone().subtract(subAmount)) &&
+                border.isInside(portalPosition.clone().add(subAmount));
     }
 }
