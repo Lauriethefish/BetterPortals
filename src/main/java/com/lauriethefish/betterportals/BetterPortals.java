@@ -9,6 +9,7 @@ import com.lauriethefish.betterportals.events.PortalCreate;
 import com.lauriethefish.betterportals.runnables.PlayerRayCast;
 
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -50,9 +51,13 @@ public class BetterPortals extends JavaPlugin {
         // Tell spigot to call our events when they should be fired
         registerEvents();
 
+        // Add the PlayerData for every online player in order to support /reload
+        addAllPlayerData();
+        
         // Start the PlayerRayCast task, which is run every tick
         startRunnables();
 
+        // Load all of the portals in portals.yml
         try {
             rayCastingSystem.portals = storage.loadPortals();
         }   catch(Exception e)  {
@@ -75,6 +80,15 @@ public class BetterPortals extends JavaPlugin {
     // This function is currently empty, as we have no commands
     private void registerCommands() {
 
+    }
+
+    // Adds the PlayerData for every player online, in order to support /reload
+    private void addAllPlayerData() {
+        // For each online player
+        for(Player player : getServer().getOnlinePlayers()) {
+            // Add a new player data with the player's UUID
+            players.put(player.getUniqueId(), new PlayerData(this, player));
+        }
     }
 
     private void loadConfig()   {
