@@ -153,6 +153,7 @@ public class PortalSpawnSystem {
 
     // Checks all four corners of the portal given to see if they are solid blocks
     // If they are not, they are set to stone
+    @SuppressWarnings("deprecation")
     public void fixPortalCorners(Location location, PortalDirection direction, Vector portalSize)  {
         Vector[] portalCornerLocations = {
             new Vector(0.0, 0.0, 0.0),
@@ -168,8 +169,9 @@ public class PortalSpawnSystem {
 
             // Find the location of the block
             Location newLoc = location.clone().add(offset);
-            // Check if it is solid, if it is not, set it to stone
-            if(!newLoc.getBlock().getType().isSolid())  {
+            // Check if it is transparent, if it is not, set it to stone
+            // Yes, I know this method is deprecated, but I can't be bothered to write out 100+ different allowed blocks
+            if(newLoc.getBlock().getType().isTransparent())  {
                 newLoc.getBlock().setType(Material.STONE);
             }
         }
