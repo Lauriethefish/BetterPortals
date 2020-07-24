@@ -1,16 +1,22 @@
 package com.lauriethefish.betterportals;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.craftbukkit.libs.org.apache.commons.io.IOUtils;
 import org.bukkit.util.Vector;
 
 // Stores all of the configuration for the BetterPortals plugin, so that it can be
 // easy sent between events
 public class Config {
+    private BetterPortals pl; // Reference to the plugin
+
     public List<WorldLink> worldLinks = new ArrayList<>();
 
     // The min and max values for the blocks that the raycast will check
@@ -41,6 +47,13 @@ public class Config {
 
     // Loads the configuration from the given file, setting all the parameters of the class
     public Config(BetterPortals pl, FileConfiguration file)   {
+        this.pl = pl;
+
+        // Call a function to copy all of the keys in the loaded file into the default
+        // config file, in order to add any keys required for a new version
+        // This has the side effect of deleting comments, so it only happens if an update is required
+        file = updateConfigFile(file);
+
         // Load all of the parameters from the config file
         // Calculate the min and max values
         maxXZ = file.getInt("portalEffectSizeXZ");
@@ -89,5 +102,41 @@ public class Config {
             // Add it to the list
             worldLinks.add(newLink);        
         }
+    }
+
+    // Copies the config in the current config file into the default config in order to update it with any values that may have been added in an update
+    private FileConfiguration updateConfigFile(FileConfiguration file) {
+        FileConfiguration defaultConfig = new YamlConfiguration();
+
+        try {
+            // Load the default config from inside the plugin
+            defaultConfig.loadFromString(IOUtils.toString(pl.getResource("config.yml"), StandardCharsets.UTF_8));
+
+            // If the saved config file has the right keys and values, return it since it is on the correct version
+            Set<String> savedFileKeys = file.getKeys(true);
+            if(defaultConfig.getKeys(true).size() == savedFileKeys.size())   {
+                return file;
+            }
+
+            pl.getLogger().info("Updating config file . . .");
+
+            // Copy over all of the config from the loaded file to the default config
+            for(String key : savedFileKeys)   {
+                // Only set the value if it is not a section
+                Object value = file.get(key);
+                if(!(value instanceof ConfigurationSection))  {
+                    defaultConfig.set(key, value);
+                }
+            }
+
+            // Save the default config back to config.yml
+            defaultConfig.save(pl.getDataFolder().toPath().resolve("config.yml").toFile());
+
+        }   catch(Exception e)    {
+            e.printStackTrace(); // Print any exceptions for debugging
+        }
+
+        // Return the default config
+        return defaultConfig;
     }
 }
