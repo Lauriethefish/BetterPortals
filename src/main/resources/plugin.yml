@@ -3,3 +3,8 @@ name: BetterPortals
 version: 0.15
 author: lauriethefish@outlook.com
 api-version: 1.15
+softdepend: [Multiverse-Core]
+
+commands:
+  fakedeleteentity:
+    description: Testing command for the EntityManipulator
