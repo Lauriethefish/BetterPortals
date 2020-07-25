@@ -156,16 +156,23 @@ public class PlayerRayCast implements Runnable {
         }
         return false;
     }
-
+    
     // This function is responsible for iterating over all of the blocks surrounding the portal,
     // and performing a raycast on each of them to check if they should be visible
     @SuppressWarnings("deprecation")
     public void iterateOverBlocks(PlayerData playerData, PortalPos portal) {
         Player player = playerData.player;
+
+        // Optimisation: Check if the player has moved before re-rendering the view
+        Vector currentLoc = player.getLocation().toVector();
+        if(currentLoc.equals(playerData.lastPosition))  {return;}
+        playerData.lastPosition = currentLoc;
         
         // Class to check if a block is visible through the portal
         VisibilityChecker checker = new VisibilityChecker(player.getEyeLocation(), config.rayCastIncrement, config.maxRayCastDistance);
         World originWorld = portal.portalPosition.getWorld();
+        // Find which block we will use as the background
+        BlockData backgroundData = pl.getServer().createBlockData(Material.BLACK_CONCRETE);
 
         // Will be dealt with by a multi block change packet
         Map<Chunk, Map<Block, BlockData>> blockChanges = new HashMap<>();
@@ -203,8 +210,8 @@ public class PlayerRayCast implements Runnable {
                         // blocks showing through from what is really there
                         if((x == config.minXZ || x == config.maxXZ - 1.0 ||
                             y == config.minY || y == config.maxY - 1.0 || z == config.minXZ || z == config.maxXZ - 1.0)
-                            && block.getType().isTransparent()) {
-                            newState = new BlockConfig(aRelativeLoc, pl.getServer().createBlockData(Material.BLACK_CONCRETE));
+                            && (block.getType().isTransparent() || block.isLiquid())) {
+                            newState = new BlockConfig(aRelativeLoc, backgroundData.clone());
                         }   else    {
                             newState = new BlockConfig(aRelativeLoc, block.getBlockData());
                         }
