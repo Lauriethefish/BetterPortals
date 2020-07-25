@@ -1,13 +1,13 @@
 package com.lauriethefish.betterportals;
 
+import com.lauriethefish.betterportals.entitymanipulation.PlayerEntityManipulator;
+
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 // This class stores information about the player, required by the plugin
-// In this instance it only stores one value, the position of the last portal they used
-
 public class PlayerData {
     // Reference to the plugin
     private BetterPortals pl;
@@ -25,13 +25,17 @@ public class PlayerData {
     // Store the surrouding ghost blocks that have been sent to the player so that they can be reverted later.
     public BlockConfig[] surroundingPortalBlockStates;
 
-    // Player's velocity as measured by the PlayerMoveEvent, this gives us a more accurate velocity
-    public Vector velocity = new Vector(0.0, 0.0, 0.0);
+    // Deals with hiding and showing entities
+    public PlayerEntityManipulator entityManipulator;
+
+    // Last position of the player recorded by PlayerRayCast, used to decide whether or not to re-render to portal view
+    public Vector lastPosition = null;
 
     public PlayerData(BetterPortals pl, Player player) {
         this.player = player;
         this.pl = pl;
 
+        //entityManipulator = new PlayerEntityManipulator(pl, this);
         surroundingPortalBlockStates = new BlockConfig[pl.config.totalArrayLength];
     }
 
