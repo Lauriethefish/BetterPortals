@@ -1,8 +1,10 @@
 package com.lauriethefish.betterportals.runnables;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import com.lauriethefish.betterportals.BetterPortals;
 import com.lauriethefish.betterportals.BlockConfig;
@@ -10,14 +12,24 @@ import com.lauriethefish.betterportals.Config;
 import com.lauriethefish.betterportals.PlayerData;
 import com.lauriethefish.betterportals.PortalDirection;
 import com.lauriethefish.betterportals.PortalPos;
+import com.lauriethefish.betterportals.ReflectUtils;
 import com.lauriethefish.betterportals.VisibilityChecker;
 
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.craftbukkit.v1_15_R1.block.data.CraftBlockData;
+import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
+
+import net.minecraft.server.v1_15_R1.ChunkCoordIntPair;
+import net.minecraft.server.v1_15_R1.IBlockData;
+import net.minecraft.server.v1_15_R1.PacketPlayOutMultiBlockChange;
+import net.minecraft.server.v1_15_R1.PacketPlayOutMultiBlockChange.MultiBlockChangeInfo;
 
 // Casts a ray from each player every tick
 // If it passes through the portal, set the end of it to a redstone block
@@ -28,12 +40,14 @@ public class PlayerRayCast implements Runnable {
     // Store a list of all of the currently active portals
     public List<PortalPos> portals = new ArrayList<>();
 
-    // List to store the destinations of any removed portals, these portals will be removed next tick
+    // List to store the destinations of any removed portals, these portals will be
+    // removed next tick
     public List<Location> removedDestinations = new ArrayList<>();
 
     public PlayerRayCast(BetterPortals pl) {
         this.pl = pl;
         this.config = pl.config;
+
         // Set the task to run every tick
         pl.getServer().getScheduler().scheduleSyncRepeatingTask(pl, this, 0, 1);
     }
@@ -153,6 +167,9 @@ public class PlayerRayCast implements Runnable {
         VisibilityChecker checker = new VisibilityChecker(player.getEyeLocation(), config.rayCastIncrement, config.maxRayCastDistance);
         World originWorld = portal.portalPosition.getWorld();
 
+        // Will be dealt with by a multi block change packet
+        Map<Chunk, Map<Block, BlockData>> blockChanges = new HashMap<>();
+
         // Loop through all blocks around the portal
         for(double z = config.minXZ; z < config.maxXZ; z++) {
             // If the blocks are directly adjacant to the portal, skip the rest of the loop
@@ -170,7 +187,7 @@ public class PlayerRayCast implements Runnable {
                     // Convert it to a location for use later
                     Location aRelativeLoc = aRelativeVec.toLocation(originWorld);
 
-                    // Calculate the location of the blocks at portal b
+                    // Calculate the location of the blocks at the other side of the portal
                     Location bRelativeLoc = portal.applyTransformationsDestination(position).toLocation(portal.destinationPosition.getWorld());   
                 
                     // Check if the block is visible
@@ -214,11 +231,50 @@ public class PlayerRayCast implements Runnable {
                     // If we are overwriting the block, change it in the player's block array and send them a block update
                     if(overwrite) {
                         playerData.surroundingPortalBlockStates[index] = newState;
-                        player.sendBlockChange(aRelativeLoc, newState.data);
+                        // Find if a list of changes for this chunk exists
+                        Chunk chunk = aRelativeLoc.getChunk();
+                        if(!blockChanges.containsKey(chunk))   {
+                            blockChanges.put(chunk, new HashMap<>());
+                        }
+
+                        // Add the change
+                        blockChanges.get(chunk).put(aRelativeLoc.getBlock(), newState.data);
                     }
                 }
             }
         }
+
+        // Send all the block changes
+        for(Map.Entry<Chunk, Map<Block, BlockData>> entry : blockChanges.entrySet())   {
+            sendMultiBlockChange(entry.getValue(), entry.getKey(), player);
+        }
+    }
+
+    // Constructs a multiple block change packet from the given blocks, and sends it to the player
+    // All the blocks MUST be in the same chunk
+    private void sendMultiBlockChange(Map<Block, BlockData> blocks, Chunk chunk, Player player) {
+        // Make a new PacketPlayOutMultiBlockChange
+        PacketPlayOutMultiBlockChange packet = new PacketPlayOutMultiBlockChange();
+        ReflectUtils.setField(packet, PacketPlayOutMultiBlockChange.class, "a", new ChunkCoordIntPair(chunk.getX(), chunk.getZ()));
+
+        // Loop through each block in the map
+        MultiBlockChangeInfo[] array = new MultiBlockChangeInfo[blocks.size()];
+        int i = 0;
+        for(Map.Entry<Block, BlockData> entry : blocks.entrySet())   {
+            Block block = entry.getKey();
+            // Find the chunk relative position
+            int x = block.getX() & 15;
+            int z = block.getZ() & 15;
+
+            // Make the NMS MultiBlockChangeInfo object
+            IBlockData data = ((CraftBlockData) entry.getValue()).getState();
+            MultiBlockChangeInfo info = packet.new MultiBlockChangeInfo((short) (x << 12 | z << 8 | block.getY()), data);
+            array[i] = info; i++;
+        }
+
+        // Set it in the packet
+        ReflectUtils.setField(packet, PacketPlayOutMultiBlockChange.class, "b", array);
+        ((CraftPlayer) player).getHandle().playerConnection.sendPacket(packet); // Send the packet
     }
 
     @Override
