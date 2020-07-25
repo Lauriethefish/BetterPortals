@@ -5,6 +5,8 @@ author: lauriethefish@outlook.com
 api-version: 1.15
 softdepend: [Multiverse-Core]
 
-commands:
-  fakedeleteentity:
-    description: Testing command for the EntityManipulator
+#commands:
+#  fakedeleteentity:
+#    description: Testing command for the EntityManipulator
+#  multiblockchangetest:
+#    description: Testing command
