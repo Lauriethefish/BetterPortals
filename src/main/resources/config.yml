@@ -5,10 +5,10 @@
 # The number of blocks that the portal effect will render
 # to the up, down, forwards and backwards of the portal
 # (the total width of the effect is twice this)
-portalEffectSizeXZ: 8
+portalEffectSizeXZ: 13
 
 # Same as the previous, but up/down instead
-portalEffectSizeY: 5
+portalEffectSizeY: 7
 
 # The closest portal in this range will be activated
 # All others are discarded
