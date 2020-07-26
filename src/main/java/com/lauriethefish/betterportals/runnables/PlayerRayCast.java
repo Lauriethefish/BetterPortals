@@ -1,5 +1,6 @@
 package com.lauriethefish.betterportals.runnables;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -21,15 +22,8 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.craftbukkit.v1_15_R1.block.data.CraftBlockData;
-import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
-
-import net.minecraft.server.v1_15_R1.ChunkCoordIntPair;
-import net.minecraft.server.v1_15_R1.IBlockData;
-import net.minecraft.server.v1_15_R1.PacketPlayOutMultiBlockChange;
-import net.minecraft.server.v1_15_R1.PacketPlayOutMultiBlockChange.MultiBlockChangeInfo;
 
 // Casts a ray from each player every tick
 // If it passes through the portal, set the end of it to a redstone block
@@ -261,11 +255,19 @@ public class PlayerRayCast implements Runnable {
     // All the blocks MUST be in the same chunk
     private void sendMultiBlockChange(Map<Block, BlockData> blocks, Chunk chunk, Player player) {
         // Make a new PacketPlayOutMultiBlockChange
-        PacketPlayOutMultiBlockChange packet = new PacketPlayOutMultiBlockChange();
-        ReflectUtils.setField(packet, PacketPlayOutMultiBlockChange.class, "a", new ChunkCoordIntPair(chunk.getX(), chunk.getZ()));
+        Class<?> packetClass = ReflectUtils.getMcClass("PacketPlayOutMultiBlockChange");
+        Object packet = ReflectUtils.newInstance(packetClass);
+
+        // Find the coords of the chunk
+        Object chunkCoords = ReflectUtils.newInstance("ChunkCoordIntPair", new Class[]{int.class, int.class},
+                                                        new Object[]{chunk.getX(), chunk.getZ()});
+        
+        ReflectUtils.setField(packet, "a", chunkCoords);
 
         // Loop through each block in the map
-        MultiBlockChangeInfo[] array = new MultiBlockChangeInfo[blocks.size()];
+        Class<?> infoClass = ReflectUtils.getMcClass("PacketPlayOutMultiBlockChange$MultiBlockChangeInfo");
+        Class<?> blockDataClass = ReflectUtils.getBukkitClass("block.data.CraftBlockData");
+        Object array = Array.newInstance(infoClass, blocks.size());
         int i = 0;
         for(Map.Entry<Block, BlockData> entry : blocks.entrySet())   {
             Block block = entry.getKey();
@@ -274,14 +276,19 @@ public class PlayerRayCast implements Runnable {
             int z = block.getZ() & 15;
 
             // Make the NMS MultiBlockChangeInfo object
-            IBlockData data = ((CraftBlockData) entry.getValue()).getState();
-            MultiBlockChangeInfo info = packet.new MultiBlockChangeInfo((short) (x << 12 | z << 8 | block.getY()), data);
-            array[i] = info; i++;
+            Object data = ReflectUtils.getField(entry.getValue(), blockDataClass, "state");
+            Object info = ReflectUtils.newInstance(infoClass, new Class[]{packetClass, short.class, ReflectUtils.getMcClass("IBlockData")},
+                                                new Object[]{packet, (short) (x << 12 | z << 8 | block.getY()), data});
+            Array.set(array, i, info); i++;
         }
 
         // Set it in the packet
-        ReflectUtils.setField(packet, PacketPlayOutMultiBlockChange.class, "b", array);
-        ((CraftPlayer) player).getHandle().playerConnection.sendPacket(packet); // Send the packet
+        ReflectUtils.setField(packet, "b", array);
+
+        // Send the packet using more reflection stuff
+        Object craftPlayer = ReflectUtils.runMethod(player, "getHandle");
+        Object connection = ReflectUtils.getField(craftPlayer, "playerConnection");
+        ReflectUtils.runMethod(connection, "sendPacket", new Class[]{ReflectUtils.getMcClass("Packet")}, new Object[]{packet});
     }
 
     @Override
