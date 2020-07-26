@@ -1,6 +1,8 @@
 package com.lauriethefish.betterportals;
 
-import java.nio.charset.StandardCharsets;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -9,7 +11,6 @@ import java.util.Set;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.craftbukkit.libs.org.apache.commons.io.IOUtils;
 import org.bukkit.util.Vector;
 
 // Stores all of the configuration for the BetterPortals plugin, so that it can be
@@ -104,13 +105,30 @@ public class Config {
         }
     }
 
+    // Reads everything inside a resource of the JAR to a string
+    private String readResourceToString(String name)    {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(pl.getResource(name)));
+        StringBuffer buffer = new StringBuffer();
+        String str;
+        try {
+            while((str = reader.readLine()) != null) {
+                buffer.append(str);
+            }
+        } catch(IOException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+
+        return buffer.toString();
+    }
+
     // Copies the config in the current config file into the default config in order to update it with any values that may have been added in an update
     private FileConfiguration updateConfigFile(FileConfiguration file) {
         FileConfiguration defaultConfig = new YamlConfiguration();
 
         try {
             // Load the default config from inside the plugin
-            defaultConfig.loadFromString(IOUtils.toString(pl.getResource("config.yml"), StandardCharsets.UTF_8));
+            defaultConfig.loadFromString(readResourceToString("config.yml"));
 
             // If the saved config file has the right keys and values, return it since it is on the correct version
             Set<String> savedFileKeys = file.getKeys(true);
