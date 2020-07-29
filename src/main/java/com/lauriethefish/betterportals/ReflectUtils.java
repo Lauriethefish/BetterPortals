@@ -92,9 +92,9 @@ public class ReflectUtils {
     }
 
     // Runs the names method on the given object with the given args
-    public static Object runMethod(Object obj, String name, Class<?>[] params, Object[] args)    {
+    public static Object runMethod(Object obj, Class<?> cla, String name, Class<?>[] params, Object[] args)    {
         try {
-            Method method = obj.getClass().getDeclaredMethod(name, params);
+            Method method = cla.getDeclaredMethod(name, params);
             method.setAccessible(true);
             Object result = method.invoke(obj, args);
             return result;
@@ -102,6 +102,10 @@ public class ReflectUtils {
             ex.printStackTrace();
             return null;
         }
+    }
+
+    public static Object runMethod(Object obj, String name, Class<?>[] params, Object[] args)       {
+        return runMethod(obj, obj.getClass(), name, params, args);
     }
 
     // Makes a new instance of the given NMS class name and args
