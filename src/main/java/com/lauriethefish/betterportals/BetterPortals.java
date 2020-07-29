@@ -35,19 +35,19 @@ public class BetterPortals extends JavaPlugin {
         try {
             storage = new PortalStorage(this);
         }   catch(Exception e)  {
-            getLogger().info(ChatColor.RED + "Error loading portal data file, this could be due to lack of read file access");
-            return;
+            getLogger().warning(ChatColor.RED + "Error loading portal data file, this could be due to lack of read file access");
+            getServer().getPluginManager().disablePlugin(this); return;
         }
         // Load the config
         try {
             loadConfig();
         }   catch(Exception e)  {
-            getLogger().info(ChatColor.RED + "Error loading config, this is likely because it is invalid YAML. Please check the file for any mistakes");
-            return;
+            getLogger().warning(ChatColor.RED + "Error loading config, this is likely because it is invalid YAML. Please check the file for any mistakes");
+            e.printStackTrace();
+            getServer().getPluginManager().disablePlugin(this); return;
         }
-        // Tell spigot what to call when the commands from our plugin are put into chat
+
         registerCommands();
-        // Tell spigot to call our events when they should be fired
         registerEvents();
 
         // Add the PlayerData for every online player in order to support /reload
@@ -60,8 +60,9 @@ public class BetterPortals extends JavaPlugin {
         try {
             rayCastingSystem.portals = storage.loadPortals();
         }   catch(Exception e)  {
-            getLogger().info(ChatColor.RED + "Error parsing portal data file, this is likely because it is invalid yaml");
+            getLogger().warning(ChatColor.RED + "Error parsing portal data file, this is likely because it is invalid yaml");
             e.printStackTrace();
+            getServer().getPluginManager().disablePlugin(this);
         }
     }
 
@@ -72,7 +73,8 @@ public class BetterPortals extends JavaPlugin {
         try {
             storage.savePortals(rayCastingSystem.portals);
         }   catch(Exception e)    {
-            getLogger().info(ChatColor.RED + "Error saving portal data. This could be due to lack of write file access");
+            getLogger().warning(ChatColor.RED + "Error saving portal data. This could be due to lack of write file access");
+            e.printStackTrace();
         }
     }
 
