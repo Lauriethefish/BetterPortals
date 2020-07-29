@@ -117,7 +117,7 @@ public class Config {
         String str;
         try {
             while((str = reader.readLine()) != null) {
-                buffer.append(str);
+                buffer.append(str); buffer.append("\n");
             }
         } catch(IOException ex) {
             ex.printStackTrace();
