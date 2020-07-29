@@ -1,6 +1,6 @@
 main: com.lauriethefish.betterportals.BetterPortals
 name: BetterPortals
-version: 0.21
+version: 0.22
 author: lauriethefish@outlook.com
 api-version: 1.14
 softdepend: [Multiverse-Core]
