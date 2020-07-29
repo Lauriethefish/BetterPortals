@@ -13,6 +13,9 @@ portalEffectSizeY: 7
 # The closest portal in this range will be activated
 # All others are discarded
 portalActivationDistance: 20
+
+portalBlockUpdateInterval: 60 # How often the portal will re-check for the blocks around it
+
 # The distance that the ray from the ray cast system used to calculate
 # the view frustrum will be advanced each iteration
 # Increasing this beyond 0.7 can cause strange behaviour, but should help performance

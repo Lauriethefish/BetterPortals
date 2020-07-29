@@ -1,17 +1,16 @@
 package com.lauriethefish.betterportals;
 
+import java.util.HashMap;
+
 import com.lauriethefish.betterportals.entitymanipulation.PlayerEntityManipulator;
 
 import org.bukkit.Location;
-import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 // This class stores information about the player, required by the plugin
 public class PlayerData {
-    // Reference to the plugin
-    private BetterPortals pl;
-
     // Reference to the player
     public Player player;
     // The destination of the last portal that they used
@@ -22,8 +21,8 @@ public class PlayerData {
     // The last portal that had the portal effect active.
     // If this changes, then the ghost blocks sent to the player are reset to avoid phantom blocks breaking the illusion
     public PortalPos lastActivePortal = null;
-    // Store the surrouding ghost blocks that have been sent to the player so that they can be reverted later.
-    public BlockConfig[] surroundingPortalBlockStates;
+    // Store the surrouding blocks that have been sent to the player (false = the player can see the origin block, true = the player can see the destination block)
+    public HashMap<Vector, BlockData> surroundingPortalBlockStates = new HashMap<>();
 
     // Deals with hiding and showing entities
     public PlayerEntityManipulator entityManipulator;
@@ -31,34 +30,25 @@ public class PlayerData {
     // Last position of the player recorded by PlayerRayCast, used to decide whether or not to re-render to portal view
     public Vector lastPosition = null;
 
-    public PlayerData(BetterPortals pl, Player player) {
+    public PlayerData(Player player) {
         this.player = player;
-        this.pl = pl;
 
         //entityManipulator = new PlayerEntityManipulator(pl, this);
-        surroundingPortalBlockStates = new BlockConfig[pl.config.totalArrayLength];
     }
 
     // Resets all of the ghost block updates that have been set to the player
     // This also has the effect of changing surroundingPortalBlockStates to be all null
-    @SuppressWarnings("deprecation")
     public void resetSurroundingBlockStates()   {
-        // Loop through all of the potential ghost blocks
-        for(BlockConfig state : surroundingPortalBlockStates)   {
-            // If a block has not been changed, skip it
-            if(state == null)   {continue;}
-            // Check if the block is in the right world
-            if(state.location.getWorld() != player.getWorld())  {break;}
-
-            // Check if the block is in an incorrect state,
-            // if it is, set it back to what it should be
-            Block block = state.location.getBlock();
-            if(!(block.getBlockData().equals(state.data)))   {
-                player.sendBlockChange(state.location, block.getType(), block.getData());
-            }
+        // If the last portal was in a different world, we don't need to reset the blocks
+        if(lastActivePortal == null || lastActivePortal.portalPosition.getWorld() != player.getWorld()) {
+            return;
         }
 
-        // Reset surroundingPortalBlockStates to be all null
-        surroundingPortalBlockStates = new BlockConfig[pl.config.totalArrayLength];
+        // Loop through all of the potential ghost blocks
+        for(BlockRaycastData data : lastActivePortal.currentBlocks)   {
+            player.sendBlockChange(data.originVec.toLocation(player.getWorld()), data.originData);
+        }
+
+        surroundingPortalBlockStates = new HashMap<>();
     }
 }

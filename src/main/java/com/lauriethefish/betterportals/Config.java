@@ -46,6 +46,9 @@ public class Config {
     // The offset of the portal's collision box
     public Vector portalCollisionBox;
 
+    // How often the portal re-checks its surrounding blocks
+    public int portalBlockUpdateInterval;
+
     // Loads the configuration from the given file, setting all the parameters of the class
     public Config(BetterPortals pl, FileConfiguration file)   {
         this.pl = pl;
@@ -68,6 +71,8 @@ public class Config {
         totalArrayLength = yMultip * zMultip;
 
         portalActivationDistance = file.getDouble("portalActivationDistance");
+        portalBlockUpdateInterval = file.getInt("portalBlockUpdateInterval");
+
         rayCastIncrement = file.getDouble("rayCastIncrement");
         maxRayCastDistance = file.getDouble("maxRayCastDistance");
 

@@ -6,9 +6,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import com.lauriethefish.betterportals.BetterPortals;
-import com.lauriethefish.betterportals.BlockConfig;
+import com.lauriethefish.betterportals.BlockRaycastData;
+import com.lauriethefish.betterportals.ChunkCoordIntPair;
 import com.lauriethefish.betterportals.Config;
 import com.lauriethefish.betterportals.PlayerData;
 import com.lauriethefish.betterportals.PortalDirection;
@@ -16,11 +19,8 @@ import com.lauriethefish.betterportals.PortalPos;
 import com.lauriethefish.betterportals.ReflectUtils;
 import com.lauriethefish.betterportals.VisibilityChecker;
 
-import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -38,15 +38,37 @@ public class PlayerRayCast implements Runnable {
     // removed next tick
     public List<Location> removedDestinations = new ArrayList<>();
 
+    private BlockingQueue<PortalUpdateData> updateQueue = new LinkedBlockingQueue<>();
+    public Thread renderThread;
+    private class PortalUpdateData  { // Class to store data that is sent to another thread that handles the portal updates, since we cannot get this through bukkit if not on the main thread
+        public PlayerData playerData;
+        public VisibilityChecker checker;
+        public PortalPos portal;
+        public PortalUpdateData(PlayerData playerData, VisibilityChecker checker, PortalPos portal)   {
+            this.playerData = playerData; this.portal = portal; this.checker = checker;
+        }
+    }
+
     public PlayerRayCast(BetterPortals pl) {
         this.pl = pl;
         this.config = pl.config;
+
+        // Spawn a new thread to handle updating the portal
+        new Thread(() -> {
+            while(pl.isEnabled()) { // Make sure the thread stops when the plugin is disabled
+                try {
+                    handleUpdate(updateQueue.take());
+                }   catch(InterruptedException ex)  {
+                    ex.printStackTrace();
+                }
+            }
+        }).start();
 
         // Set the task to run every tick
         pl.getServer().getScheduler().scheduleSyncRepeatingTask(pl, this, 0, 1);
     }
 
-    private Vector moveVectorToCenterOfBlock(Vector vec)  {
+    public static Vector moveVectorToCenterOfBlock(Vector vec)  {
         return new Vector(Math.floor(vec.getX()) + 0.5, Math.floor(vec.getY()) + 0.5, Math.floor(vec.getZ()) + 0.5);
     }
 
@@ -134,8 +156,7 @@ public class PlayerRayCast implements Runnable {
                     }   else    {
                         newLoc.setYaw(newLoc.getYaw() - 90.0f);
                     }
-                }
-                        
+                }      
                 // Teleport them to the modified vector
                 player.teleport(newLoc);
                 
@@ -153,114 +174,64 @@ public class PlayerRayCast implements Runnable {
     
     // This function is responsible for iterating over all of the blocks surrounding the portal,
     // and performing a raycast on each of them to check if they should be visible
-    @SuppressWarnings("deprecation")
-    public void iterateOverBlocks(PlayerData playerData, PortalPos portal) {
-        Player player = playerData.player;
-
+    public void queueUpdate(PlayerData playerData, PortalPos portal) {
         // Optimisation: Check if the player has moved before re-rendering the view
-        Vector currentLoc = player.getLocation().toVector();
+        Vector currentLoc = playerData.player.getLocation().toVector();
         if(currentLoc.equals(playerData.lastPosition))  {return;}
         playerData.lastPosition = currentLoc;
         
         // Class to check if a block is visible through the portal
-        VisibilityChecker checker = new VisibilityChecker(player.getEyeLocation(), config.rayCastIncrement, config.maxRayCastDistance);
-        World originWorld = portal.portalPosition.getWorld();
-        // Find which block we will use as the background
-        BlockData backgroundData = pl.getServer().createBlockData(Material.BLACK_CONCRETE);
+        VisibilityChecker checker = new VisibilityChecker(playerData.player.getEyeLocation(), config.rayCastIncrement, config.maxRayCastDistance);
 
+        updateQueue.add(new PortalUpdateData(playerData, checker, portal));
+    }
+
+    private void handleUpdate(PortalUpdateData data)    {
+        ArrayList<BlockRaycastData> currentBlocks = data.portal.currentBlocks; // Store the current blocks incase they change while being processed
         // Will be dealt with by a multi block change packet
-        Map<Chunk, Map<Block, BlockData>> blockChanges = new HashMap<>();
+        Map<ChunkCoordIntPair, Map<Vector, BlockData>> blockChanges = new HashMap<>();
+        for(int i = 0; i < currentBlocks.size(); i++)    {
+            BlockRaycastData raycastData = currentBlocks.get(i);
+            
+            // Convert it to a location for use later
+            Vector aRelativePos = raycastData.originVec;
+        
+            // Check if the block is visible
+            boolean visible = data.checker.checkIfBlockVisible(raycastData.originVec, data.portal.portalBL, data.portal.portalTR);
 
-        // Loop through all blocks around the portal
-        for(double z = config.minXZ; z < config.maxXZ; z++) {
-            // If the blocks are directly adjacant to the portal, skip the rest of the loop
-            // This is because these blocks tend to glitch and show as visible when they shouldn't be
-            // Directly adjacant is 0 on either the x or y axis, depending on the direction of the portal
-            if(portal.portalDirection == PortalDirection.EAST_WEST && z == 0.0) {continue;}
-            for(double y = config.minY; y < config.maxY; y++) {
-                for(double x = config.minXZ; x < config.maxXZ; x++) {
-                    if(portal.portalDirection == PortalDirection.NORTH_SOUTH && x == 0.0) {continue;}
-                    Vector position = new Vector(x, y, z);
+            BlockData oldState = data.playerData.surroundingPortalBlockStates.get(raycastData.originVec); // Find if it was visible last tick
+            BlockData newState = visible ? raycastData.destData : raycastData.originData;
 
-                    // Get the position of the blocks at portal a, making sure it is 0.5 from the BL of the block
-                    Vector aRelativeVec = moveVectorToCenterOfBlock(portal.applyTransformationsOrigin(position.clone()));
-                    
-                    // Convert it to a location for use later
-                    Location aRelativeLoc = aRelativeVec.toLocation(originWorld);
+            // If we are overwriting the block, change it in the player's block array and send them a block update
+            if(!newState.equals(oldState)) {
+                data.playerData.surroundingPortalBlockStates.put(raycastData.originVec, newState);
 
-                    // Calculate the location of the blocks at the other side of the portal
-                    Location bRelativeLoc = portal.applyTransformationsDestination(position).toLocation(portal.destinationPosition.getWorld());   
-                
-                    // Check if the block is visible
-                    boolean visible = checker.checkIfBlockVisible(aRelativeVec, portal.portalBL, portal.portalTR);
-
-                    BlockConfig newState = null;
-                    // If it is visible, send the player the block relative to portal b
-                    if(visible) {
-                        Block block = bRelativeLoc.getBlock();
-
-                        // Check if we are on one of the outer blocks
-                        // If the block type is transparent (using the deprecated method, since I'm not gonna write out a ton of block names) then we set it to black concrete to avoid
-                        // blocks showing through from what is really there
-                        if((x == config.minXZ || x == config.maxXZ - 1.0 ||
-                            y == config.minY || y == config.maxY - 1.0 || z == config.minXZ || z == config.maxXZ - 1.0)
-                            && (block.getType().isTransparent() || block.isLiquid())) {
-                            newState = new BlockConfig(aRelativeLoc, backgroundData.clone());
-                        }   else    {
-                            newState = new BlockConfig(aRelativeLoc, block.getBlockData());
-                        }
-                    }   else    {
-                        // Otherwise, reset the block back to what it should be
-                        Block block = aRelativeLoc.getBlock();
-                        newState = new BlockConfig(aRelativeLoc, block.getBlockData());
-                    }
-
-                    // Calculate the index of this block in the players block array
-                    int index = ((int) (Math.floor(x) - config.minXZ)) + ((int) (y - config.minY))
-                        * config.yMultip + ((int) (z - config.minXZ)) * config.zMultip;
-                    BlockConfig listedState = playerData.surroundingPortalBlockStates[index];
-
-                    boolean overwrite;
-                    // If the listed state is null, then we overwrite the block,
-                    // Otherwise, we check if the block is different, and only overwrite if it is
-                    if(listedState == null) {
-                        overwrite = true;
-                    }   else    {
-                        overwrite = !newState.equals(listedState);
-                    }  
-
-                    // If we are overwriting the block, change it in the player's block array and send them a block update
-                    if(overwrite) {
-                        playerData.surroundingPortalBlockStates[index] = newState;
-                        // Find if a list of changes for this chunk exists
-                        Chunk chunk = aRelativeLoc.getChunk();
-                        if(!blockChanges.containsKey(chunk))   {
-                            blockChanges.put(chunk, new HashMap<>());
-                        }
-
-                        // Add the change
-                        blockChanges.get(chunk).put(aRelativeLoc.getBlock(), newState.data);
-                    }
+                // Find if a list of changes for this chunk exists
+                ChunkCoordIntPair chunk = new ChunkCoordIntPair(aRelativePos);
+                if(!blockChanges.containsKey(chunk))   {
+                    blockChanges.put(chunk, new HashMap<>());
                 }
+
+                // Add the change
+                blockChanges.get(chunk).put(aRelativePos, newState);
             }
         }
 
         // Send all the block changes
-        for(Map.Entry<Chunk, Map<Block, BlockData>> entry : blockChanges.entrySet())   {
-            sendMultiBlockChange(entry.getValue(), entry.getKey(), player);
+        for(Map.Entry<ChunkCoordIntPair, Map<Vector, BlockData>> entry : blockChanges.entrySet())   {
+            sendMultiBlockChange(entry.getValue(), entry.getKey(), data.playerData.player);
         }
     }
 
     // Constructs a multiple block change packet from the given blocks, and sends it to the player
     // All the blocks MUST be in the same chunk
-    private void sendMultiBlockChange(Map<Block, BlockData> blocks, Chunk chunk, Player player) {
+    private void sendMultiBlockChange(Map<Vector, BlockData> blocks, ChunkCoordIntPair chunk, Player player) {
         // Make a new PacketPlayOutMultiBlockChange
         Class<?> packetClass = ReflectUtils.getMcClass("PacketPlayOutMultiBlockChange");
         Object packet = ReflectUtils.newInstance(packetClass);
 
         // Find the coords of the chunk
-        Object chunkCoords = ReflectUtils.newInstance("ChunkCoordIntPair", new Class[]{int.class, int.class},
-                                                        new Object[]{chunk.getX(), chunk.getZ()});
+        Object chunkCoords = chunk.toNMS();
         
         ReflectUtils.setField(packet, "a", chunkCoords);
 
@@ -269,16 +240,16 @@ public class PlayerRayCast implements Runnable {
         Class<?> blockDataClass = ReflectUtils.getBukkitClass("block.data.CraftBlockData");
         Object array = Array.newInstance(infoClass, blocks.size());
         int i = 0;
-        for(Map.Entry<Block, BlockData> entry : blocks.entrySet())   {
-            Block block = entry.getKey();
+        for(Map.Entry<Vector, BlockData> entry : blocks.entrySet())   {
+            Vector loc = entry.getKey();
             // Find the chunk relative position
-            int x = block.getX() & 15;
-            int z = block.getZ() & 15;
+            int x = loc.getBlockX() & 15;
+            int z = loc.getBlockZ() & 15;
 
             // Make the NMS MultiBlockChangeInfo object
             Object data = ReflectUtils.getField(entry.getValue(), blockDataClass, "state");
             Object info = ReflectUtils.newInstance(infoClass, new Class[]{packetClass, short.class, ReflectUtils.getMcClass("IBlockData")},
-                                                new Object[]{packet, (short) (x << 12 | z << 8 | block.getY()), data});
+                                                new Object[]{packet, (short) (x << 12 | z << 8 | loc.getBlockY()), data});
             Array.set(array, i, info); i++;
         }
 
@@ -293,6 +264,14 @@ public class PlayerRayCast implements Runnable {
 
     @Override
     public void run() {
+        // Verify that all of the updates from the last tick have finished processing
+        // Generally this shouldn't stop the thread
+        while(!updateQueue.isEmpty())   {
+            try {
+                Thread.sleep(5);
+            }   catch(InterruptedException ex)  {ex.printStackTrace();}
+        }
+
         // Loop through every online player
         for (Player player : pl.getServer().getOnlinePlayers()) {
             PlayerData playerData = pl.players.get(player.getUniqueId());
@@ -303,9 +282,10 @@ public class PlayerRayCast implements Runnable {
             // If the portal that is currently active is different to the one that was active before,
             // We reset the surrounding blocks from the previous portal so that the player does not see blocks
             // where they shouldn't be
+
             if(playerData.lastActivePortal != portal)    {
-                playerData.lastActivePortal = portal;
                 playerData.resetSurroundingBlockStates();
+                playerData.lastActivePortal = portal;
             }
 
             // If no portals were found, skip the rest of the loop
@@ -313,15 +293,17 @@ public class PlayerRayCast implements Runnable {
                 continue;
             }
 
+            // Create the player's block state array if necessary
+            portal.findCurrentBlocks();
+
             // Teleport the player if they are inside a portal
             // If the player teleported, exit the loop as they are no longer near the target portal
             if(performPlayerTeleport(playerData, portal))    {
                 continue;
             }
 
-            // Iterates over all of the blocks surrounding the portal
-            // This function is responsible for the portal effect
-            iterateOverBlocks(playerData, portal);
+            // Queue the update to happen on another thread
+            queueUpdate(playerData, portal);
         }
     }
 }

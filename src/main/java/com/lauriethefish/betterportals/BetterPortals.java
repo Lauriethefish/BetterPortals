@@ -86,7 +86,7 @@ public class BetterPortals extends JavaPlugin {
         // For each online player
         for(Player player : getServer().getOnlinePlayers()) {
             // Add a new player data with the player's UUID
-            players.put(player.getUniqueId(), new PlayerData(this, player));
+            players.put(player.getUniqueId(), new PlayerData(player));
         }
     }
 

@@ -1,13 +1,18 @@
 package com.lauriethefish.betterportals;
 
+import java.util.ArrayList;
+
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.WorldBorder;
+import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.util.Vector;
 
 // Stores all of the attributes required for one direction of a portal
 // Two of these should be created per portal, one for the effect on each side
 public class PortalPos {
+    private BetterPortals pl;
     // Corners of the portals collision box
     public Vector portalBL;
     public Vector portalTR;
@@ -23,6 +28,20 @@ public class PortalPos {
     // The size of the portal's gateway in blocks
     public Vector portalSize;
 
+    // Array of the blocks at the destination of the portal that need checking for visibility
+    public ArrayList<BlockRaycastData> currentBlocks;
+    private int ticksSinceLastRebuild = Integer.MAX_VALUE;
+
+    // Offsets for checking if a block needs to be rendered
+    private static final int[][] offsets = new int[][]{
+        new int[]{1, 0, 0},
+        new int[]{-1, 0, 0},
+        new int[]{0, 1, 0},
+        new int[]{0, -1, 0},
+        new int[]{0, 0, 1},
+        new int[]{0, 0, -1},
+    };
+
     // Constructor to generate the collision box for a given portal
     // NOTE: The portalPosition must be the EXACT center of the portal on the x, y and z
     public PortalPos(BetterPortals pl, Location portalPosition, PortalDirection portalDirection, 
@@ -34,6 +53,7 @@ public class PortalPos {
         this.destinationPosition = destinationPosition;
         this.destinationDirection = destinationDirection;
         this.portalSize = portalSize;
+        this.pl = pl;
         
         // Divide the size by 2 so it is the correct amount to subtract from the center to reach each corner
         // Then orient it so that is on the z if the portal is north/south
@@ -87,5 +107,66 @@ public class PortalPos {
                 // since portals outside the worldborder should be broken
                 border.isInside(portalPosition.clone().subtract(subAmount)) &&
                 border.isInside(portalPosition.clone().add(subAmount));
+    }
+
+    // Finds if the given offset from the portal is see through, returns true if an edge block or outside
+    private boolean isSurroundingBlockTransparent(double x, double y, double z, int[] offset)    {
+        double maxXZ = pl.config.maxXZ; double minXZ = pl.config.minXZ;
+        double maxY = pl.config.maxY; double minY = pl.config.minY;
+        x += offset[0]; y += offset[1]; z += offset[2];
+
+        // Check if the block is outside
+        if(x >= maxXZ || x <= minXZ || z >= maxXZ || z <= minXZ || y <= minY || y >= maxY)  {
+            return false;
+        }
+
+        Block block = destinationPosition.clone().add(x, y, z).getBlock();
+        return !block.getType().isSolid() || block.isLiquid(); // Return true if the block was transparent
+    }
+
+    // Loops through the blocks at the destination position, and finds the ones that aren't obscured by other solid blocks
+    public void findCurrentBlocks()  {
+        Config config = pl.config;
+
+        // Make sure that the portal only updates its blocks if it is the correct time
+        if(ticksSinceLastRebuild < config.portalBlockUpdateInterval)    {
+            ticksSinceLastRebuild++;
+            return;
+        }
+        ticksSinceLastRebuild = 0;
+
+        BlockData edgeBlock = pl.getServer().createBlockData(Material.BLACK_CONCRETE);
+
+        ArrayList<BlockRaycastData> newBlocks = new ArrayList<>();
+        // Loop through all blocks around the portal
+        for(double z = config.minXZ; z <= config.maxXZ; z++) {
+        if(portalDirection == PortalDirection.EAST_WEST && z == 0.0) {continue;}
+            for(double y = config.minY; y <= config.maxY; y++) {
+                for(double x = config.minXZ; x <= config.maxXZ; x++) {
+                    if(portalDirection == PortalDirection.NORTH_SOUTH && x == 0.0) {continue;}
+
+                    boolean edge = x == config.maxXZ || x == config.minXZ || z == config.maxXZ || z == config.minXZ || y == config.maxY || y == config.minY;
+
+                    Location originLoc = portalPosition.clone().add(x, y, z);
+                    Location destLoc = destinationPosition.clone().add(x, y, z);
+                    
+                    BlockData type = edge ? edgeBlock : destLoc.getBlock().getBlockData();
+                    // First check if the block is visible from any neighboring block
+                    boolean allSolid = true;
+                    for(int[] offset : offsets) {
+                        if(isSurroundingBlockTransparent(x, y, z, offset))  {
+                            allSolid = false;
+                            break;
+                        }
+                    }
+
+                    // If the block is bordered by at least one transparent block, add it to the list
+                    if(!allSolid)    {
+                        newBlocks.add(new BlockRaycastData(originLoc, destLoc, type));
+                    }
+                }
+            }
+        }
+        currentBlocks = newBlocks;
     }
 }
