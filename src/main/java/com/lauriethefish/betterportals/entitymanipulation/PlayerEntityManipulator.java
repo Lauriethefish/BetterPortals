@@ -9,36 +9,19 @@ import java.util.UUID;
 
 import com.lauriethefish.betterportals.BetterPortals;
 import com.lauriethefish.betterportals.PlayerData;
+import com.lauriethefish.betterportals.ReflectUtils;
 
-import org.apache.commons.lang.reflect.FieldUtils;
-import org.bukkit.craftbukkit.v1_15_R1.entity.CraftEntity;
-import org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_15_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ExperienceOrb;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Painting;
 import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
-
-import net.minecraft.server.v1_15_R1.EntityExperienceOrb;
-import net.minecraft.server.v1_15_R1.EntityLiving;
-import net.minecraft.server.v1_15_R1.EntityPainting;
-import net.minecraft.server.v1_15_R1.EnumItemSlot;
-import net.minecraft.server.v1_15_R1.Packet;
-import net.minecraft.server.v1_15_R1.PacketListenerPlayOut;
-import net.minecraft.server.v1_15_R1.PacketPlayOutEntityDestroy;
-import net.minecraft.server.v1_15_R1.PacketPlayOutEntityEquipment;
-import net.minecraft.server.v1_15_R1.PacketPlayOutEntityTeleport;
-import net.minecraft.server.v1_15_R1.PacketPlayOutSpawnEntity;
-import net.minecraft.server.v1_15_R1.PacketPlayOutSpawnEntityExperienceOrb;
-import net.minecraft.server.v1_15_R1.PacketPlayOutSpawnEntityLiving;
-import net.minecraft.server.v1_15_R1.PacketPlayOutSpawnEntityPainting;
-import net.minecraft.server.v1_15_R1.PlayerConnection;
 
 public class PlayerEntityManipulator {
     private BetterPortals pl;
-    private PlayerData playerData;
+    private Object playerConnection; // Store the NMS connection update to increase speed of sending packets
 
     // Set of the UUIDs of all entities that are hidden
     // A set is used here, since we don't need to preserve order and O(1) is fun
@@ -49,7 +32,9 @@ public class PlayerEntityManipulator {
 
     public PlayerEntityManipulator(BetterPortals pl, PlayerData playerData)    {
         this.pl = pl;
-        this.playerData = playerData;
+        // Find the NMS connection using reflection
+        Object craftPlayer = ReflectUtils.runMethod(playerData.player, "getHandle");
+        playerConnection = ReflectUtils.getField(craftPlayer, "playerConnection");
     }
 
     // Swaps the list of hidden entities with the new one, then
@@ -112,10 +97,10 @@ public class PlayerEntityManipulator {
     }
 
     // Sends a packet to hide the entity with the given ID
-    private void hideEntity(UUID entityId)   {
-        // Create a packet to destroy the entity
-        PacketPlayOutEntityDestroy packet = new PacketPlayOutEntityDestroy(pl.getServer().getEntity(entityId).getEntityId());
-        ((CraftPlayer) playerData.player).getHandle().playerConnection.sendPacket(packet); // Send it
+    private void hideEntity(UUID entityUUID)   {
+        int entityId = pl.getServer().getEntity(entityUUID).getEntityId();
+        Object packet = ReflectUtils.newInstance("PacketPlayOutEntityDestroy", new Class[]{int.class}, new Object[entityId]);
+        sendPacket(packet);
     }   
 
     // Sends all of the packets necessary to spawn a fake entity, or respawn a real one after it was removed
@@ -123,30 +108,27 @@ public class PlayerEntityManipulator {
     private void showEntity(UUID entityId, Vector locationOverride)   {
         // Get the entity from its UUID
         Entity entity = pl.getServer().getEntity(entityId);
-        net.minecraft.server.v1_15_R1.Entity nmsEntity = ((CraftEntity) entity).getHandle();
-
-        // Get the NMS PlayerConnection
-        PlayerConnection connection = ((CraftPlayer) playerData.player).getHandle().playerConnection;
+        Object nmsEntity = ReflectUtils.runMethod(entity, "getHandle");
 
         // Create the correct type of spawn packet, depending on the entity
-        Packet<PacketListenerPlayOut> spawnPacket;
+        Object spawnPacket;
         if(entity instanceof Painting)  {
-            spawnPacket = new PacketPlayOutSpawnEntityPainting((EntityPainting) nmsEntity);
+            spawnPacket = ReflectUtils.newInstance("PacketPlayOutSpawnEntityPainting", new Class[]{ReflectUtils.getMcClass("EntityPainting")}, new Object[]{nmsEntity});
         }   else if(entity instanceof ExperienceOrb)    {
-            spawnPacket = new PacketPlayOutSpawnEntityExperienceOrb((EntityExperienceOrb) nmsEntity);
+            spawnPacket = ReflectUtils.newInstance("PacketPlayOutSpawnEntityExperienceOrb", new Class[]{ReflectUtils.getMcClass("EntityExperienceOrb")}, new Object[]{nmsEntity});
         }   else if(entity instanceof LivingEntity) {
-            spawnPacket = new PacketPlayOutSpawnEntityLiving((EntityLiving) nmsEntity);
+            spawnPacket = ReflectUtils.newInstance("PacketPlayOutSpawnEntityLiving", new Class[]{ReflectUtils.getMcClass("EntityLiving")}, new Object[]{nmsEntity});
         }   else    {
-            spawnPacket = new PacketPlayOutSpawnEntity(nmsEntity);
+            spawnPacket = ReflectUtils.newInstance("PacketPlayOutSpawnEntity", new Class[]{ReflectUtils.getMcClass("Entity")}, new Object[]{nmsEntity});
         }
-        connection.sendPacket(spawnPacket); // Send the entity spawn packet
+        sendPacket(spawnPacket);
 
         // Teleport the entity to the correct location if a location override is used
         // Reflection is used to change some private values in the packet
         if(locationOverride != null)    {
             // Make a new teleport packet
-            PacketPlayOutEntityTeleport teleportPacket = generateTeleportPacket(entity, locationOverride);
-            connection.sendPacket(teleportPacket);
+            Object teleportPacket = generateTeleportPacket(nmsEntity, locationOverride);
+            sendPacket(teleportPacket);
         }
 
         // If the entity is living, we have to set its armor and hand/offhand
@@ -156,33 +138,25 @@ public class PlayerEntityManipulator {
     }
     
     // Uses reflection to change the private x, y and z values of a teleport packet
-    private PacketPlayOutEntityTeleport generateTeleportPacket(Entity entity, Vector location)    {
+    private Object generateTeleportPacket(Object nmsEntity, Vector location)    {
         // Create a teleport packet
-        PacketPlayOutEntityTeleport teleportPacket = new PacketPlayOutEntityTeleport(((CraftEntity) entity).getHandle());
-        try {
-            // Write the private fields
-            FieldUtils.writeField(teleportPacket, "b", location.getX());
-            FieldUtils.writeField(teleportPacket, "c", location.getY());
-            FieldUtils.writeField(teleportPacket, "d", location.getZ());
-        }   catch(IllegalAccessException e)   {
-            e.printStackTrace();
-        }
-
+        Object teleportPacket = ReflectUtils.newInstance("PacketPlayOutEntityTeleport", new Class[]{ReflectUtils.getMcClass("Entity")}, new Object[]{nmsEntity});
+        // Write the private fields
+        ReflectUtils.setField(teleportPacket, "b", location.getX());
+        ReflectUtils.setField(teleportPacket, "c", location.getY());
+        ReflectUtils.setField(teleportPacket, "d", location.getZ());
         return teleportPacket;
     }
 
     // Loops through all the fake entities and updates their position and equipment
     public void updateFakeEntities()   {
-        // Get the player's connection to the server
-        PlayerConnection connection = ((CraftPlayer) playerData.player).getHandle().playerConnection;
-
         for(PlayerViewableEntity playerEntity : fakeEntities.values()) {
             // First store the old location
             Vector oldLocation = playerEntity.location;
             if(oldLocation != null) {
                 if(!oldLocation.equals(playerEntity.location))   {
-                    PacketPlayOutEntityTeleport packet = generateTeleportPacket(playerEntity.entity, playerEntity.location);
-                    connection.sendPacket(packet);
+                    Object packet = generateTeleportPacket(playerEntity.entity, playerEntity.location);
+                    sendPacket(packet);
                 }
             }
 
@@ -196,6 +170,19 @@ public class PlayerEntityManipulator {
         }
     }
 
+    // Generates and sends an entity equipment packet
+    private void sendEquipmentPacket(int entityId, String slot, ItemStack item) {
+        // Copy the ItemStack into the NMS object
+        Object nmsItem = ReflectUtils.runMethod(null, ReflectUtils.getMcClass("CraftItemStack"), "asNMSCopy", new Class[]{ItemStack.class}, new Object[]{item});
+        // Use the valueOf method to get the nms enum
+        Object nmsSlot = ReflectUtils.runMethod(null, ReflectUtils.getMcClass("EnumItemSlot"), "valueOf", new Class[]{String.class}, new Object[]{slot});
+        Object packet = ReflectUtils.newInstance("PacketPlayOutEntityEquipment", new Class[]{
+            int.class, ReflectUtils.getMcClass("EnumItemSlot"), ReflectUtils.getMcClass("ItemStack")
+        }, new Object[] {entityId, nmsSlot, nmsItem});
+
+        sendPacket(packet);
+    }
+
     // Sends the 6 entity equipment packets required to change the items in the
     // entities armor slots and hands
     private void sendEntityEquipmentPackets(LivingEntity entity)    {
@@ -205,21 +192,16 @@ public class PlayerEntityManipulator {
         }
 
         int entityId = entity.getEntityId(); // Get the entity ID, since this is what the packets use
+        // Send a packet for each slot
+        sendEquipmentPacket(entityId, "MAINHAND", equipment.getItemInMainHand());
+        sendEquipmentPacket(entityId, "OFFHAND", equipment.getItemInOffHand());
+        sendEquipmentPacket(entityId, "FEET", equipment.getBoots());
+        sendEquipmentPacket(entityId, "LEGS", equipment.getLeggings());
+        sendEquipmentPacket(entityId, "CHEST", equipment.getChestplate());
+        sendEquipmentPacket(entityId, "HEAD", equipment.getHelmet());
+    }
 
-        // Array to store our six packets
-        PacketPlayOutEntityEquipment[] packets = new PacketPlayOutEntityEquipment[6];
-        // Make all of our entity equipment packets for each slot
-        packets[0] = new PacketPlayOutEntityEquipment(entityId, EnumItemSlot.MAINHAND, CraftItemStack.asNMSCopy(equipment.getItemInMainHand()));
-        packets[1] = new PacketPlayOutEntityEquipment(entityId, EnumItemSlot.OFFHAND, CraftItemStack.asNMSCopy(equipment.getItemInOffHand()));
-        packets[2] = new PacketPlayOutEntityEquipment(entityId, EnumItemSlot.FEET, CraftItemStack.asNMSCopy(equipment.getBoots()));
-        packets[3] = new PacketPlayOutEntityEquipment(entityId, EnumItemSlot.LEGS, CraftItemStack.asNMSCopy(equipment.getLeggings()));
-        packets[4] = new PacketPlayOutEntityEquipment(entityId, EnumItemSlot.CHEST, CraftItemStack.asNMSCopy(equipment.getChestplate()));
-        packets[5] = new PacketPlayOutEntityEquipment(entityId, EnumItemSlot.HEAD, CraftItemStack.asNMSCopy(equipment.getHelmet()));
-
-        // Get the NMS PlayerConnection
-        PlayerConnection connection = ((CraftPlayer) playerData.player).getHandle().playerConnection;
-        for(PacketPlayOutEntityEquipment packet : packets)  {
-            connection.sendPacket(packet); // Send each packet
-        }
+    private void sendPacket(Object packet)  {
+        ReflectUtils.runMethod(playerConnection, "sendPacket", new Class[]{ReflectUtils.getMcClass("Packet")}, new Object[]{packet});
     }
 }
