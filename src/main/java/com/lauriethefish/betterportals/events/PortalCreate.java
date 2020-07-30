@@ -5,17 +5,18 @@ import java.util.List;
 import com.lauriethefish.betterportals.BetterPortals;
 import com.lauriethefish.betterportals.PortalDirection;
 import com.lauriethefish.betterportals.PortalPos;
+import com.lauriethefish.betterportals.ReflectUtils;
 import com.lauriethefish.betterportals.VisibilityChecker;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.event.world.PortalCreateEvent.CreateReason;
 import org.bukkit.util.Vector;
-
 // This event is called whenever a portal is created, either by a player,
 // or other source
 // This class deals with creating the portal in the BetterPortals format
@@ -34,14 +35,22 @@ public class PortalCreate implements Listener {
         }
 
         // Get all of the blocks associated with the portal. This includes some of the obsidian and all of the portal blocks
-        List<BlockState> blocks = event.getBlocks();
+        List<?> blocks = (List<?>) ReflectUtils.runMethod(event, "getBlocks"); // This has no type because it will be BlockState in 1.14 and up, and Block in 1.13, we will do the conversion later
 
         // Find the portal block closest to the bottom left and top right, this is used for positioning the portal
         Vector largestLocation = null;
         Vector smallestLocation = null;
 
         // Loop through all of the associated blocks
-        for(BlockState block : blocks)   {
+        for(Object obj : blocks)   {
+            // Needed as in versions 1.13 and under, it is a list of Blocks instead of BlockStates
+            Block block = null;
+            if(obj instanceof BlockState)   {
+                block = ((BlockState) obj).getBlock();
+            }   else    {
+                block = (Block) obj;
+            }
+
             // If the block is obsidian, skip it as we only care about portal blocks
             if(block.getType() == Material.OBSIDIAN)  {continue;}
 
