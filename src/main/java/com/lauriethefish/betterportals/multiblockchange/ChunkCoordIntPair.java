@@ -1,6 +1,8 @@
-package com.lauriethefish.betterportals;
+package com.lauriethefish.betterportals.multiblockchange;
 
 import java.util.Objects;
+
+import com.lauriethefish.betterportals.ReflectUtils;
 
 import org.bukkit.util.Vector;
 

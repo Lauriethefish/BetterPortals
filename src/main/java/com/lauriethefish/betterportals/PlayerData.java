@@ -3,9 +3,9 @@ package com.lauriethefish.betterportals;
 import java.util.HashMap;
 
 import com.lauriethefish.betterportals.entitymanipulation.PlayerEntityManipulator;
+import com.lauriethefish.betterportals.multiblockchange.MultiBlockChangeManager;
 
 import org.bukkit.Location;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -22,7 +22,7 @@ public class PlayerData {
     // If this changes, then the ghost blocks sent to the player are reset to avoid phantom blocks breaking the illusion
     public PortalPos lastActivePortal = null;
     // Store the surrouding blocks that have been sent to the player (false = the player can see the origin block, true = the player can see the destination block)
-    public HashMap<Vector, BlockData> surroundingPortalBlockStates = new HashMap<>();
+    public HashMap<Vector, Object> surroundingPortalBlockStates = new HashMap<>();
 
     // Deals with hiding and showing entities
     public PlayerEntityManipulator entityManipulator;
@@ -44,10 +44,12 @@ public class PlayerData {
             return;
         }
 
-        // Loop through all of the potential ghost blocks
+        MultiBlockChangeManager changeManager = new MultiBlockChangeManager(player);
+        // Loop through all of the potential ghost blocks, and add to the change manager to change them back
         for(BlockRaycastData data : lastActivePortal.currentBlocks)   {
-            player.sendBlockChange(data.originVec.toLocation(player.getWorld()), data.originData);
+            changeManager.addChange(data.originVec, data.originData);
         }
+        changeManager.sendChanges();
 
         surroundingPortalBlockStates = new HashMap<>();
     }

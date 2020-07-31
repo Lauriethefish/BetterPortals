@@ -1,27 +1,22 @@
 package com.lauriethefish.betterportals.runnables;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import com.lauriethefish.betterportals.BetterPortals;
 import com.lauriethefish.betterportals.BlockRaycastData;
-import com.lauriethefish.betterportals.ChunkCoordIntPair;
 import com.lauriethefish.betterportals.Config;
 import com.lauriethefish.betterportals.PlayerData;
 import com.lauriethefish.betterportals.PortalDirection;
 import com.lauriethefish.betterportals.PortalPos;
-import com.lauriethefish.betterportals.ReflectUtils;
 import com.lauriethefish.betterportals.VisibilityChecker;
+import com.lauriethefish.betterportals.multiblockchange.MultiBlockChangeManager;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -188,8 +183,7 @@ public class PlayerRayCast implements Runnable {
 
     private void handleUpdate(PortalUpdateData data)    {
         ArrayList<BlockRaycastData> currentBlocks = data.portal.currentBlocks; // Store the current blocks incase they change while being processed
-        // Will be dealt with by a multi block change packet
-        Map<ChunkCoordIntPair, Map<Vector, BlockData>> blockChanges = new HashMap<>();
+        MultiBlockChangeManager changeManager = new MultiBlockChangeManager(data.playerData.player);
         for(int i = 0; i < currentBlocks.size(); i++)    {
             BlockRaycastData raycastData = currentBlocks.get(i);
             
@@ -199,67 +193,18 @@ public class PlayerRayCast implements Runnable {
             // Check if the block is visible
             boolean visible = data.checker.checkIfBlockVisible(raycastData.originVec, data.portal.portalBL, data.portal.portalTR);
 
-            BlockData oldState = data.playerData.surroundingPortalBlockStates.get(raycastData.originVec); // Find if it was visible last tick
-            BlockData newState = visible ? raycastData.destData : raycastData.originData;
+            Object oldState = data.playerData.surroundingPortalBlockStates.get(raycastData.originVec); // Find if it was visible last tick
+            Object newState = visible ? raycastData.destData : raycastData.originData;
 
             // If we are overwriting the block, change it in the player's block array and send them a block update
             if(!newState.equals(oldState)) {
                 data.playerData.surroundingPortalBlockStates.put(raycastData.originVec, newState);
-
-                // Find if a list of changes for this chunk exists
-                ChunkCoordIntPair chunk = new ChunkCoordIntPair(aRelativePos);
-                if(!blockChanges.containsKey(chunk))   {
-                    blockChanges.put(chunk, new HashMap<>());
-                }
-
-                // Add the change
-                blockChanges.get(chunk).put(aRelativePos, newState);
+                changeManager.addChange(aRelativePos, newState);
             }
         }
 
         // Send all the block changes
-        for(Map.Entry<ChunkCoordIntPair, Map<Vector, BlockData>> entry : blockChanges.entrySet())   {
-            sendMultiBlockChange(entry.getValue(), entry.getKey(), data.playerData.player);
-        }
-    }
-
-    // Constructs a multiple block change packet from the given blocks, and sends it to the player
-    // All the blocks MUST be in the same chunk
-    private void sendMultiBlockChange(Map<Vector, BlockData> blocks, ChunkCoordIntPair chunk, Player player) {
-        // Make a new PacketPlayOutMultiBlockChange
-        Class<?> packetClass = ReflectUtils.getMcClass("PacketPlayOutMultiBlockChange");
-        Object packet = ReflectUtils.newInstance(packetClass);
-
-        // Find the coords of the chunk
-        Object chunkCoords = chunk.toNMS();
-        
-        ReflectUtils.setField(packet, "a", chunkCoords);
-
-        // Loop through each block in the map
-        Class<?> infoClass = ReflectUtils.getMcClass("PacketPlayOutMultiBlockChange$MultiBlockChangeInfo");
-        Class<?> blockDataClass = ReflectUtils.getBukkitClass("block.data.CraftBlockData");
-        Object array = Array.newInstance(infoClass, blocks.size());
-        int i = 0;
-        for(Map.Entry<Vector, BlockData> entry : blocks.entrySet())   {
-            Vector loc = entry.getKey();
-            // Find the chunk relative position
-            int x = loc.getBlockX() & 15;
-            int z = loc.getBlockZ() & 15;
-
-            // Make the NMS MultiBlockChangeInfo object
-            Object data = ReflectUtils.getField(entry.getValue(), blockDataClass, "state");
-            Object info = ReflectUtils.newInstance(infoClass, new Class[]{packetClass, short.class, ReflectUtils.getMcClass("IBlockData")},
-                                                new Object[]{packet, (short) (x << 12 | z << 8 | loc.getBlockY()), data});
-            Array.set(array, i, info); i++;
-        }
-
-        // Set it in the packet
-        ReflectUtils.setField(packet, "b", array);
-
-        // Send the packet using more reflection stuff
-        Object craftPlayer = ReflectUtils.runMethod(player, "getHandle");
-        Object connection = ReflectUtils.getField(craftPlayer, "playerConnection");
-        ReflectUtils.runMethod(connection, "sendPacket", new Class[]{ReflectUtils.getMcClass("Packet")}, new Object[]{packet});
+        changeManager.sendChanges();
     }
 
     @Override
