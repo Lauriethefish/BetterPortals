@@ -1,51 +1,52 @@
 package com.lauriethefish.betterportals;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
 import com.lauriethefish.betterportals.runnables.PlayerRayCast;
 
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.util.Vector;
 
 // Stores data about a block surrounding the portal that is in the HashMap of viewable blocks
 public class BlockRaycastData {
-    // Store the methods and fields for later, as this is performance sensitive
-    private static Method NMS_BLOCK_METHOD = null;
-    private static Field BLOCK_DATA_FIELD = null;
-
-    // Fetches the NMS_BLOCK_METHOD and BLOCK_DATA_FIELD
-    public void initReflection() {
-        try {
-            NMS_BLOCK_METHOD = ReflectUtils.getBukkitClass("block.CraftBlock").getMethod("getNMSBlock", (Class<?>[]) null);
-            BLOCK_DATA_FIELD = ReflectUtils.getMcClass("Block").getField("blockData");
-        } catch (NoSuchMethodException | NoSuchFieldException | SecurityException ex) {
-            ex.printStackTrace();
-        }
-    }
+    public static Object edgeData = null;
 
     public Vector originVec;
     public Object originData;
     public Object destData;
-    public BlockRaycastData(Location originLoc, Location destLoc, BlockData destData)   {
+    public BlockRaycastData(Location originLoc, Location destLoc, boolean edge)   {
+        if(edgeData == null)    {
+            // Different colours of concrete depend on version
+            if(ReflectUtils.getIfLegacy())  {
+                edgeData = getNMSData(251, (byte) 15);
+            }   else    {
+                edgeData = getNMSData(Material.BLACK_CONCRETE);
+            }
+        }
+
         this.originVec = PlayerRayCast.moveVectorToCenterOfBlock(originLoc.toVector());
         this.originData = getNMSData(originLoc.getBlock());
-        this.destData = destData;
+        this.destData = edge ? edgeData : getNMSData(destLoc.getBlock());
     }
 
-    // Finds the NMS IBlockData from a bukkit block
-    public Object getNMSData(Block block)   {
-        // Find the methods if not found already
-        if(NMS_BLOCK_METHOD == null)    {initReflection();}
+    // Used if in a legacy version
+    public Object getNMSData(int id, byte data)    {
+        int combined = id + (data << 12);
+        return ReflectUtils.runMethod(null, ReflectUtils.getMcClass("Block"), "getByCombinedId", new Class[]{int.class}, new Object[]{combined});
+    }
 
-        try {
-            return BLOCK_DATA_FIELD.get(NMS_BLOCK_METHOD.invoke(block, (Object[]) null));
-        }   catch(InvocationTargetException | IllegalAccessException ex)   {
-            ex.printStackTrace();
-            return null;
+    // Used if in a modern version
+    public Object getNMSData(Material mat)  {
+        Object block = ReflectUtils.runMethod(null, ReflectUtils.getBukkitClass("util.CraftMagicNumbers"), "getBlock", new Class[]{Material.class}, new Object[]{mat});
+        return ReflectUtils.getField(block, "blockData");
+    }
+
+    // Finds the NMS IBlockData from a bukkit block, this differs depending on if using a legacy version or modern version
+    public Object getNMSData(Block block)   {
+        if(ReflectUtils.getIfLegacy())  {
+            return ReflectUtils.runMethod(block, "getData0");
+        }   else    {
+            return ReflectUtils.getField(block.getBlockData(), "state");
         }
     }
 }
