@@ -133,7 +133,6 @@ public class ReflectUtils {
             }   else    {
                 portalMaterial = Material.NETHER_PORTAL;
             }
-            Bukkit.getLogger().info(portalMaterial.toString());
         }
         return portalMaterial;
     }
