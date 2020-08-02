@@ -8,12 +8,31 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 
 public class ReflectUtils {
     private static String minecraftClassPath = null;
     private static String craftbukkitClassPath = null;
-    // To increase performance, store the class name mappings for later
+    // To increase performance, store fields, classes and methods for later
     private static Map<String, Class<?>> classCache = new HashMap<>();
+    private static Map<String, Field> fieldCache = new HashMap<>();
+    private static Map<String, Method> methodCache = new HashMap<>();
+    private static Material portalMaterial = null;
+
+    private static Boolean isLegacy = null;
+    public static boolean getIfLegacy() {
+        // Test if this is a legacy version by checking if blocks have the getBlockData method, which was added in 1.13
+        if(isLegacy == null)    {
+            try {
+                Block.class.getMethod("getBlockData", new Class[]{});
+                isLegacy = false;
+            }   catch(NoSuchMethodException ignored) {
+                isLegacy = true;
+            }
+        }
+        return isLegacy;
+    }
     
     // Tries to find the given NMS class, without version dependence
     public static Class<?> getMcClass(String path)  {
@@ -63,14 +82,69 @@ public class ReflectUtils {
             return cachedClass;
         }
     }
+
+    // Attempts to find a field in the field cache, and gets it using reflection if it doesn't exist
+    private static Field findField(Object obj, String name) {
+        String fullName = String.format(String.format("%s.%s", obj.getClass().getName(), name));
+        Field field = fieldCache.get(fullName);
+        if(field == null)   { // Test if it is in the cache
+            Class<?> currentClass = obj.getClass();
+            while(currentClass != null && field == null) { // Keep looping until no superclass can be found
+                try {
+                    field = currentClass.getDeclaredField(name);
+                }   catch(NoSuchFieldException ex)  {
+                    currentClass = currentClass.getSuperclass();
+                    if(currentClass == null)    { // Print the exception if no field was found, even in the highest superclass
+                        ex.printStackTrace();
+                    }
+                }
+            }
+            fieldCache.put(fullName, field); // Add it to the cache
+        }
+        return field;
+    }
     
+    // Attempts to find the method from the cache, and gets it using reflection if it doesn't exist
+    private static Method findMethod(Object obj, Class<?> cla, String name, Class<?>[] params) {
+        String fullName = String.format(String.format("%s.%s", cla.getName(), name));
+        Method method = methodCache.get(fullName);
+        if(method == null)   { // Test if it is in the cache
+            Class<?> currentClass = cla;
+            while(currentClass != null && method == null) { // Keep looping until no superclass can be found
+                try {
+                    method = currentClass.getDeclaredMethod(name, params);
+                }   catch(NoSuchMethodException ex)  {
+                    currentClass = currentClass.getSuperclass();
+                    if(currentClass == null)    { // Print the exception if no method was found, even in the highest superclass
+                        ex.printStackTrace();
+                    }
+                }
+            }
+            methodCache.put(fullName, method); // Add it to the cache
+        }
+        return method;
+    }
+
+    // Creates and retrieves the portal material depending on version
+    public static Material getPortalMaterial()  {
+        if(portalMaterial == null)  {
+            if(getIfLegacy())   {
+                portalMaterial = Material.valueOf("PORTAL");
+            }   else    {
+                portalMaterial = Material.NETHER_PORTAL;
+            }
+            Bukkit.getLogger().info(portalMaterial.toString());
+        }
+        return portalMaterial;
+    }
+
     // Sets a field in the given object, even if it is private
     public static void setField(Object obj, String name, Object value)    {
         try {
-            Field field = obj.getClass().getDeclaredField(name);
+            Field field = findField(obj, name);
             field.setAccessible(true);
             field.set(obj, value);
-        }   catch(NoSuchFieldException | IllegalAccessException ex) {
+        }   catch(IllegalAccessException ex) {
             ex.printStackTrace();
         }
     }
@@ -78,10 +152,10 @@ public class ReflectUtils {
     // Gets the value of the named field. Will return null if the field doesn't exist, or is of the wrong type
     public static Object getField(Object obj, Class<?> cla, String name)   {
         try {
-            Field field = cla.getDeclaredField(name);
+            Field field = findField(obj, name);
             field.setAccessible(true);
             return field.get(obj);
-        }   catch(NoSuchFieldException | IllegalAccessException | ClassCastException ex) {
+        }   catch(IllegalAccessException | ClassCastException ex) {
             ex.printStackTrace();
             return null;
         }
@@ -94,11 +168,11 @@ public class ReflectUtils {
     // Runs the names method on the given object with the given args
     public static Object runMethod(Object obj, Class<?> cla, String name, Class<?>[] params, Object[] args)    {
         try {
-            Method method = cla.getDeclaredMethod(name, params);
+            Method method = findMethod(obj, cla, name, params);
             method.setAccessible(true);
             Object result = method.invoke(obj, args);
             return result;
-        }   catch(InvocationTargetException | IllegalAccessException | NoSuchMethodException ex)   {
+        }   catch(InvocationTargetException | IllegalAccessException ex)   {
             ex.printStackTrace();
             return null;
         }
