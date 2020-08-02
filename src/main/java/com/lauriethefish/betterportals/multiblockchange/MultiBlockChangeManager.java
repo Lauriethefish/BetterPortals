@@ -24,7 +24,7 @@ public class MultiBlockChangeManager {
     public void addChange(Vector location, Object newType)  {
         // Add a hashmap for this chunk if one doesn't already exist
         ChunkCoordIntPair chunk = new ChunkCoordIntPair(location);
-        if(changes.get(chunk) != null)  {
+        if(changes.get(chunk) == null)  {
             changes.put(chunk, new HashMap<>());
         }
 
@@ -52,7 +52,6 @@ public class MultiBlockChangeManager {
 
         // Loop through each block in the map
         Class<?> infoClass = ReflectUtils.getMcClass("PacketPlayOutMultiBlockChange$MultiBlockChangeInfo");
-        Class<?> blockDataClass = ReflectUtils.getBukkitClass("block.data.CraftBlockData");
         Object array = Array.newInstance(infoClass, blocks.size());
         int i = 0;
         for(Map.Entry<Vector, Object> entry : blocks.entrySet())   {
@@ -62,9 +61,8 @@ public class MultiBlockChangeManager {
             int z = loc.getBlockZ() & 15;
 
             // Make the NMS MultiBlockChangeInfo object
-            Object data = ReflectUtils.getField(entry.getValue(), blockDataClass, "state");
             Object info = ReflectUtils.newInstance(infoClass, new Class[]{packetClass, short.class, ReflectUtils.getMcClass("IBlockData")},
-                                                new Object[]{packet, (short) (x << 12 | z << 8 | loc.getBlockY()), data});
+                                                new Object[]{packet, (short) (x << 12 | z << 8 | loc.getBlockY()), entry.getValue()});
             Array.set(array, i, info); i++;
         }
 
