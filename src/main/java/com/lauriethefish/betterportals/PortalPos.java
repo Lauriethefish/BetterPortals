@@ -3,10 +3,8 @@ package com.lauriethefish.betterportals;
 import java.util.ArrayList;
 
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.WorldBorder;
 import org.bukkit.block.Block;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.util.Vector;
 
 // Stores all of the attributes required for one direction of a portal
@@ -102,7 +100,7 @@ public class PortalPos {
         WorldBorder border = portalPosition.getWorld().getWorldBorder();
 
         // Check if the block at the centre of the portal is a portal block
-        return portalPosition.getBlock().getType() == Material.NETHER_PORTAL &
+        return portalPosition.getBlock().getType() == ReflectUtils.getPortalMaterial() &&
                 // Check that the bottom left and top right of the portal are both inside the worldborder,
                 // since portals outside the worldborder should be broken
                 border.isInside(portalPosition.clone().subtract(subAmount)) &&
@@ -135,8 +133,6 @@ public class PortalPos {
         }
         ticksSinceLastRebuild = 0;
 
-        BlockData edgeBlock = pl.getServer().createBlockData(Material.BLACK_CONCRETE);
-
         ArrayList<BlockRaycastData> newBlocks = new ArrayList<>();
         // Loop through all blocks around the portal
         for(double z = config.minXZ; z <= config.maxXZ; z++) {
@@ -150,7 +146,6 @@ public class PortalPos {
                     Location originLoc = portalPosition.clone().add(x, y, z);
                     Location destLoc = destinationPosition.clone().add(x, y, z);
                     
-                    BlockData type = edge ? edgeBlock : destLoc.getBlock().getBlockData();
                     // First check if the block is visible from any neighboring block
                     boolean allSolid = true;
                     for(int[] offset : offsets) {
@@ -162,7 +157,7 @@ public class PortalPos {
 
                     // If the block is bordered by at least one transparent block, add it to the list
                     if(!allSolid)    {
-                        newBlocks.add(new BlockRaycastData(originLoc, destLoc, type));
+                        newBlocks.add(new BlockRaycastData(originLoc, destLoc, edge));
                     }
                 }
             }
