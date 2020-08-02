@@ -1,11 +1,9 @@
 package com.lauriethefish.betterportals;
 
-import org.bukkit.Axis;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.WorldBorder;
-import org.bukkit.block.Block;
-import org.bukkit.block.data.Orientable;
+import org.bukkit.block.BlockState;
 import org.bukkit.util.Vector;
 
 // Handles finding a suitable location for spawning a portal, can also deal with the actual building of the portal
@@ -179,6 +177,7 @@ public class PortalSpawnSystem {
 
     // Spawns a portal at the given location, with the correct orientation
     // Also spawns four blocks at the sides of the portal to stand on if they are not solid
+    @SuppressWarnings("deprecation")
     public void spawnPortal(Location location, PortalDirection direction, Vector portalSize)  {
         // Loop through the x, y and z coordinates around the portal
         // Portal is only generated at z == 0,
@@ -210,19 +209,19 @@ public class PortalSpawnSystem {
                     // Otherwise, generate the portal blocks
                     // Note that we do NOT update physics when generating these blocks.
                     // This is because the physics deletes portal blocks that shouldn't be there
-                    Block block = newLoc.getBlock();
+                    BlockState state = newLoc.getBlock().getState();
                     if(x == 0 || x == portalSize.getX() + 1.0 || y == 0.0 || y == portalSize.getY() + 1.0)  {
                         // Set the sides of the portal to obsidian
-                        block.setType(Material.OBSIDIAN, false);
+                        state.setType(Material.OBSIDIAN);
                     }   else    {
                         // Set the centre to portal. NOTE: The portal must be rotated if the portal faces north/south
-                        block.setType(Material.NETHER_PORTAL, false);
+                        // Rotating is done using the manual block data byte method, since this works on all version AFAIK
+                        state.setType(ReflectUtils.getPortalMaterial());
                         if(direction == PortalDirection.NORTH_SOUTH)    {
-                            Orientable portalOrient = (Orientable) block.getBlockData();
-                            portalOrient.setAxis(Axis.Z);
-                            block.setBlockData(portalOrient);
+                            state.setRawData((byte) 2);
                         }
                     }
+                    state.update(true, false);  // Disable physics so that portals don't get broken
                 }
             }
         }
