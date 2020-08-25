@@ -183,7 +183,7 @@ public class PlayerRayCast implements Runnable {
 
     private void handleUpdate(PortalUpdateData data)    {
         ArrayList<BlockRaycastData> currentBlocks = data.portal.currentBlocks; // Store the current blocks incase they change while being processed
-        MultiBlockChangeManager changeManager = new MultiBlockChangeManager(data.playerData.player);
+        MultiBlockChangeManager changeManager = MultiBlockChangeManager.createInstance(data.playerData.player);
         for(int i = 0; i < currentBlocks.size(); i++)    {
             BlockRaycastData raycastData = currentBlocks.get(i);
             

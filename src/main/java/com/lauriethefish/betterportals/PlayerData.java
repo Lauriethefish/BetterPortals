@@ -44,7 +44,7 @@ public class PlayerData {
             return;
         }
 
-        MultiBlockChangeManager changeManager = new MultiBlockChangeManager(player);
+        MultiBlockChangeManager changeManager = MultiBlockChangeManager.createInstance(player);
         // Loop through all of the potential ghost blocks, and add to the change manager to change them back
         for(BlockRaycastData data : lastActivePortal.currentBlocks)   {
             changeManager.addChange(data.originVec, data.originData);
