@@ -17,7 +17,7 @@ public class BlockRaycastData {
     public BlockRaycastData(Location originLoc, Location destLoc, boolean edge)   {
         if(edgeData == null)    {
             // Different colours of concrete depend on version
-            if(ReflectUtils.getIfLegacy())  {
+            if(ReflectUtils.isLegacy)  {
                 edgeData = getNMSData(251, (byte) 15);
             }   else    {
                 edgeData = getNMSData(Material.BLACK_CONCRETE);
@@ -43,7 +43,7 @@ public class BlockRaycastData {
 
     // Finds the NMS IBlockData from a bukkit block, this differs depending on if using a legacy version or modern version
     public Object getNMSData(Block block)   {
-        if(ReflectUtils.getIfLegacy())  {
+        if(ReflectUtils.isLegacy)  {
             return ReflectUtils.runMethod(block, "getData0");
         }   else    {
             return ReflectUtils.getField(block.getBlockData(), "state");
