@@ -20,22 +20,27 @@ public class ReflectUtils {
     private static Map<String, Method> methodCache = new HashMap<>();
     private static Material portalMaterial = null;
 
-    private static Boolean isLegacy = null;
-    public static boolean getIfLegacy() {
+    public static boolean isLegacy = getIfLegacy();
+    private static boolean getIfLegacy() {
         // Test if this is a legacy version by checking if blocks have the getBlockData method, which was added in 1.13
-        if(isLegacy == null)    {
-            try {
-                Block.class.getMethod("getBlockData", new Class[]{});
-                isLegacy = false;
-            }   catch(NoSuchMethodException ignored) {
-                isLegacy = true;
-            }
+        try {
+            Block.class.getMethod("getBlockData", new Class[]{});
+            return false;
+        }   catch(NoSuchMethodException ignored) {
+            return true;
         }
-        return isLegacy;
+    }
+
+    // We need to use a new implementation of PacketPlayOutMultiBlockChange if we want to support 1.16.2
+    // To decide if we are on 1.16.2+, we check to see if the MultiBlockChangeInfo class exists (this is not the case on the newer version)
+    public static boolean useNewMultiBlockChangeImpl = getMcClass("PacketPlayOutMultiBlockChange$MultiBlockChangeInfo", false) == null;
+
+    public static Class<?> getMcClass(String path)  {
+        return getMcClass(path, true);
     }
     
     // Tries to find the given NMS class, without version dependence
-    public static Class<?> getMcClass(String path)  {
+    public static Class<?> getMcClass(String path, boolean printErrors)  {
         // Find the path of NMS classes if we haven't already
         if(minecraftClassPath == null)  {
             minecraftClassPath = "net.minecraft.server." + Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3] + ".";
@@ -51,7 +56,9 @@ public class ReflectUtils {
                 classCache.put(fullPath, cla);
                 return cla;
             }   catch(ClassNotFoundException ex)    {
-                ex.printStackTrace();
+                if(printErrors) {
+                    ex.printStackTrace();
+                }
                 return null;
             }
         }   else    {
