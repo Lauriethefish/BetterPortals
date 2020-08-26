@@ -11,10 +11,8 @@ This plugin is quite configurable, if you wish to change the size and nature of 
 
 ## Upcoming Features
 * Lag compensation to make it work better for players with higher ping
-* Performance optimizations (hopefully!), to allow for larger render distances
 
 ## Limitations
 * BetterPortals essentially just changes the blocks in the player's view through the portal. Because of this is is more of an illusion.
 * It is currently unusable for players with high ping, as they just see the blocks on the other side of the portal if they move too quickly
-* Portals have a very low render distance
-* There is still a loading screen when moving between worlds
+* There is still a loading screen when moving between worlds. This could be removed with the WorldChangeScreenRemover plugin
