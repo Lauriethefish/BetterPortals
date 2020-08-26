@@ -12,7 +12,7 @@ public class SectionPosition {
     public int z;
     public SectionPosition(Vector location)    {
         x = location.getBlockX() >> 4;
-        x = location.getBlockY() >> 4;
+        y = location.getBlockY() >> 4;
         z = location.getBlockZ() >> 4;
     }
 
