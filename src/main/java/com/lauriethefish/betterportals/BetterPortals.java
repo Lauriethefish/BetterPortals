@@ -2,12 +2,14 @@ package com.lauriethefish.betterportals;
 
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 
 import com.lauriethefish.betterportals.events.PlayerJoin;
 import com.lauriethefish.betterportals.events.PlayerPortal;
 import com.lauriethefish.betterportals.events.PortalCreate;
 import com.lauriethefish.betterportals.runnables.PlayerRayCast;
 
+import org.bstats.bukkit.Metrics;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
@@ -17,6 +19,10 @@ import net.md_5.bungee.api.ChatColor;
 
 // Main class for the plugin
 public class BetterPortals extends JavaPlugin {
+    // Plugin ID for bStats
+    private static final int pluginId = 8669;
+    public Metrics metrics;
+
     // Stores players previous portal positions
     public HashMap<UUID, PlayerData> players = new HashMap<UUID, PlayerData>();
 
@@ -28,6 +34,14 @@ public class BetterPortals extends JavaPlugin {
     // This method is called once when our plugin is enabled
     @Override
     public void onEnable() {
+        metrics = new Metrics(this, pluginId); // Initialise bStats
+        metrics.addCustomChart(new Metrics.SingleLineChart("portals_active", new Callable<Integer>()  {
+            @Override
+            public Integer call() throws Exception  {
+                return rayCastingSystem.portals.size() / 2; // Divide by 2, since each portal is 2 list items
+            }
+        }));
+
         // If any errors occur while loading the config/portal data, we return from this function
         // This essentially terminates the plugin as the runnable will not start
         
