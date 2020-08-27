@@ -26,6 +26,10 @@
       <id>spigot-repo</id>
       <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
     </repository>
+    <repository>
+      <id>CodeMC</id>
+      <url>https://repo.codemc.org/repository/maven-public</url>
+    </repository>
   </repositories>
   
   <dependencies>
@@ -40,9 +44,40 @@
         <artifactId>netty-codec-http</artifactId>
         <version>4.0.33.Final</version>
       </dependency>
+      <dependency>
+        <groupId>org.bstats</groupId>
+        <artifactId>bstats-bukkit</artifactId>
+        <version>1.7</version>
+        <scope>compile</scope>
+      </dependency>
   </dependencies>
 
   <build>
+    <!-- This must be included outside of the pluginManagement section-->
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.1.0</version>
+        <configuration>
+          <relocations>
+            <relocation>
+              <pattern>org.bstats</pattern>
+              <shadedPattern>com.lauriethefish.util</shadedPattern>
+            </relocation>
+          </relocations>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+
     <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
       <plugins>
         <!-- clean lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#clean_Lifecycle -->
