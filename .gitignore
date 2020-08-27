@@ -2,3 +2,4 @@ dependencies/
 target/
 .settings/
 .VSCodeCounter/
+dependency-reduced-pom.xml
