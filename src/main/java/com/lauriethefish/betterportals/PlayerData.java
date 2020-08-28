@@ -38,6 +38,7 @@ public class PlayerData {
 
     // Used whenever a player relogs
     public void resetPlayer(Player newPlayer)   {
+        this.player = newPlayer;
         entityManipulator = new PlayerEntityManipulator(pl, this);
         resetSurroundingBlockStates();
     }
