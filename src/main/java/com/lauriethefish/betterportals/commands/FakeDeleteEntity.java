@@ -34,6 +34,7 @@ public class FakeDeleteEntity implements CommandExecutor    {
 
         if(args.length == 1)    {
             playerData.entityManipulator.swapHiddenEntities(new HashSet<UUID>());
+            player.sendMessage(ChatColor.GREEN + "Restored Entities!");
             return true;
         }
 
