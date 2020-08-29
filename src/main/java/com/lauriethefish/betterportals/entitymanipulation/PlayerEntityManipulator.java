@@ -15,6 +15,7 @@ import com.mojang.datafixers.util.Pair;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ExperienceOrb;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Painting;
 import org.bukkit.inventory.EntityEquipment;
@@ -121,6 +122,8 @@ public class PlayerEntityManipulator {
             spawnPacket = ReflectUtils.newInstance("PacketPlayOutSpawnEntityPainting", new Class[]{ReflectUtils.getMcClass("EntityPainting")}, new Object[]{nmsEntity});
         }   else if(entity instanceof ExperienceOrb)    {
             spawnPacket = ReflectUtils.newInstance("PacketPlayOutSpawnEntityExperienceOrb", new Class[]{ReflectUtils.getMcClass("EntityExperienceOrb")}, new Object[]{nmsEntity});
+        }   else if(entity instanceof HumanEntity)  {
+            spawnPacket = ReflectUtils.newInstance("PacketPlayOutNamedEntitySpawn", new Class[]{ReflectUtils.getMcClass("EntityHuman")}, new Object[]{nmsEntity});
         }   else if(entity instanceof LivingEntity) {
             spawnPacket = ReflectUtils.newInstance("PacketPlayOutSpawnEntityLiving", new Class[]{ReflectUtils.getMcClass("EntityLiving")}, new Object[]{nmsEntity});
         }   else    {
