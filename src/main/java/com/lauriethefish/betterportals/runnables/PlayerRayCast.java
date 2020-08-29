@@ -176,7 +176,7 @@ public class PlayerRayCast implements Runnable {
     public void updatePortal(PlayerData playerData, PortalPos portal) {
         // Optimisation: Check if the player has moved before re-rendering the view
         Vector currentLoc = playerData.player.getLocation().toVector();
-        if(currentLoc.equals(playerData.lastPosition) && playerData.surroundingPortalBlockStates.size() > 0)  {return;}
+        if(currentLoc.equals(playerData.lastPosition))  {return;}
         playerData.lastPosition = currentLoc;
         
         // Class to check if a block is visible through the portal
