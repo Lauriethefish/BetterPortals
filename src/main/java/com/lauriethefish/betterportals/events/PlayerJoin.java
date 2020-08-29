@@ -25,11 +25,10 @@ public class PlayerJoin implements Listener {
         // Otherwise, reset the player's surrounding block states as they have just logged in
         // and all of the ghost blocks need to be sent again
         if(data == null)    {
-            data = new PlayerData(player);
+            data = new PlayerData(player, pl);
             pl.players.put(player.getUniqueId(), data);
         }   else    {
-            data.player = player;
-            data.resetSurroundingBlockStates();
+            data.resetPlayer(player);
         }
     }
 }
