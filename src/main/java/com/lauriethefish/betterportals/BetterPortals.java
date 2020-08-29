@@ -10,7 +10,6 @@ import com.lauriethefish.betterportals.events.PortalCreate;
 import com.lauriethefish.betterportals.runnables.PlayerRayCast;
 
 import org.bstats.bukkit.Metrics;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -53,12 +52,8 @@ public class BetterPortals extends JavaPlugin {
             getServer().getPluginManager().disablePlugin(this); return;
         }
         // Load the config
-        try {
-            loadConfig();
-        }   catch(Exception e)  {
-            getLogger().warning(ChatColor.RED + "Error loading config, this is likely because it is invalid YAML. Please check the file for any mistakes");
-            e.printStackTrace();
-            getServer().getPluginManager().disablePlugin(this); return;
+        if(!loadConfig())   {
+            getServer().getPluginManager().disablePlugin(this); return; // If loading failed, disable the plugin
         }
 
         registerCommands();
@@ -106,12 +101,16 @@ public class BetterPortals extends JavaPlugin {
         }
     }
 
-    public void loadConfig()   {
-        // Make a new config file with the default settings if one does not exist
-        saveDefaultConfig();
-        // Load all of the config options from the file
-        FileConfiguration configFile = getConfig();
-        config = new Config(this, configFile);
+    public boolean loadConfig()   {
+        try {
+            saveDefaultConfig(); // Make a new config file with the default settings if one does not exist
+            config = new Config(this);
+            return true;
+        }   catch(Exception ex) {
+            getLogger().warning("Failed to load config file. This may be because it is invalid YAML");
+            ex.printStackTrace();
+            return false;
+        }
     }
 
     // Registers all of the events with spigot, so that they are fired correctly
