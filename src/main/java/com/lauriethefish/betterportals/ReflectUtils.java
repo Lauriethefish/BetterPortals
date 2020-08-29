@@ -52,25 +52,14 @@ public class ReflectUtils {
         }
     }
 
-    public static Class<?> getMcClass(String path)  {
-        return getMcClass(path, true);
-    }
-    
-    // Tries to find the given NMS class, without version dependence
-    public static Class<?> getMcClass(String path, boolean printErrors)  {
-        // Find the path of NMS classes if we haven't already
-        if(minecraftClassPath == null)  {
-            minecraftClassPath = "net.minecraft.server." + Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3] + ".";
-        }
-
+    public static Class<?> getClass(String path, boolean printErrors)   {
         // Find if we have a cached version of this class
         Class<?> cachedClass = classCache.get(path);
         if(cachedClass == null) {
             // If we don't, find the class, then add it to the cache
             try {
-                String fullPath = minecraftClassPath + path;
-                Class<?> cla = Class.forName(fullPath);
-                classCache.put(fullPath, cla);
+                Class<?> cla = Class.forName(path);
+                classCache.put(path, cla);
                 return cla;
             }   catch(ClassNotFoundException ex)    {
                 if(printErrors) {
@@ -82,29 +71,37 @@ public class ReflectUtils {
             return cachedClass;
         }
     }
+
+    public static Class<?> getClass(String path)   {
+        return getClass(path, true);
+    }
+    
+    // Tries to find the given NMS class, without version dependence
+    public static Class<?> getMcClass(String path, boolean printErrors)  {
+        // Find the path of NMS classes if we haven't already
+        if(minecraftClassPath == null)  {
+            minecraftClassPath = "net.minecraft.server." + Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3] + ".";
+        }
+
+        return getClass(minecraftClassPath + path, printErrors);
+    }
+
+    public static Class<?> getMcClass(String path)  {
+        return getMcClass(path, true);
+    }
+
     // Tries to find the given CraftBukkit class, without version dependence
-    public static Class<?> getBukkitClass(String path)  {
+    public static Class<?> getBukkitClass(String path, boolean printErrors)  {
         // Find the path of NMS classes if we haven't already
         if(craftbukkitClassPath == null)  {
             craftbukkitClassPath = "org.bukkit.craftbukkit." + Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3] + ".";
         }
 
-        // Find if we have a cached version of this class
-        Class<?> cachedClass = classCache.get(path);
-        if(cachedClass == null) {
-            // If we don't, find the class, then add it to the cache
-            try {
-                String fullPath = craftbukkitClassPath + path;
-                Class<?> cla = Class.forName(fullPath);
-                classCache.put(fullPath, cla);
-                return cla;
-            }   catch(ClassNotFoundException ex)    {
-                ex.printStackTrace();
-                return null;
-            }
-        }   else    {
-            return cachedClass;
-        }
+        return getClass(craftbukkitClassPath + path, printErrors);
+    }
+
+    public static Class<?> getBukkitClass(String path)  {
+        return getBukkitClass(path, true);
     }
 
     // Attempts to find a field in the field cache, and gets it using reflection if it doesn't exist
