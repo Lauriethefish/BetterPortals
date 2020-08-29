@@ -169,7 +169,7 @@ public class PlayerRayCast implements Runnable {
     
     // This function is responsible for iterating over all of the blocks surrounding the portal,
     // and performing a raycast on each of them to check if they should be visible
-    public void queueUpdate(PlayerData playerData, PortalPos portal) {
+    public void updatePortal(PlayerData playerData, PortalPos portal) {
         // Optimisation: Check if the player has moved before re-rendering the view
         Vector currentLoc = playerData.player.getLocation().toVector();
         if(currentLoc.equals(playerData.lastPosition))  {return;}
@@ -227,7 +227,6 @@ public class PlayerRayCast implements Runnable {
             // If the portal that is currently active is different to the one that was active before,
             // We reset the surrounding blocks from the previous portal so that the player does not see blocks
             // where they shouldn't be
-
             if(playerData.lastActivePortal != portal)    {
                 playerData.resetSurroundingBlockStates();
                 playerData.lastActivePortal = portal;
@@ -248,7 +247,7 @@ public class PlayerRayCast implements Runnable {
             }
 
             // Queue the update to happen on another thread
-            queueUpdate(playerData, portal);
+            updatePortal(playerData, portal);
         }
     }
 }
