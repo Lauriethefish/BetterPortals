@@ -1,5 +1,6 @@
 package com.lauriethefish.betterportals.entitymanipulation;
 
+import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -23,12 +24,12 @@ public class PlayerEntityManipulator {
     private BetterPortals pl;
     private Object playerConnection; // Store the NMS connection update to increase speed of sending packets
 
-    // Set of the UUIDs of all entities that are hidden
+    // Set of all hidden entities
     // A set is used here, since we don't need to preserve order and O(1) is fun
-    private Set<UUID> hiddenEntities = new HashSet<UUID>();
+    private Set<Entity> hiddenEntities = new HashSet<Entity>();
 
     // All of the fake entities that the player can currently see
-    private Map<UUID, PlayerViewableEntity> fakeEntities = new HashMap<UUID, PlayerViewableEntity>();
+    private Map<Entity, PlayerViewableEntity> replicatedEntites = new HashMap<Entity, PlayerViewableEntity>();
 
     public PlayerEntityManipulator(BetterPortals pl, PlayerData playerData)    {
         this.pl = pl;
@@ -40,74 +41,79 @@ public class PlayerEntityManipulator {
     // Swaps the list of hidden entities with the new one, then
     // hides any entities now in the list, recreates any removed from the list
     // and leaves already hidden entities how they are
-    public void swapHiddenEntities(Set<UUID> newHiddenEntites)   {
-        for(UUID entityId : newHiddenEntites)    {
+    public void swapHiddenEntities(Set<Entity> newHiddenEntites)   {
+        for(Entity entity : newHiddenEntites)    {
             // If the entity is already hidden, and should remain hidden,
             // remove it from the current array and do not hide or show it
-            if(hiddenEntities.contains(entityId))   {
-                hiddenEntities.remove(entityId);
+            if(hiddenEntities.contains(entity))   {
+                hiddenEntities.remove(entity);
                 continue;
             }
 
             // If the entity was shown previously, and should now be hidden, hide it
-            if(!hiddenEntities.contains(entityId))  {
-                hideEntity(entityId);
+            if(!hiddenEntities.contains(entity))  {
+                hideEntity(entity);
             }
         }
 
         // Show the entities corresponding to the entries in the current array,
         // since these are the entities that should not stay hidden
-        for(UUID entityId : hiddenEntities)  {
-            showEntity(entityId, null);
+        for(Entity entity : hiddenEntities)  {
+            showEntity(entity, null);
         }
 
         hiddenEntities = newHiddenEntites; // Update the array
     }
 
     // Swaps the list of fake entities with the new one, adding or removing any new entities
-    public void swapFakeEntities(Set<UUID> newFakeEntities, Vector locationOffset)  {
+    public void swapReplicatedEntities(Set<Entity> newReplicatedEntities, Vector locationOffset)  {
         // Loop through all of the existing fake entities and remove any that will no longer be visible to the player
-        Iterator<UUID> removingIterator = fakeEntities.keySet().iterator();
+        Iterator<Entity> removingIterator = replicatedEntites.keySet().iterator();
         while(removingIterator.hasNext())   {
             // Get then next id, check if it is still visible in the new entities
-            UUID id = removingIterator.next();
-            if(!newFakeEntities.contains(id))    {
+            Entity entity = removingIterator.next();
+            if(!newReplicatedEntities.contains(entity))    {
                 // If not, send an entity destroy packet, then remove the entity
-                hideEntity(id);
+                hideEntity(entity);
                 removingIterator.remove();
             }
         }
 
         // Loop through all the new entities
-        for(UUID id : newFakeEntities)  {
+        for(Entity entity : newReplicatedEntities)  {
             // If the current entity does not exist in the list
-            if(!fakeEntities.containsKey(id))   {
+            if(!replicatedEntites.containsKey(entity))   {
                 // Make a new PlayerViewableEntity instance from the entity, then send the packets to show it
-                PlayerViewableEntity newEntity = new PlayerViewableEntity(pl.getServer().getEntity(id), locationOffset);
-                showEntity(id, newEntity.location);
-                fakeEntities.put(id, newEntity); // Add the entity to the list
+                PlayerViewableEntity newEntity = new PlayerViewableEntity(entity, locationOffset);
+                showEntity(entity, newEntity.location);
+                replicatedEntites.put(entity, newEntity); // Add the entity to the list
             }
         }
     }
 
     // Hides the given entity, adding it to the set
-    public void addHiddenEntity(UUID entityId)  {
-        hiddenEntities.add(entityId);
-        hideEntity(entityId);
+    public void addHiddenEntity(Entity entity)  {
+        hiddenEntities.add(entity);
+        hideEntity(entity);
     }
 
     // Sends a packet to hide the entity with the given ID
-    private void hideEntity(UUID entityUUID)   {
-        int entityId = pl.getServer().getEntity(entityUUID).getEntityId();
-        Object packet = ReflectUtils.newInstance("PacketPlayOutEntityDestroy", new Class[]{int.class}, new Object[entityId]);
+    private void hideEntity(Entity entity)   {
+        int entityId = entity.getEntityId();
+        Object idArray = Array.newInstance(int.class, 1);
+        Array.set(idArray, 0, entityId);
+
+        Object packet = ReflectUtils.newInstance("PacketPlayOutEntityDestroy", new Class[]{}, new Object[]{});
+        ReflectUtils.setField(packet, "a", idArray);
         sendPacket(packet);
     }   
 
     // Sends all of the packets necessary to spawn a fake entity, or respawn a real one after it was removed
     // To disable the location override, set it to null
-    private void showEntity(UUID entityId, Vector locationOverride)   {
+    private void showEntity(Entity entity, Vector locationOverride)   {
         // Get the entity from its UUID
-        Entity entity = pl.getServer().getEntity(entityId);
+        if(!entity.isValid())  {return;} // Don't spawn the entity if it doesn't exist
+
         Object nmsEntity = ReflectUtils.runMethod(entity, "getHandle");
 
         // Create the correct type of spawn packet, depending on the entity
@@ -123,8 +129,14 @@ public class PlayerEntityManipulator {
         }
         sendPacket(spawnPacket);
 
+        // Send the packet that deals with the entity's metadata
+        int nmsEntityId = (int) ReflectUtils.getField(nmsEntity, "id");
+        Object dataWatcher = ReflectUtils.getField(nmsEntity, "datawatcher");
+        Object dataPacket = ReflectUtils.newInstance("PacketPlayOutEntityMetadata", new Class[]{int.class, dataWatcher.getClass(), boolean.class},
+                                                                                    new Object[]{nmsEntityId, dataWatcher, true});
+        sendPacket(dataPacket);
+
         // Teleport the entity to the correct location if a location override is used
-        // Reflection is used to change some private values in the packet
         if(locationOverride != null)    {
             // Make a new teleport packet
             Object teleportPacket = generateTeleportPacket(nmsEntity, locationOverride);
@@ -150,7 +162,7 @@ public class PlayerEntityManipulator {
 
     // Loops through all the fake entities and updates their position and equipment
     public void updateFakeEntities()   {
-        for(PlayerViewableEntity playerEntity : fakeEntities.values()) {
+        for(PlayerViewableEntity playerEntity : replicatedEntites.values()) {
             // First store the old location
             Vector oldLocation = playerEntity.location;
             if(oldLocation != null) {
@@ -173,7 +185,7 @@ public class PlayerEntityManipulator {
     // Generates and sends an entity equipment packet
     private void sendEquipmentPacket(int entityId, String slot, ItemStack item) {
         // Copy the ItemStack into the NMS object
-        Object nmsItem = ReflectUtils.runMethod(null, ReflectUtils.getMcClass("CraftItemStack"), "asNMSCopy", new Class[]{ItemStack.class}, new Object[]{item});
+        Object nmsItem = ReflectUtils.runMethod(null, ReflectUtils.getBukkitClass("inventory.CraftItemStack"), "asNMSCopy", new Class[]{ItemStack.class}, new Object[]{item});
         // Use the valueOf method to get the nms enum
         Object nmsSlot = ReflectUtils.runMethod(null, ReflectUtils.getMcClass("EnumItemSlot"), "valueOf", new Class[]{String.class}, new Object[]{slot});
         Object packet = ReflectUtils.newInstance("PacketPlayOutEntityEquipment", new Class[]{
