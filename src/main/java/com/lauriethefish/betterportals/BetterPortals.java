@@ -106,7 +106,7 @@ public class BetterPortals extends JavaPlugin {
         }
     }
 
-    private void loadConfig()   {
+    public void loadConfig()   {
         // Make a new config file with the default settings if one does not exist
         saveDefaultConfig();
         // Load all of the config options from the file
