@@ -11,7 +11,6 @@ import org.bukkit.util.Vector;
 
 // This class stores information about the player, required by the plugin
 public class PlayerData {
-    private BetterPortals pl;
     // Reference to the player
     public Player player;
     // The destination of the last portal that they used
@@ -31,15 +30,14 @@ public class PlayerData {
     // Last position of the player recorded by PlayerRayCast, used to decide whether or not to re-render to portal view
     public Vector lastPosition = null;
 
-    public PlayerData(Player player, BetterPortals pl) {
-        this.pl = pl;
+    public PlayerData(Player player) {
         resetPlayer(player);
     }
 
     // Used whenever a player relogs
     public void resetPlayer(Player newPlayer)   {
         this.player = newPlayer;
-        entityManipulator = new PlayerEntityManipulator(pl, this);
+        entityManipulator = new PlayerEntityManipulator(this);
         resetSurroundingBlockStates();
     }
 
