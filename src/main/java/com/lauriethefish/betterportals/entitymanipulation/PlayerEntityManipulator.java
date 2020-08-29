@@ -6,9 +6,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
-import com.lauriethefish.betterportals.BetterPortals;
 import com.lauriethefish.betterportals.PlayerData;
 import com.lauriethefish.betterportals.ReflectUtils;
 
@@ -21,7 +19,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 public class PlayerEntityManipulator {
-    private BetterPortals pl;
     private Object playerConnection; // Store the NMS connection update to increase speed of sending packets
 
     // Set of all hidden entities
@@ -31,8 +28,7 @@ public class PlayerEntityManipulator {
     // All of the fake entities that the player can currently see
     private Map<Entity, PlayerViewableEntity> replicatedEntites = new HashMap<Entity, PlayerViewableEntity>();
 
-    public PlayerEntityManipulator(BetterPortals pl, PlayerData playerData)    {
-        this.pl = pl;
+    public PlayerEntityManipulator(PlayerData playerData)    {
         // Find the NMS connection using reflection
         Object craftPlayer = ReflectUtils.runMethod(playerData.player, "getHandle");
         playerConnection = ReflectUtils.getField(craftPlayer, "playerConnection");
