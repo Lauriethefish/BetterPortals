@@ -5,8 +5,8 @@ author: lauriethefish@outlook.com
 api-version: 1.13
 softdepend: [Multiverse-Core]
 
-#commands:
-#  fakedeleteentity:
-#    description: Testing command for the EntityManipulator
-#  multiblockchangetest:
-#    description: Testing command
+commands:
+  betterportals:
+    description: Main plugin command
+    aliases:
+      - bp

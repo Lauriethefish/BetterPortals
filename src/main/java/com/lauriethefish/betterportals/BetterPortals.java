@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
+import com.lauriethefish.betterportals.commands.MainCommand;
 import com.lauriethefish.betterportals.events.PlayerJoin;
 import com.lauriethefish.betterportals.events.PlayerPortal;
 import com.lauriethefish.betterportals.events.PortalCreate;
@@ -89,7 +90,7 @@ public class BetterPortals extends JavaPlugin {
 
     // This function is currently empty, as we have no commands
     private void registerCommands() {
-
+        getCommand("betterportals").setExecutor(new MainCommand(this));
     }
 
     // Adds the PlayerData for every player online, in order to support /reload
