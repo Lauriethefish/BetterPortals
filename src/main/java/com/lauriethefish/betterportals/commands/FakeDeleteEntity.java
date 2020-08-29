@@ -2,7 +2,6 @@ package com.lauriethefish.betterportals.commands;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.UUID;
 
 import com.lauriethefish.betterportals.BetterPortals;
 import com.lauriethefish.betterportals.PlayerData;
@@ -33,7 +32,7 @@ public class FakeDeleteEntity implements CommandExecutor    {
         PlayerData playerData = pl.players.get(player.getUniqueId());
 
         if(args.length == 1)    {
-            playerData.entityManipulator.swapHiddenEntities(new HashSet<UUID>());
+            playerData.entityManipulator.swapHiddenEntities(new HashSet<Entity>());
             player.sendMessage(ChatColor.GREEN + "Restored Entities!");
             return true;
         }
@@ -46,7 +45,7 @@ public class FakeDeleteEntity implements CommandExecutor    {
             }
         }
 
-        playerData.entityManipulator.addHiddenEntity(closestEntity.getUniqueId());
+        playerData.entityManipulator.addHiddenEntity(closestEntity);
         player.sendMessage(ChatColor.GREEN + "Removed entity!");
 
         return true;
