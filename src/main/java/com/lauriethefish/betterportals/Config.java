@@ -53,8 +53,9 @@ public class Config {
     public int entityCheckInterval;
 
     // Loads the configuration from the given file, setting all the parameters of the class
-    public Config(BetterPortals pl, FileConfiguration file)   {
+    public Config(BetterPortals pl)   {
         this.pl = pl;
+        FileConfiguration file = pl.getConfig();
 
         // Call a function to copy all of the keys in the loaded file into the default
         // config file, in order to add any keys required for a new version
