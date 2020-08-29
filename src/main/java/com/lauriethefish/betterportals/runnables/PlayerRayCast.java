@@ -1,8 +1,11 @@
 package com.lauriethefish.betterportals.runnables;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -17,6 +20,7 @@ import com.lauriethefish.betterportals.multiblockchange.MultiBlockChangeManager;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -178,6 +182,18 @@ public class PlayerRayCast implements Runnable {
         // Class to check if a block is visible through the portal
         VisibilityChecker checker = new VisibilityChecker(playerData.player.getEyeLocation(), config.rayCastIncrement, config.maxRayCastDistance);
 
+        // For now, entity processing is done on the main thread
+        Collection<Entity> entities = portal.getNearbyEntities();
+        Set<Entity> hiddenEntities = new HashSet<>();
+        for(Entity entity : entities)   {
+            // If an entity is visible through the portal, then we hide it
+            if(checker.checkIfBlockVisible(entity.getLocation().toVector(), portal.portalBL, portal.portalTR))  {
+                hiddenEntities.add(entity);
+            }
+        }
+
+        playerData.entityManipulator.swapHiddenEntities(hiddenEntities);
+
         updateQueue.add(new PortalUpdateData(playerData, checker, portal));
     }
 
@@ -229,6 +245,7 @@ public class PlayerRayCast implements Runnable {
             // where they shouldn't be
             if(playerData.lastActivePortal != portal)    {
                 playerData.resetSurroundingBlockStates();
+                playerData.entityManipulator.swapHiddenEntities(new HashSet<>()); // Remove all hidden entities
                 playerData.lastActivePortal = portal;
             }
 
