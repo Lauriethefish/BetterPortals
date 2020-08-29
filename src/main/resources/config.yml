@@ -17,7 +17,7 @@ portalActivationDistance: 20
 portalBlockUpdateInterval: 120 # How often the portal will re-check for the blocks around it
 
 enableEntitySupport: true
-entityCheckInterval: 60 # How often the portal will check for surrounding entities
+entityCheckInterval: 30 # How often the portal will check for surrounding entities
 
 # The distance that the ray from the ray cast system used to calculate
 # the view frustrum will be advanced each iteration
