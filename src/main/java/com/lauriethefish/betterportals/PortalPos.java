@@ -1,10 +1,12 @@
 package com.lauriethefish.betterportals;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 import org.bukkit.Location;
 import org.bukkit.WorldBorder;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
 // Stores all of the attributes required for one direction of a portal
@@ -29,6 +31,9 @@ public class PortalPos {
     // Array of the blocks at the destination of the portal that need checking for visibility
     public ArrayList<BlockRaycastData> currentBlocks;
     private int ticksSinceLastRebuild = Integer.MAX_VALUE;
+
+    private Collection<Entity> nearbyEntities = null;
+    private int ticksSinceLastEntityCheck = Integer.MAX_VALUE;
 
     // Offsets for checking if a block needs to be rendered
     private static final int[][] offsets = new int[][]{
@@ -67,6 +72,23 @@ public class PortalPos {
         // Set the portals collision box. NOTE: The east/west collision box is different to the north/south one
         portalBL = bottomLeftBlock.clone().subtract(VisibilityChecker.orientVector(portalDirection, collisionBox));
         portalTR = topRightBlock.clone().add(VisibilityChecker.orientVector(portalDirection, collisionBox));
+    }
+
+    // Forces this portal to recheck for entities next tick
+    public void forceEntityUpdate()  {
+        ticksSinceLastEntityCheck = Integer.MAX_VALUE;
+    }
+
+    // Returns a list of the entities nearby a portal, which is recreated every X ticks
+    public Collection<Entity> getNearbyEntities()   {
+        if(ticksSinceLastEntityCheck < pl.config.entityCheckInterval)  {
+            ticksSinceLastEntityCheck++;
+            return nearbyEntities;
+        }
+        ticksSinceLastEntityCheck = 0;
+        
+        nearbyEntities = portalPosition.getWorld().getNearbyEntities(portalPosition, pl.config.maxXZ, pl.config.maxY, pl.config.maxXZ);
+        return nearbyEntities;
     }
 
     // Transforms the vector input, which should be relative to the center of the portal,
