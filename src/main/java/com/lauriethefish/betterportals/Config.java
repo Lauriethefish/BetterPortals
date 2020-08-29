@@ -49,6 +49,9 @@ public class Config {
     // How often the portal re-checks its surrounding blocks
     public int portalBlockUpdateInterval;
 
+    public boolean enableEntitySupport;
+    public int entityCheckInterval;
+
     // Loads the configuration from the given file, setting all the parameters of the class
     public Config(BetterPortals pl, FileConfiguration file)   {
         this.pl = pl;
@@ -75,6 +78,9 @@ public class Config {
 
         rayCastIncrement = file.getDouble("rayCastIncrement");
         maxRayCastDistance = file.getDouble("maxRayCastDistance");
+
+        enableEntitySupport = file.getBoolean("enableEntitySupport");
+        entityCheckInterval = file.getInt("entityCheckInterval");
 
         // If the maxRayCastDistance is set to -1, work it out based on the portalActivationDistance
         if(maxRayCastDistance == -1)    {
