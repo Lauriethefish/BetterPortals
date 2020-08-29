@@ -183,16 +183,18 @@ public class PlayerRayCast implements Runnable {
         VisibilityChecker checker = new VisibilityChecker(playerData.player.getEyeLocation(), config.rayCastIncrement, config.maxRayCastDistance);
 
         // For now, entity processing is done on the main thread
-        Collection<Entity> entities = portal.getNearbyEntities();
-        Set<Entity> hiddenEntities = new HashSet<>();
-        for(Entity entity : entities)   {
-            // If an entity is visible through the portal, then we hide it
-            if(checker.checkIfBlockVisible(entity.getLocation().toVector(), portal.portalBL, portal.portalTR))  {
-                hiddenEntities.add(entity);
+        if(pl.config.enableEntitySupport)   {
+            Collection<Entity> entities = portal.getNearbyEntities();
+            Set<Entity> hiddenEntities = new HashSet<>();
+            for(Entity entity : entities)   {
+                // If an entity is visible through the portal, then we hide it
+                if(checker.checkIfBlockVisible(entity.getLocation().toVector(), portal.portalBL, portal.portalTR))  {
+                    hiddenEntities.add(entity);
+                }
             }
-        }
 
-        playerData.entityManipulator.swapHiddenEntities(hiddenEntities);
+            playerData.entityManipulator.swapHiddenEntities(hiddenEntities);
+        }
 
         updateQueue.add(new PortalUpdateData(playerData, checker, portal));
     }
