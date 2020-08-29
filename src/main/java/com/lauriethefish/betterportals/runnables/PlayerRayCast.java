@@ -73,7 +73,7 @@ public class PlayerRayCast implements Runnable {
 
     // Finds the closest portal to the given player,
     // this also deletes portals if they have been broken amongst other things
-    // Will return null if not portals can be found within vthe portal activation distance
+    // Will return null if not portals can be found within the portal activation distance
     private PortalPos findClosestPortal(Player player)   {
         // Loop through all active portals and find the closest one to activate
         // This is for performance - only one portal can be active at a time
