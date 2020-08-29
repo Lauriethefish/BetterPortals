@@ -21,19 +21,36 @@ public class ReflectUtils {
     private static Material portalMaterial = null;
 
     public static boolean isLegacy = getIfLegacy();
+
     private static boolean getIfLegacy() {
-        // Test if this is a legacy version by checking if blocks have the getBlockData method, which was added in 1.13
+        // Test if this is a legacy version by checking if blocks have the getBlockData
+        // method, which was added in 1.13
         try {
-            Block.class.getMethod("getBlockData", new Class[]{});
+            Block.class.getMethod("getBlockData", new Class[] {});
             return false;
-        }   catch(NoSuchMethodException ignored) {
+        } catch (NoSuchMethodException ignored) {
             return true;
         }
     }
 
-    // We need to use a new implementation of PacketPlayOutMultiBlockChange if we want to support 1.16.2
-    // To decide if we are on 1.16.2+, we check to see if the MultiBlockChangeInfo class exists (this is not the case on the newer version)
+    // We need to use a new implementation of PacketPlayOutMultiBlockChange if we
+    // want to support 1.16.2
+    // To decide if we are on 1.16.2+, we check to see if the MultiBlockChangeInfo
+    // class exists (this is not the case on the newer version)
     public static boolean useNewMultiBlockChangeImpl = getMcClass("PacketPlayOutMultiBlockChange$MultiBlockChangeInfo", false) == null;
+
+    // Checks to see if we need to use the new PacketPlayOutEntityEquipment
+    // (the new version sends multiple armor pieces in one packet)
+    public static boolean useNewEntityEquipmentImpl = getIfNewEntityEquipmentImpl();
+    private static boolean getIfNewEntityEquipmentImpl() {
+        try {
+            Class<?> type = getMcClass("PacketPlayOutEntityEquipment").getDeclaredField("b").getType();
+            return !type.equals(getMcClass("EnumItemSlot"));
+        } catch(NoSuchFieldException | SecurityException ex)    {
+            ex.printStackTrace();
+            return false;
+        }
+    }
 
     public static Class<?> getMcClass(String path)  {
         return getMcClass(path, true);
