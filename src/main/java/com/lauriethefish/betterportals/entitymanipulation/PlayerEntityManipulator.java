@@ -11,7 +11,6 @@ import java.util.Set;
 
 import com.lauriethefish.betterportals.PlayerData;
 import com.lauriethefish.betterportals.ReflectUtils;
-import com.mojang.datafixers.util.Pair;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ExperienceOrb;
@@ -185,17 +184,30 @@ public class PlayerEntityManipulator {
     }
 
     // Generates and sends an entity equipment packet the old way (i.e. 1 pakcet per slot)
-    private void sendEquipmentPacket_Old(int entityId, Pair<Object, Object> pair) {        
-        Object packet = ReflectUtils.newInstance("PacketPlayOutEntityEquipment");
-        // Set the entity ID, slot and item
-        ReflectUtils.setField(packet, "a", entityId);
-        ReflectUtils.setField(packet, "b", pair.getFirst());
-        ReflectUtils.setField(packet, "c", pair.getSecond());
-        sendPacket(packet);
+    private void sendEquipmentPackets_Old(int entityId, Map<String, ItemStack> newItems) {   
+        // For each of the new items, make a packet and send it  
+        for(Map.Entry<String, ItemStack> entry : newItems.entrySet())   {   
+            Object packet = ReflectUtils.newInstance("PacketPlayOutEntityEquipment");
+            // Set the entity ID, slot and item
+            ReflectUtils.setField(packet, "a", entityId);
+            ReflectUtils.setField(packet, "b", getNMSItemSlot(entry.getKey()));
+            ReflectUtils.setField(packet, "c", getNMSItemStack(entry.getValue()));
+            sendPacket(packet);
+        }
     }
 
     // Generates and sends an equipment packet the new way, i.e. all in a list at once
-    private void sendEquipmentPacket_New(int entityId, List<Pair<Object, Object>> list) {
+    private void sendEquipmentPacket_New(int entityId, Map<String, ItemStack> newItems) {
+        Class<?> pairClass = ReflectUtils.getClass("com.mojang.datafixers.util.Pair");
+
+        List<Object> list = new ArrayList<>();
+        for(Map.Entry<String, ItemStack> entry : newItems.entrySet())   {
+            // Make the minecraft pair object and add it to the list
+            Object pair = ReflectUtils.newInstance(pairClass,   new Class[]{Object.class, Object.class},
+                                                                new Object[]{getNMSItemSlot(entry.getKey()), getNMSItemStack(entry.getValue())});
+            list.add(pair);
+        }
+    
         Object packet = ReflectUtils.newInstance("PacketPlayOutEntityEquipment");
         // In the new implementation, all items are sent in a list
         ReflectUtils.setField(packet, "a", entityId);
@@ -203,10 +215,12 @@ public class PlayerEntityManipulator {
         sendPacket(packet);
     }
 
-    private Pair<Object, Object> makeEquipmentPair(String slot, ItemStack item) {
-        Object nmsSlot = ReflectUtils.runMethod(null, ReflectUtils.getMcClass("EnumItemSlot"), "valueOf", new Class[]{String.class}, new Object[]{slot});
-        Object nmsItem = ReflectUtils.runMethod(null, ReflectUtils.getBukkitClass("inventory.CraftItemStack"), "asNMSCopy", new Class[]{ItemStack.class}, new Object[]{item});
-        return new Pair<Object, Object>(nmsSlot, nmsItem);
+    private Object getNMSItemSlot(String slot)  {
+        return ReflectUtils.runMethod(null, ReflectUtils.getMcClass("EnumItemSlot"), "valueOf", new Class[]{String.class}, new Object[]{slot});
+    }
+
+    private Object getNMSItemStack(ItemStack item)  {
+        return ReflectUtils.runMethod(null, ReflectUtils.getBukkitClass("inventory.CraftItemStack"), "asNMSCopy", new Class[]{ItemStack.class}, new Object[]{item});
     }
 
     // Sends the 6 entity equipment packets required to change the items in the
@@ -218,23 +232,22 @@ public class PlayerEntityManipulator {
         }
 
         int entityId = entity.getEntityId(); // Get the entity ID, since this is what the packets use
-        // List of each pair of an EnumItemSlot and ItemStack
-        List<Pair<Object, Object>> slotPairs = new ArrayList<>();
-        slotPairs.add(makeEquipmentPair("MAINHAND", equipment.getItemInMainHand()));
-        slotPairs.add(makeEquipmentPair("OFFHAND", equipment.getItemInOffHand()));
-        slotPairs.add(makeEquipmentPair("FEET", equipment.getBoots()));
-        slotPairs.add(makeEquipmentPair("LEGS", equipment.getLeggings()));
-        slotPairs.add(makeEquipmentPair("CHEST", equipment.getChestplate()));
-        slotPairs.add(makeEquipmentPair("HEAD", equipment.getHelmet()));
 
+        // Add each item to the map
+        Map<String, ItemStack> newItems = new HashMap<>();
+        newItems.put("MAINHAND", equipment.getItemInMainHand());
+        newItems.put("OFFHAND", equipment.getItemInOffHand());
+        newItems.put("FEET", equipment.getBoots());
+        newItems.put("LEGS", equipment.getLeggings());
+        newItems.put("CHEST", equipment.getChestplate());
+        newItems.put("HEAD", equipment.getHelmet());
         // Use the correct implementation
         if(ReflectUtils.useNewEntityEquipmentImpl)  {
-            sendEquipmentPacket_New(entityId, slotPairs);
+            sendEquipmentPacket_New(entityId, newItems);
         }   else    {
-            for(Pair<Object, Object> pair : slotPairs)  {
-                sendEquipmentPacket_Old(entityId, pair);
-            }
+            sendEquipmentPackets_Old(entityId, newItems);
         }
+
     }
 
     private void sendPacket(Object packet)  {
