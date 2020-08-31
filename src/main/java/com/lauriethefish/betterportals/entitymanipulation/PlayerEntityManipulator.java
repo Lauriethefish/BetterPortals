@@ -119,28 +119,46 @@ public class PlayerEntityManipulator {
         Object packet = ReflectUtils.newInstance("PacketPlayOutEntityDestroy", new Class[]{}, new Object[]{});
         ReflectUtils.setField(packet, "a", idArray);
         sendPacket(packet);
-    }   
+    }
+    
+    // Sets the location in a spawn packet, using the field names given
+    // This is used because different types of spawn packet have different field names for the coordinates
+    private void setSpawnLocation(Object packet, Vector location, String xName, String yName, String zName)  {
+        ReflectUtils.setField(packet, xName, location.getX());
+        ReflectUtils.setField(packet, yName, location.getY());
+        ReflectUtils.setField(packet, zName, location.getZ());
+    }
 
     // Sends all of the packets necessary to spawn a fake entity, or respawn a real one after it was removed
-    // To disable the location override, set it to null
     private void showEntity(Entity entity, Vector locationOverride)   {
         // Get the entity from its UUID
         if(!entity.isValid())  {return;} // Don't spawn the entity if it doesn't exist
 
         Object nmsEntity = ReflectUtils.runMethod(entity, "getHandle");
 
+        // Use either the entities location, or the override
+        Vector location = locationOverride == null ? entity.getLocation().toVector() : locationOverride;
+
         // Create the correct type of spawn packet, depending on the entity
         Object spawnPacket;
         if(entity instanceof Painting)  {
             spawnPacket = ReflectUtils.newInstance("PacketPlayOutSpawnEntityPainting", new Class[]{ReflectUtils.getMcClass("EntityPainting")}, new Object[]{nmsEntity});
+            // Painting spawn packets are slightly different, as they use a BlockPosition
+            Object blockPosition = ReflectUtils.newInstance("BlockPosition", new Class[]{double.class, double.class, double.class},
+                                                            new Object[]{location.getX(), location.getY(), location.getZ()});
+            ReflectUtils.setField(spawnPacket, "c", blockPosition);
         }   else if(entity instanceof ExperienceOrb)    {
             spawnPacket = ReflectUtils.newInstance("PacketPlayOutSpawnEntityExperienceOrb", new Class[]{ReflectUtils.getMcClass("EntityExperienceOrb")}, new Object[]{nmsEntity});
+            setSpawnLocation(spawnPacket, location, "b", "c", "d");
         }   else if(entity instanceof HumanEntity)  {
             spawnPacket = ReflectUtils.newInstance("PacketPlayOutNamedEntitySpawn", new Class[]{ReflectUtils.getMcClass("EntityHuman")}, new Object[]{nmsEntity});
+            setSpawnLocation(spawnPacket, location, "c", "d", "e");
         }   else if(entity instanceof LivingEntity) {
             spawnPacket = ReflectUtils.newInstance("PacketPlayOutSpawnEntityLiving", new Class[]{ReflectUtils.getMcClass("EntityLiving")}, new Object[]{nmsEntity});
+            setSpawnLocation(spawnPacket, location, "d", "e", "f");
         }   else    {
             spawnPacket = ReflectUtils.newInstance("PacketPlayOutSpawnEntity", new Class[]{ReflectUtils.getMcClass("Entity")}, new Object[]{nmsEntity});
+            setSpawnLocation(spawnPacket, location, "c", "d", "e");
         }
         sendPacket(spawnPacket);
 
@@ -149,11 +167,6 @@ public class PlayerEntityManipulator {
         Object dataPacket = ReflectUtils.newInstance("PacketPlayOutEntityMetadata", new Class[]{int.class, dataWatcher.getClass(), boolean.class},
                                                                                     new Object[]{entity.getEntityId(), dataWatcher, true});
         sendPacket(dataPacket);
-
-        // Send a teleport packet to the correct location if an override is set
-        if(locationOverride != null)    {
-            sendTeleportPacket(nmsEntity, locationOverride);
-        }
 
         // If the entity is living, we have to set its armor and hand/offhand
         if(entity instanceof LivingEntity)   {
@@ -180,6 +193,35 @@ public class PlayerEntityManipulator {
         }
     }
 
+    // Sends a PacketPlayOutRelEntityMoveLook packet to the player, or a PacketPlayOutEntityTeleport and PacketPlayOutEntityLook if the distance is too long
+    private void sendMoveLookPacket(PlayerViewableEntity entity, Vector oldLocation)    {
+        Vector offset = entity.location.clone().subtract(oldLocation); // Find the difference we need to move
+
+        // If the distance is short enough for a relative move and look packet
+        if(offset.getX() < 8 && offset.getY() < 8 && offset.getZ() < 8) {
+            short x = (short) (offset.getX() * 4096);
+            short y = (short) (offset.getY() * 4096);
+            short z = (short) (offset.getZ() * 4096);
+
+            Location loc = entity.entity.getLocation();
+            byte yaw = getByteAngle(loc.getYaw());
+            byte pitch = getByteAngle(loc.getPitch());
+
+            sendHeadRotationPacket(entity, yaw);
+            sendPacket(ReflectUtils.newInstance("PacketPlayOutEntity$PacketPlayOutRelEntityMoveLook", 
+                        new Class[]{int.class, short.class, short.class, short.class, byte.class, byte.class, boolean.class},
+                        new Object[]{entity.entityId, x, y, z, yaw, pitch, true}));
+        }   else    {
+            // Otherwise, just send a teleport packet and a look packet
+            sendTeleportPacket(entity.nmsEntity, entity.location);
+            sendLookPacket(entity);
+        }
+    }
+
+    private byte getByteAngle(double angle) {
+        return (byte) (angle * 256 / 360);
+    }
+
     private void sendTeleportPacket(Object nmsEntity, Vector location)    {
         // Make a teleport packet
         Object packet = ReflectUtils.newInstance("PacketPlayOutEntityTeleport", new Class[]{ReflectUtils.getMcClass("Entity")},
@@ -193,35 +235,44 @@ public class PlayerEntityManipulator {
         sendPacket(packet);
     }
 
+    private void sendHeadRotationPacket(PlayerViewableEntity entity, byte yaw)    {
+        sendPacket(ReflectUtils.newInstance("PacketPlayOutEntityHeadRotation", 
+                                            new Class[]{ReflectUtils.getMcClass("Entity"), byte.class},
+                                            new Object[]{entity.nmsEntity, yaw}));
+    }
+
     // Sends the two packets that rotate an entities head
     private void sendLookPacket(PlayerViewableEntity entity)   {
         Location loc = entity.entity.getLocation();
 
-        byte yaw = (byte) (loc.getYaw() * 256 / 360);
-        byte pitch = (byte) (loc.getPitch() * 256 / 360);
-        sendPacket(ReflectUtils.newInstance("PacketPlayOutEntityHeadRotation", 
-                                            new Class[]{ReflectUtils.getMcClass("Entity"), byte.class},
-                                            new Object[]{entity.nmsEntity, yaw}));
+        byte yaw = getByteAngle(loc.getYaw());
+        byte pitch = getByteAngle(loc.getPitch());
+        // Send both the head rotation and look packets
+        sendHeadRotationPacket(entity, yaw);
         sendPacket(ReflectUtils.newInstance("PacketPlayOutEntity$PacketPlayOutEntityLook", 
                                             new Class[]{int.class, byte.class, byte.class, boolean.class},
                                             new Object[]{entity.entityId, yaw, pitch, true}));                                  
     }
 
     // Loops through all the fake entities and updates their position and equipment
-    public void updateFakeEntities()   {
+    public void updateFakeEntities()   {        
         for(PlayerViewableEntity playerEntity : replicatedEntites.values()) {
             // First store the old location
             Vector oldLocation = playerEntity.location;
-            playerEntity.calculateLocation(); // Find the new location
-            if(oldLocation != null && !oldLocation.equals(playerEntity.location))   {
-                // Send a packet to update the location
-                sendMovePacket(playerEntity, oldLocation);
-            }
+            playerEntity.calculateLocation();
+            boolean updateLocation = !playerEntity.location.equals(oldLocation);
 
+            // Find if we need to update the rotation
             Vector oldRotation = playerEntity.rotation;
-            // Calculate the rotation, then send a look packet if it has changed
             playerEntity.calculateRotation();
-            if(oldRotation != null && !oldRotation.equals(playerEntity.rotation))   {
+            boolean updateRotation = !playerEntity.rotation.equals(oldRotation);
+            
+            // If we are updating both the entities position and rotation, use a MoveLook packet (not doing this causes glitches)
+            if(updateLocation && updateRotation)    {
+                sendMoveLookPacket(playerEntity, oldLocation);
+            }   else if(updateLocation) {
+                sendMovePacket(playerEntity, oldLocation);
+            }   else    {
                 sendLookPacket(playerEntity);
             }
 
