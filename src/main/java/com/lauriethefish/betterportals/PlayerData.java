@@ -34,10 +34,13 @@ public class PlayerData {
         resetPlayer(player);
     }
 
-    // Used whenever a player relogs
+    // Used whenever a player relogs/ logs in for the first time
     public void resetPlayer(Player newPlayer)   {
         this.player = newPlayer;
         entityManipulator = new PlayerEntityManipulator(this);
+
+        this.lastPosition = null; // Make sure the portal re-renders
+        this.lastActivePortal = null; // No portal was active last tick, since we just logged in
         resetSurroundingBlockStates();
     }
 
