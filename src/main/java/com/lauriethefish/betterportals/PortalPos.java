@@ -32,7 +32,8 @@ public class PortalPos {
     public ArrayList<BlockRaycastData> currentBlocks;
     private int ticksSinceLastRebuild = Integer.MAX_VALUE;
 
-    private Collection<Entity> nearbyEntities = null;
+    public Collection<Entity> nearbyEntitiesOrigin = null;
+    public Collection<Entity> nearbyEntitiesDestination = null;
     private int ticksSinceLastEntityCheck = Integer.MAX_VALUE;
 
     // Offsets for checking if a block needs to be rendered
@@ -79,16 +80,15 @@ public class PortalPos {
         ticksSinceLastEntityCheck = Integer.MAX_VALUE;
     }
 
-    // Returns a list of the entities nearby a portal, which is recreated every X ticks
-    public Collection<Entity> getNearbyEntities()   {
+    // Updates the two lists of neaby entities, if it is time to
+    public void updateNearbyEntities()   {
         if(ticksSinceLastEntityCheck < pl.config.entityCheckInterval)  {
             ticksSinceLastEntityCheck++;
-            return nearbyEntities;
         }
         ticksSinceLastEntityCheck = 0;
         
-        nearbyEntities = portalPosition.getWorld().getNearbyEntities(portalPosition, pl.config.maxXZ, pl.config.maxY, pl.config.maxXZ);
-        return nearbyEntities;
+        nearbyEntitiesOrigin = portalPosition.getWorld().getNearbyEntities(portalPosition, pl.config.maxXZ, pl.config.maxY, pl.config.maxXZ);
+        nearbyEntitiesDestination = destinationPosition.getWorld().getNearbyEntities(destinationPosition, pl.config.maxXZ, pl.config.maxY, pl.config.maxXZ);
     }
 
     // Transforms the vector input, which should be relative to the center of the portal,
