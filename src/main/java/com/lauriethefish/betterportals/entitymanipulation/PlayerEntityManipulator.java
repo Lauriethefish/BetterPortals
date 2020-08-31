@@ -12,6 +12,7 @@ import java.util.Set;
 import com.lauriethefish.betterportals.PlayerData;
 import com.lauriethefish.betterportals.ReflectUtils;
 
+import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ExperienceOrb;
 import org.bukkit.entity.HumanEntity;
@@ -62,6 +63,19 @@ public class PlayerEntityManipulator {
         }
 
         hiddenEntities = newHiddenEntites; // Update the array
+    }
+
+    // Removes all replicated and hidden entities
+    // If sendpackets is false, then this just removes entities from the object, and doesn't actually send the packets to add or remove them
+    // This is necessary if moving between portals, since otherwise, entities glitch weirdly
+    public void resetAll(boolean sendPackets)  {
+        if(sendPackets) {
+            swapHiddenEntities(new HashSet<>());
+            swapReplicatedEntities(new HashSet<>(), new Vector());
+        }   else    {
+            hiddenEntities = new HashSet<>();
+            replicatedEntites = new HashMap<>();
+        }
     }
 
     // Swaps the list of fake entities with the new one, adding or removing any new entities
@@ -131,17 +145,14 @@ public class PlayerEntityManipulator {
         sendPacket(spawnPacket);
 
         // Send the packet that deals with the entity's metadata
-        int nmsEntityId = (int) ReflectUtils.getField(nmsEntity, "id");
         Object dataWatcher = ReflectUtils.getField(nmsEntity, "datawatcher");
         Object dataPacket = ReflectUtils.newInstance("PacketPlayOutEntityMetadata", new Class[]{int.class, dataWatcher.getClass(), boolean.class},
-                                                                                    new Object[]{nmsEntityId, dataWatcher, true});
+                                                                                    new Object[]{entity.getEntityId(), dataWatcher, true});
         sendPacket(dataPacket);
 
-        // Teleport the entity to the correct location if a location override is used
+        // Send a teleport packet to the correct location if an override is set
         if(locationOverride != null)    {
-            // Make a new teleport packet
-            Object teleportPacket = generateTeleportPacket(nmsEntity, locationOverride);
-            sendPacket(teleportPacket);
+            sendTeleportPacket(nmsEntity, locationOverride);
         }
 
         // If the entity is living, we have to set its armor and hand/offhand
@@ -149,16 +160,51 @@ public class PlayerEntityManipulator {
             sendEntityEquipmentPackets((LivingEntity) entity);
         }
     }
-    
-    // Uses reflection to change the private x, y and z values of a teleport packet
-    private Object generateTeleportPacket(Object nmsEntity, Vector location)    {
-        // Create a teleport packet
-        Object teleportPacket = ReflectUtils.newInstance("PacketPlayOutEntityTeleport", new Class[]{ReflectUtils.getMcClass("Entity")}, new Object[]{nmsEntity});
-        // Write the private fields
-        ReflectUtils.setField(teleportPacket, "b", location.getX());
-        ReflectUtils.setField(teleportPacket, "c", location.getY());
-        ReflectUtils.setField(teleportPacket, "d", location.getZ());
-        return teleportPacket;
+
+    // Sends either a move or teleport packet, depending on the distance
+    private void sendMovePacket(PlayerViewableEntity entity, Vector oldLocation)    {
+        Vector offset = entity.location.clone().subtract(oldLocation); // Find the difference we need to move
+
+        // If the distance is short enough for a relative move packet
+        if(offset.getX() < 8 && offset.getY() < 8 && offset.getZ() < 8) {
+            short x = (short) (offset.getX() * 4096);
+            short y = (short) (offset.getY() * 4096);
+            short z = (short) (offset.getZ() * 4096);
+
+            sendPacket(ReflectUtils.newInstance("PacketPlayOutEntity$PacketPlayOutRelEntityMove", 
+                        new Class[]{int.class, short.class, short.class, short.class, boolean.class},
+                        new Object[]{entity.entityId, x, y, z, true}));
+        }   else    {
+            // Otherwise, just send a teleport packet, since this works for any distance
+            sendTeleportPacket(entity.nmsEntity, entity.location);
+        }
+    }
+
+    private void sendTeleportPacket(Object nmsEntity, Vector location)    {
+        // Make a teleport packet
+        Object packet = ReflectUtils.newInstance("PacketPlayOutEntityTeleport", new Class[]{ReflectUtils.getMcClass("Entity")},
+            new Object[]{nmsEntity});
+
+        // Set the teleport location to the position of the entity on the player's side of the portal
+        ReflectUtils.setField(packet, "b", location.getX());
+        ReflectUtils.setField(packet, "c", location.getY());
+        ReflectUtils.setField(packet, "d", location.getZ());
+
+        sendPacket(packet);
+    }
+
+    // Sends the two packets that rotate an entities head
+    private void sendLookPacket(PlayerViewableEntity entity)   {
+        Location loc = entity.entity.getLocation();
+
+        byte yaw = (byte) (loc.getYaw() * 256 / 360);
+        byte pitch = (byte) (loc.getPitch() * 256 / 360);
+        sendPacket(ReflectUtils.newInstance("PacketPlayOutEntityHeadRotation", 
+                                            new Class[]{ReflectUtils.getMcClass("Entity"), byte.class},
+                                            new Object[]{entity.nmsEntity, yaw}));
+        sendPacket(ReflectUtils.newInstance("PacketPlayOutEntity$PacketPlayOutEntityLook", 
+                                            new Class[]{int.class, byte.class, byte.class, boolean.class},
+                                            new Object[]{entity.entityId, yaw, pitch, true}));                                  
     }
 
     // Loops through all the fake entities and updates their position and equipment
@@ -166,20 +212,25 @@ public class PlayerEntityManipulator {
         for(PlayerViewableEntity playerEntity : replicatedEntites.values()) {
             // First store the old location
             Vector oldLocation = playerEntity.location;
-            if(oldLocation != null) {
-                if(!oldLocation.equals(playerEntity.location))   {
-                    Object packet = generateTeleportPacket(playerEntity.entity, playerEntity.location);
-                    sendPacket(packet);
-                }
+            playerEntity.calculateLocation(); // Find the new location
+            if(oldLocation != null && !oldLocation.equals(playerEntity.location))   {
+                // Send a packet to update the location
+                sendMovePacket(playerEntity, oldLocation);
+            }
+
+            Vector oldRotation = playerEntity.rotation;
+            // Calculate the rotation, then send a look packet if it has changed
+            playerEntity.calculateRotation();
+            if(oldRotation != null && !oldRotation.equals(playerEntity.rotation))   {
+                sendLookPacket(playerEntity);
             }
 
             // Update the entity equipment, then send EntityEquipment packets to the player if required
             EntityEquipmentState oldEntityEquipment = playerEntity.equipment;
             playerEntity.updateEntityEquipment();
-            if(!oldEntityEquipment.equals(playerEntity.equipment))  {
+            if(oldEntityEquipment != null && !oldEntityEquipment.equals(playerEntity.equipment))  {
                 sendEntityEquipmentPackets((LivingEntity) playerEntity.entity);
             }
-
         }
     }
 
