@@ -1,7 +1,6 @@
 package com.lauriethefish.betterportals.runnables;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -174,6 +173,11 @@ public class PlayerRayCast implements Runnable {
     // This function is responsible for iterating over all of the blocks surrounding the portal,
     // and performing a raycast on each of them to check if they should be visible
     public void updatePortal(PlayerData playerData, PortalPos portal) {
+        // We need to update the fake entities every tick, regardless of if the player moved
+        if(pl.config.enableEntitySupport)   {
+            playerData.entityManipulator.updateFakeEntities();
+        }
+
         // Optimisation: Check if the player has moved before re-rendering the view
         Vector currentLoc = playerData.player.getLocation().toVector();
         if(currentLoc.equals(playerData.lastPosition))  {return;}
@@ -184,9 +188,19 @@ public class PlayerRayCast implements Runnable {
 
         // For now, entity processing is done on the main thread
         if(pl.config.enableEntitySupport)   {
-            Collection<Entity> entities = portal.getNearbyEntities();
+            portal.updateNearbyEntities();
+
+            Set<Entity> replicatedEntities = new HashSet<>();
+            Vector locationOffset = portal.portalPosition.toVector().subtract(portal.destinationPosition.toVector());
+            for(Entity entity : portal.nearbyEntitiesDestination)   {
+                // If an entity is visible through the portal, then we replicate it
+                if(checker.checkIfBlockVisible(entity.getLocation().toVector().add(locationOffset), portal.portalBL, portal.portalTR))  {
+                    replicatedEntities.add(entity);
+                }
+            }
+
             Set<Entity> hiddenEntities = new HashSet<>();
-            for(Entity entity : entities)   {
+            for(Entity entity : portal.nearbyEntitiesOrigin)   {
                 // If an entity is visible through the portal, then we hide it
                 if(checker.checkIfBlockVisible(entity.getLocation().toVector(), portal.portalBL, portal.portalTR))  {
                     hiddenEntities.add(entity);
@@ -194,6 +208,7 @@ public class PlayerRayCast implements Runnable {
             }
 
             playerData.entityManipulator.swapHiddenEntities(hiddenEntities);
+            playerData.entityManipulator.swapReplicatedEntities(replicatedEntities, locationOffset);
         }
 
         updateQueue.add(new PortalUpdateData(playerData, checker, portal));
@@ -247,7 +262,9 @@ public class PlayerRayCast implements Runnable {
             // where they shouldn't be
             if(playerData.lastActivePortal != portal)    {
                 playerData.resetSurroundingBlockStates();
-                playerData.entityManipulator.swapHiddenEntities(new HashSet<>()); // Remove all hidden entities
+
+                // Do not send the packets to destroy and recreate entities if we used a portal last tick
+                playerData.entityManipulator.resetAll(playerData.lastUsedPortal == null);
                 playerData.lastActivePortal = portal;
             }
 
