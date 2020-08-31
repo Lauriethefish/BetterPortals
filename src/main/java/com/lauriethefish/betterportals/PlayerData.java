@@ -44,6 +44,8 @@ public class PlayerData {
     // Resets all of the ghost block updates that have been set to the player
     // This also has the effect of changing surroundingPortalBlockStates to be all null
     public void resetSurroundingBlockStates()   {
+        surroundingPortalBlockStates = new HashMap<>();
+
         // If the last portal was in a different world, we don't need to reset the blocks
         if(lastActivePortal == null || lastActivePortal.portalPosition.getWorld() != player.getWorld()) {
             return;
@@ -55,7 +57,5 @@ public class PlayerData {
             changeManager.addChange(data.originVec, data.originData);
         }
         changeManager.sendChanges();
-
-        surroundingPortalBlockStates = new HashMap<>();
     }
 }
