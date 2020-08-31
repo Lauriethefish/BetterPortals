@@ -161,7 +161,6 @@ public class PlayerRayCast implements Runnable {
                 // Set their velocity back to what it was
                 player.setVelocity(playerVelocity);
                 playerData.lastUsedPortal = portal.destinationPosition;
-                playerData.resetSurroundingBlockStates();
             }
             return true;
         }   else    {
