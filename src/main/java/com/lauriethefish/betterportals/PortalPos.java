@@ -165,7 +165,7 @@ public class PortalPos {
         }
 
         Block block = destinationPosition.clone().add(x, y, z).getBlock();
-        return !block.getType().isSolid() || block.isLiquid(); // Return true if the block was transparent
+        return !block.getType().isOccluding();
     }
 
     // Loops through the blocks at the destination position, and finds the ones that aren't obscured by other solid blocks
@@ -193,16 +193,16 @@ public class PortalPos {
                     Location destLoc = destinationPosition.clone().add(x, y, z);
                     
                     // First check if the block is visible from any neighboring block
-                    boolean allSolid = true;
+                    boolean transparentBlock = false;
                     for(int[] offset : offsets) {
                         if(isSurroundingBlockTransparent(x, y, z, offset))  {
-                            allSolid = false;
+                            transparentBlock = true;
                             break;
                         }
                     }
 
                     // If the block is bordered by at least one transparent block, add it to the list
-                    if(!allSolid)    {
+                    if(transparentBlock)    {
                         newBlocks.add(new BlockRaycastData(originLoc, destLoc, edge));
                     }
                 }
