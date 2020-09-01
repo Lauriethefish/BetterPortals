@@ -162,16 +162,28 @@ public class PlayerEntityManipulator {
         }
         sendPacket(spawnPacket);
 
-        // Send the packet that deals with the entity's metadata
-        Object dataWatcher = ReflectUtils.getField(nmsEntity, "datawatcher");
-        Object dataPacket = ReflectUtils.newInstance("PacketPlayOutEntityMetadata", new Class[]{int.class, dataWatcher.getClass(), boolean.class},
-                                                                                    new Object[]{entity.getEntityId(), dataWatcher, true});
-        sendPacket(dataPacket);
+        // Make sure that entity data has been updated
+        updateEntityData(entity, nmsEntity);
 
         // If the entity is living, we have to set its armor and hand/offhand
         if(entity instanceof LivingEntity)   {
             sendEntityEquipmentPackets((LivingEntity) entity);
         }
+    }
+
+    // Sends a PacketPlayOutEntityMetadata to update the entities data, if necessary
+    private boolean updateEntityData(Entity entity, Object nmsEntity) {
+        // Send the packet that deals with the entity's metadata
+        Object dataWatcher = ReflectUtils.getField(nmsEntity, "datawatcher");
+        Object dataPacket = ReflectUtils.newInstance("PacketPlayOutEntityMetadata", new Class[]{int.class, dataWatcher.getClass(), boolean.class},
+                                                                                    new Object[]{entity.getEntityId(), dataWatcher, true});
+        // Only send the packet if the metadata actually needed to be changed
+        List<?> items = (List<?>) ReflectUtils.getField(dataPacket, "b");
+        if(items.size() > 0)    {
+            sendPacket(dataPacket);
+            return true;
+        }
+        return false;
     }
 
     // Sends either a move or teleport packet, depending on the distance
@@ -255,7 +267,7 @@ public class PlayerEntityManipulator {
     }
 
     // Loops through all the fake entities and updates their position and equipment
-    public void updateFakeEntities()   {        
+    public void updateFakeEntities()   {      
         for(PlayerViewableEntity playerEntity : replicatedEntites.values()) {
             // First store the old location
             Vector oldLocation = playerEntity.location;
@@ -275,6 +287,9 @@ public class PlayerEntityManipulator {
             }   else    {
                 sendLookPacket(playerEntity);
             }
+
+            // Send a MetaData packet if we need to
+            updateEntityData(playerEntity.entity, playerEntity.nmsEntity);
 
             // Update the entity equipment, then send EntityEquipment packets to the player if required
             EntityEquipmentState oldEntityEquipment = playerEntity.equipment;
