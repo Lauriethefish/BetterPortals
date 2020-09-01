@@ -36,14 +36,6 @@ public class BetterPortals extends JavaPlugin {
     // This method is called once when our plugin is enabled
     @Override
     public void onEnable() {
-        metrics = new Metrics(this, pluginId); // Initialise bStats
-        metrics.addCustomChart(new Metrics.SingleLineChart("portals_active", new Callable<Integer>()  {
-            @Override
-            public Integer call() throws Exception  {
-                return rayCastingSystem.portals.size() / 2; // Divide by 2, since each portal is 2 list items
-            }
-        }));
-
         // If any errors occur while loading the config/portal data, we return from this function
         // This essentially terminates the plugin as the runnable will not start
         
@@ -74,6 +66,41 @@ public class BetterPortals extends JavaPlugin {
             e.printStackTrace();
             getServer().getPluginManager().disablePlugin(this);
         }
+
+        initialiseStatistics();
+    }
+
+    // Initiailises bStats, and adds the various custom charts
+    public void initialiseStatistics()  {
+        metrics = new Metrics(this, pluginId); // Initialise bStats
+        metrics.addCustomChart(new Metrics.SingleLineChart("portals_active", new Callable<Integer>()  {
+            @Override
+            public Integer call() throws Exception  {
+                return rayCastingSystem.portals.size() / 2; // Divide by 2, since each portal is 2 list items
+            }
+        }));
+        metrics.addCustomChart(new Metrics.SimplePie("render_distance_xz", new Callable<String>() {
+            @Override
+            public String call() throws Exception  {
+                return String.valueOf(config.maxXZ);
+            }
+        }));
+        metrics.addCustomChart(new Metrics.SimplePie("render_distance_y", new Callable<String>() {
+            @Override
+            public String call() throws Exception  {
+                return String.valueOf(config.maxY);
+            }
+        }));
+        metrics.addCustomChart(new Metrics.SimplePie("entities_enabled", new Callable<String>() {
+            @Override
+            public String call() throws Exception   {
+                if(config.enableEntitySupport)  {
+                    return "Entities";
+                }   else    {
+                    return "No Entities";
+                }
+            }
+        }));
     }
 
     // This method is called when the plugin is disabled
