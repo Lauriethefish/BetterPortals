@@ -149,21 +149,12 @@ public class PlayerRayCast implements Runnable {
     // This function is responsible for iterating over all of the blocks surrounding the portal,
     // and performing a raycast on each of them to check if they should be visible
     public void updatePortal(PlayerData playerData, PortalPos portal) {
+        // Class to check if a block is visible through the portal
+        VisibilityChecker checker = new VisibilityChecker(playerData.player.getEyeLocation(), config.rayCastIncrement, config.maxRayCastDistance);
+        
         // We need to update the fake entities every tick, regardless of if the player moved
         if(pl.config.enableEntitySupport)   {
             playerData.entityManipulator.updateFakeEntities();
-        }
-
-        // Optimisation: Check if the player has moved before re-rendering the view
-        Vector currentLoc = playerData.player.getLocation().toVector();
-        if(currentLoc.equals(playerData.lastPosition))  {return;}
-        playerData.lastPosition = currentLoc;
-        
-        // Class to check if a block is visible through the portal
-        VisibilityChecker checker = new VisibilityChecker(playerData.player.getEyeLocation(), config.rayCastIncrement, config.maxRayCastDistance);
-
-        // For now, entity processing is done on the main thread
-        if(pl.config.enableEntitySupport)   {
             portal.updateNearbyEntities();
 
             Set<Entity> replicatedEntities = new HashSet<>();
@@ -186,6 +177,11 @@ public class PlayerRayCast implements Runnable {
             playerData.entityManipulator.swapHiddenEntities(hiddenEntities);
             playerData.entityManipulator.swapReplicatedEntities(replicatedEntities, locationOffset);
         }
+
+        // Optimisation: Check if the player has moved before re-rendering the view
+        Vector currentLoc = playerData.player.getLocation().toVector();
+        if(currentLoc.equals(playerData.lastPosition))  {return;}
+        playerData.lastPosition = currentLoc;
 
         updateQueue.add(new PortalUpdateData(playerData, checker, portal));
     }
