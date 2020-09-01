@@ -1,6 +1,7 @@
 package com.lauriethefish.betterportals;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
@@ -11,6 +12,7 @@ import com.lauriethefish.betterportals.events.PortalCreate;
 import com.lauriethefish.betterportals.runnables.PlayerRayCast;
 
 import org.bstats.bukkit.Metrics;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -63,12 +65,10 @@ public class BetterPortals extends JavaPlugin {
         // Add the PlayerData for every online player in order to support /reload
         addAllPlayerData();
 
-        // Start the PlayerRayCast task, which is run every tick
-        rayCastingSystem = new PlayerRayCast(this);
-
-        // Load all of the portals in portals.yml
+        // Load all of the portals in portals.yml, then start the update loop
         try {
-            rayCastingSystem.portals = storage.loadPortals();
+            Map<Location, PortalPos> portals = storage.loadPortals();
+            rayCastingSystem = new PlayerRayCast(this, portals);
         }   catch(Exception e)  {
             getLogger().warning(ChatColor.RED + "Error parsing portal data file, this is likely because it is invalid yaml");
             e.printStackTrace();

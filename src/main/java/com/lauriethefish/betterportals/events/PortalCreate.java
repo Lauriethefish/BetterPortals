@@ -112,11 +112,11 @@ public class PortalCreate implements Listener {
 
         // Add the two new ends of the portal to the rayCastingSystem,
         // so that the portal effect can be active!
-        pl.rayCastingSystem.portals.add(new PortalPos(pl,
-            location.clone(), direction,
-            spawnLocation.clone(), direction, portalSize
+        pl.rayCastingSystem.portals.put(location, new PortalPos(pl,
+            location, direction,
+            spawnLocation, direction, portalSize
         ));
-        pl.rayCastingSystem.portals.add(new PortalPos(pl,
+        pl.rayCastingSystem.portals.put(spawnLocation, new PortalPos(pl,
             spawnLocation, direction,
             location, direction, portalSize
         ));

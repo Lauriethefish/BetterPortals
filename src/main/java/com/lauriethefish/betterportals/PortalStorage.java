@@ -4,9 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Map;
 
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
@@ -91,14 +91,12 @@ public class PortalStorage {
 
     // Saves the given portals to disk in portals.yml,
     // May throw an IOException if something goes wrong reading the file
-    public void savePortals(List<PortalPos> portals) throws IOException {
+    public void savePortals(Map<Location, PortalPos> portals) throws IOException {
         // Get the default portal list
         FileConfiguration newPortals = YamlConfiguration.loadConfiguration(new InputStreamReader(pl.getResource("portals.yml")));
-        
-        // Loop through every portal
-        for(int i = 0; i < portals.size(); i++) {
-            PortalPos portal = portals.get(i);
-            
+
+        int i = 0;
+        for(PortalPos portal : portals.values())    {
             // Create a section of the list for this portal
             ConfigurationSection portalSection = newPortals.createSection(String.format("portals.%s", i));
             // Set the two location and two directions of the portal
@@ -109,6 +107,7 @@ public class PortalStorage {
             
             // Set the portal's size
             setPortalSize(portalSection.createSection("portalSize"), portal.portalSize);
+            i++;
         }
 
         // Save the storage file
@@ -118,8 +117,8 @@ public class PortalStorage {
     // Loads all of the portals from portals.yml and puts them in the given list
     // If no portals were saved it should return an empty list
     // This function will through exceptions if parsing the YAML failed
-    public List<PortalPos> loadPortals() {
-        List<PortalPos> portals = new ArrayList<>();
+    public Map<Location, PortalPos> loadPortals() {
+        Map<Location, PortalPos> portals = new HashMap<>();
         
         // Load the portals.yml file as YAML
         FileConfiguration currentStorage = YamlConfiguration.loadConfiguration(storageFile);
@@ -146,11 +145,11 @@ public class PortalStorage {
             // Load thr portal's size
             Vector portalSize = loadPortalSize(nextPortalSection.getConfigurationSection("portalSize"));
 
-            // Add a new portal to the list with the given values
-            portals.add(new PortalPos(pl, portalPosition, portalDirection, destinationPosition, destinationDirection, portalSize));
+            // Add a new portal to the map with the given values
+            portals.put(portalPosition, new PortalPos(pl, portalPosition, portalDirection, destinationPosition, destinationDirection, portalSize));
         }
 
-        // Return the list of all portals
+        // Return the map of all portals
         return portals;
     }
 }
