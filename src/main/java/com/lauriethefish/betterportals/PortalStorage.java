@@ -2,7 +2,6 @@ package com.lauriethefish.betterportals;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -93,12 +92,13 @@ public class PortalStorage {
     // May throw an IOException if something goes wrong reading the file
     public void savePortals(Map<Location, PortalPos> portals) throws IOException {
         // Get the default portal list
-        FileConfiguration newPortals = YamlConfiguration.loadConfiguration(new InputStreamReader(pl.getResource("portals.yml")));
+        FileConfiguration newPortals = new YamlConfiguration();
+        ConfigurationSection portalsSection = newPortals.createSection("portals");
 
         int i = 0;
         for(PortalPos portal : portals.values())    {
             // Create a section of the list for this portal
-            ConfigurationSection portalSection = newPortals.createSection(String.format("portals.%s", i));
+            ConfigurationSection portalSection = portalsSection.createSection(String.valueOf(i));
             // Set the two location and two directions of the portal
             setLocation(portalSection.createSection("portalPosition"), portal.portalPosition);
             portalSection.set("portalDirection", portal.portalDirection.toString());
