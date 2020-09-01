@@ -3,7 +3,7 @@ package com.lauriethefish.betterportals.runnables;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -18,7 +18,6 @@ import com.lauriethefish.betterportals.VisibilityChecker;
 import com.lauriethefish.betterportals.multiblockchange.MultiBlockChangeManager;
 
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -29,12 +28,8 @@ public class PlayerRayCast implements Runnable {
     private Config config;
 
     private BetterPortals pl;
-    // Store a list of all of the currently active portals
-    public List<PortalPos> portals = new ArrayList<>();
-
-    // List to store the destinations of any removed portals, these portals will be
-    // removed next tick
-    public List<Location> removedDestinations = new ArrayList<>();
+    // Store a map of all of the currently active portals
+    public Map<Location, PortalPos> portals;
 
     private BlockingQueue<PortalUpdateData> updateQueue = new LinkedBlockingQueue<>();
     public Thread renderThread;
@@ -47,9 +42,10 @@ public class PlayerRayCast implements Runnable {
         }
     }
 
-    public PlayerRayCast(BetterPortals pl) {
+    public PlayerRayCast(BetterPortals pl, Map<Location, PortalPos> portals) {
         this.pl = pl;
         this.config = pl.config;
+        this.portals = portals;
 
         // Spawn a new thread to handle updating the portal
         new Thread(() -> {
@@ -81,31 +77,10 @@ public class PlayerRayCast implements Runnable {
         // Set the current closest distance to the portalActivationDistance so that no portals
         // further than it will be activated
         double closestDistance = config.portalActivationDistance;
-        // List to store the destinations of any removed portals
-        List<Location> newRemovedDestionations = new ArrayList<>();
 
-        // Iterate through the portals
-        Iterator<PortalPos> iter = portals.iterator();
+        Iterator<PortalPos> iter = portals.values().iterator();
         while(iter.hasNext())   {
-            // Advance our iterator
             PortalPos portal = iter.next();
-            // Check if the portal has any missing blocks
-            // If it does, remove it and add its destination to the list
-            // of portals that need to be removed.
-            if(!portal.checkIfStillActive())    {
-                portal.portalPosition.getBlock().setType(Material.AIR);
-                newRemovedDestionations.add(portal.destinationPosition);
-                iter.remove();
-                continue;
-            }
-            // Check if this portal has a destination portal that has been destroyed
-            // If it has, break the portal and remove it from the list
-            if(removedDestinations.contains(portal.portalPosition)) {
-                portal.portalPosition.getBlock().setType(Material.AIR);
-                iter.remove();
-                continue;
-            }
-            // Check that the portal is in the right world
             if(portal.portalPosition.getWorld() != player.getWorld())  {
                 continue;
             }
@@ -118,8 +93,10 @@ public class PlayerRayCast implements Runnable {
             }
         }
 
-        // Set the removed destinations to the new ones so that they can be removed next tick
-        removedDestinations = newRemovedDestionations;
+        // Check if the portal or it's detination has any missing blocks
+        if(closestPortal != null && !closestPortal.checkOriginAndDestination())    {
+            return null;
+        }
 
         // Return the closest portal
         return closestPortal;
