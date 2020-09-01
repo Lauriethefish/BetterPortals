@@ -2,8 +2,10 @@ package com.lauriethefish.betterportals;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.WorldBorder;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -114,6 +116,16 @@ public class PortalPos {
         return input.add(portalPosition.toVector());
     }
 
+    public boolean checkOriginAndDestination()  {
+        PortalPos destination = pl.rayCastingSystem.portals.get(destinationPosition);
+        // Remove the portal if either the origin or destination is broken
+        if(!(checkIfStillActive() && destination.checkIfStillActive())) {
+            remove();
+            return false;
+        }
+        return true;
+    }
+
     // Checks if the portal has been broken
     // This is used to remove the portal from the plugins list of active portals
     public boolean checkIfStillActive() {
@@ -127,6 +139,18 @@ public class PortalPos {
                 // since portals outside the worldborder should be broken
                 border.isInside(portalPosition.clone().subtract(subAmount)) &&
                 border.isInside(portalPosition.clone().add(subAmount));
+    }
+
+    // Removes this portal, and its destination portal, from the map in PlayerRayCast
+    public void remove()    {
+        // Remove both from the map
+        Map<Location, PortalPos> map = pl.rayCastingSystem.portals;
+        map.remove(portalPosition);
+        map.remove(destinationPosition);
+
+        // Remove the portal blocks
+        portalPosition.getBlock().setType(Material.AIR);
+        destinationPosition.getBlock().setType(Material.AIR);
     }
 
     // Finds if the given offset from the portal is see through, returns true if an edge block or outside
