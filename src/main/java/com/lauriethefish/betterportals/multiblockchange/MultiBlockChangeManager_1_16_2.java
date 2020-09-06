@@ -12,7 +12,7 @@ import org.bukkit.util.Vector;
 // Allows you to add blocks to a HashMap that will then be divided to be sent to the player
 public class MultiBlockChangeManager_1_16_2 implements MultiBlockChangeManager {
     private Object playerConnection;
-    // Stores the changes, separated out into chunks
+    // Stores the changes, separated out into chunk sections
     private HashMap<SectionPosition, HashMap<Vector, Object>> changes = new HashMap<>();
 
     public MultiBlockChangeManager_1_16_2(Player player)   {
@@ -39,7 +39,7 @@ public class MultiBlockChangeManager_1_16_2 implements MultiBlockChangeManager {
     }
 
     // Constructs a multiple block change packet from the given blocks, and sends it to the player
-    // All the blocks MUST be in the same chunk
+    // All the blocks MUST be in the same chunk section
     private void sendMultiBlockChange(Map<Vector, Object> blocks, SectionPosition section) {
         // Make a new PacketPlayOutMultiBlockChange
         Class<?> packetClass = ReflectUtils.getMcClass("PacketPlayOutMultiBlockChange");
