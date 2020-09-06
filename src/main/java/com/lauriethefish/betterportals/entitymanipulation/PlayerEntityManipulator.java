@@ -15,6 +15,7 @@ import com.lauriethefish.betterportals.ReflectUtils;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ExperienceOrb;
+import org.bukkit.entity.Hanging;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Painting;
@@ -129,23 +130,41 @@ public class PlayerEntityManipulator {
         ReflectUtils.setField(packet, zName, location.getZ());
     }
 
+    // Generates an entity spawn packet in a way that works in 1.13 and 1.12 by using an EntityTrackerEntry to generate the packet for us
+    private Object generateEntitySpawnPacket_Old(Object nmsEntity)  {
+        Object trackerEntry = ReflectUtils.newInstance("EntityTrackerEntry", new Class[] {ReflectUtils.getMcClass("Entity"), int.class, int.class, int.class, boolean.class},
+                                                      new Object[]{nmsEntity, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE, true});
+
+        Object packet = ReflectUtils.runMethod(trackerEntry, "e");
+        return packet;
+    }
+
+    static Vector getEntityPosition(Entity entity, Object nmsEntity)  {
+        // For entities like item frames and paintings, we get the coordinates using a BlockPosition
+        // This is because the normal entity coordinates are not accurate for spawn packets
+        if(entity instanceof Hanging)   {
+            Object blockPosition = ReflectUtils.getField(nmsEntity, "blockPosition");
+            return ReflectUtils.blockPositionToVector(blockPosition);
+        }   else    {
+            return entity.getLocation().toVector();
+        }
+    }
+
     // Sends all of the packets necessary to spawn a fake entity, or respawn a real one after it was removed
     private void showEntity(Entity entity, Vector locationOverride)   {
-        // Get the entity from its UUID
-        if(!entity.isValid())  {return;} // Don't spawn the entity if it doesn't exist
-
+        if(entity.isDead()) {return;}
         Object nmsEntity = ReflectUtils.runMethod(entity, "getHandle");
 
         // Use either the entities location, or the override
-        Vector location = locationOverride == null ? entity.getLocation().toVector() : locationOverride;
+        Vector location = locationOverride == null ?  getEntityPosition(entity, nmsEntity) : locationOverride;
 
         // Create the correct type of spawn packet, depending on the entity
         Object spawnPacket;
         if(entity instanceof Painting)  {
             spawnPacket = ReflectUtils.newInstance("PacketPlayOutSpawnEntityPainting", new Class[]{ReflectUtils.getMcClass("EntityPainting")}, new Object[]{nmsEntity});
             // Painting spawn packets are slightly different, as they use a BlockPosition
-            Object blockPosition = ReflectUtils.newInstance("BlockPosition", new Class[]{double.class, double.class, double.class},
-                                                            new Object[]{location.getX(), location.getY(), location.getZ()});
+            Object blockPosition = ReflectUtils.newInstance("BlockPosition", new Class[]{int.class, int.class, int.class},
+                                                            new Object[]{location.getBlockX(), location.getBlockY(), location.getBlockZ()});
             ReflectUtils.setField(spawnPacket, "c", blockPosition);
         }   else if(entity instanceof ExperienceOrb)    {
             spawnPacket = ReflectUtils.newInstance("PacketPlayOutSpawnEntityExperienceOrb", new Class[]{ReflectUtils.getMcClass("EntityExperienceOrb")}, new Object[]{nmsEntity});
@@ -157,13 +176,19 @@ public class PlayerEntityManipulator {
             spawnPacket = ReflectUtils.newInstance("PacketPlayOutSpawnEntityLiving", new Class[]{ReflectUtils.getMcClass("EntityLiving")}, new Object[]{nmsEntity});
             setSpawnLocation(spawnPacket, location, "d", "e", "f");
         }   else    {
-            spawnPacket = ReflectUtils.newInstance("PacketPlayOutSpawnEntity", new Class[]{ReflectUtils.getMcClass("Entity")}, new Object[]{nmsEntity});
+            // If we are on 1.14 and up, the contructor for PacketPlayOutSpawnEntity can find all the entity type stuff for us
+            // Otherwise, we use a function that gets EntityTrackerEntry to do everything
+            if(ReflectUtils.useNewEntitySpawnAndMoveImpl)   {
+                spawnPacket = ReflectUtils.newInstance("PacketPlayOutSpawnEntity", new Class[]{ReflectUtils.getMcClass("Entity")}, new Object[]{nmsEntity});
+            }   else    {
+                spawnPacket = generateEntitySpawnPacket_Old(nmsEntity);
+            }
             setSpawnLocation(spawnPacket, location, "c", "d", "e");
         }
         sendPacket(spawnPacket);
 
-        // Make sure that entity data has been updated
-        updateEntityData(entity, nmsEntity);
+        // Force the entity to update it's data, since it just spawned
+        updateEntityData(entity, nmsEntity, true);
 
         // If the entity is living, we have to set its armor and hand/offhand
         if(entity instanceof LivingEntity)   {
@@ -172,18 +197,16 @@ public class PlayerEntityManipulator {
     }
 
     // Sends a PacketPlayOutEntityMetadata to update the entities data, if necessary
-    private boolean updateEntityData(Entity entity, Object nmsEntity) {
-        // Send the packet that deals with the entity's metadata
+    private void updateEntityData(Entity entity, Object nmsEntity, boolean force) {
+        // The NMS DataWatcher deals with checking an entity for data changes, we use it to send the metadata packet
         Object dataWatcher = ReflectUtils.getField(nmsEntity, "datawatcher");
-        Object dataPacket = ReflectUtils.newInstance("PacketPlayOutEntityMetadata", new Class[]{int.class, dataWatcher.getClass(), boolean.class},
-                                                                                    new Object[]{entity.getEntityId(), dataWatcher, true});
-        // Only send the packet if the metadata actually needed to be changed
-        List<?> items = (List<?>) ReflectUtils.getField(dataPacket, "b");
-        if(items.size() > 0)    {
+
+        // Check if we actually need to update the metadata
+        if(force || (boolean) ReflectUtils.runMethod(dataWatcher, "a")) {
+            Object dataPacket = ReflectUtils.newInstance("PacketPlayOutEntityMetadata", new Class[]{int.class, dataWatcher.getClass(), boolean.class},
+                                                                                        new Object[]{entity.getEntityId(), dataWatcher, true});
             sendPacket(dataPacket);
-            return true;
         }
-        return false;
     }
 
     // Sends either a move or teleport packet, depending on the distance
@@ -196,9 +219,16 @@ public class PlayerEntityManipulator {
             short y = (short) (offset.getY() * 4096);
             short z = (short) (offset.getZ() * 4096);
 
-            sendPacket(ReflectUtils.newInstance("PacketPlayOutEntity$PacketPlayOutRelEntityMove", 
-                        new Class[]{int.class, short.class, short.class, short.class, boolean.class},
-                        new Object[]{entity.entityId, x, y, z, true}));
+            // In newer versions, a short is used for relative move packets, but in 1.13 and under, a long is used
+            if(ReflectUtils.useNewEntitySpawnAndMoveImpl)   {
+                sendPacket(ReflectUtils.newInstance("PacketPlayOutEntity$PacketPlayOutRelEntityMove", 
+                            new Class[]{int.class, short.class, short.class, short.class, boolean.class},
+                            new Object[]{entity.entityId, x, y, z, true}));
+            }   else    {
+                sendPacket(ReflectUtils.newInstance("PacketPlayOutEntity$PacketPlayOutRelEntityMove", 
+                            new Class[]{int.class, long.class, long.class, long.class, boolean.class},
+                            new Object[]{entity.entityId, (long) x, (long) y, (long) z, true}));
+                }
         }   else    {
             // Otherwise, just send a teleport packet, since this works for any distance
             sendTeleportPacket(entity.nmsEntity, entity.location);
@@ -220,9 +250,16 @@ public class PlayerEntityManipulator {
             byte pitch = getByteAngle(loc.getPitch());
 
             sendHeadRotationPacket(entity, yaw);
-            sendPacket(ReflectUtils.newInstance("PacketPlayOutEntity$PacketPlayOutRelEntityMoveLook", 
-                        new Class[]{int.class, short.class, short.class, short.class, byte.class, byte.class, boolean.class},
-                        new Object[]{entity.entityId, x, y, z, yaw, pitch, true}));
+            // In newer versions, a short is used for relative move packets, but in 1.13 and under, a long is used
+            if(ReflectUtils.useNewEntitySpawnAndMoveImpl)   {
+                sendPacket(ReflectUtils.newInstance("PacketPlayOutEntity$PacketPlayOutRelEntityMoveLook", 
+                            new Class[]{int.class, short.class, short.class, short.class, byte.class, byte.class, boolean.class},
+                            new Object[]{entity.entityId, x, y, z, yaw, pitch, true}));
+            }   else    {
+                sendPacket(ReflectUtils.newInstance("PacketPlayOutEntity$PacketPlayOutRelEntityMoveLook", 
+                            new Class[]{int.class, long.class, long.class, long.class, byte.class, byte.class, boolean.class},
+                            new Object[]{entity.entityId, (long) x, (long) y, (long) z, yaw, pitch, true}));
+            }
         }   else    {
             // Otherwise, just send a teleport packet and a look packet
             sendTeleportPacket(entity.nmsEntity, entity.location);
@@ -280,16 +317,19 @@ public class PlayerEntityManipulator {
             boolean updateRotation = !playerEntity.rotation.equals(oldRotation);
             
             // If we are updating both the entities position and rotation, use a MoveLook packet (not doing this causes glitches)
-            if(updateLocation && updateRotation)    {
+
+            // Don't send the rotation of hanging entities, since it causes glitches
+            boolean lookNeeded = !(playerEntity.entity instanceof Hanging);
+            if(updateLocation && updateRotation && lookNeeded)    {
                 sendMoveLookPacket(playerEntity, oldLocation);
             }   else if(updateLocation) {
                 sendMovePacket(playerEntity, oldLocation);
-            }   else    {
+            }   else if(updateRotation && lookNeeded)   {
                 sendLookPacket(playerEntity);
             }
 
-            // Send a MetaData packet if we need to
-            updateEntityData(playerEntity.entity, playerEntity.nmsEntity);
+            // Send a metadata packet if we need to
+            updateEntityData(playerEntity.entity, playerEntity.nmsEntity, false);
 
             // Update the entity equipment, then send EntityEquipment packets to the player if required
             EntityEquipmentState oldEntityEquipment = playerEntity.equipment;
