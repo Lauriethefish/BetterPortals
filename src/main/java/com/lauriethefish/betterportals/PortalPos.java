@@ -86,7 +86,9 @@ public class PortalPos {
     public void updateNearbyEntities()   {
         if(ticksSinceLastEntityCheck < pl.config.entityCheckInterval)  {
             ticksSinceLastEntityCheck++;
+            return;
         }
+        
         ticksSinceLastEntityCheck = 0;
         
         nearbyEntitiesOrigin = portalPosition.getWorld().getNearbyEntities(portalPosition, pl.config.maxXZ, pl.config.maxY, pl.config.maxXZ);
@@ -166,6 +168,24 @@ public class PortalPos {
 
         Block block = destinationPosition.clone().add(x, y, z).getBlock();
         return !block.getType().isOccluding();
+    }
+
+    // Checks if the location is on the plane made by the portal window
+    // This is used because entities in line with the portal should not be rendered
+    public boolean positionInlineWithOrigin(Location loc)  {
+        if(portalDirection == PortalDirection.EAST_WEST)    {
+            return loc.getBlockZ() == portalPosition.getBlockZ();
+        }   else    {
+            return loc.getBlockX() == portalPosition.getBlockX();
+        }
+    }
+
+    public boolean positionInlineWithDestination(Location loc)  {
+        if(portalDirection == PortalDirection.EAST_WEST)    {
+            return loc.getBlockZ() == destinationPosition.getBlockZ();
+        }   else    {
+            return loc.getBlockX() == destinationPosition.getBlockX();
+        }
     }
 
     // Loops through the blocks at the destination position, and finds the ones that aren't obscured by other solid blocks
