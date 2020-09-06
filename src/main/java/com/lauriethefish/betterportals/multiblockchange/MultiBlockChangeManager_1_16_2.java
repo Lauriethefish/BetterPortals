@@ -53,7 +53,7 @@ public class MultiBlockChangeManager_1_16_2 implements MultiBlockChangeManager {
         int i = 0;
         for(Map.Entry<Vector, Object> entry : blocks.entrySet())   {
             Vector loc = entry.getKey();
-            // Find the chunk relative position
+            // Find the chunk section relative position
             int x = loc.getBlockX() & 0xF;
             int y = loc.getBlockY() & 0xF;
             int z = loc.getBlockZ() & 0xF;
