@@ -10,6 +10,7 @@ import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.util.Vector;
 
 public class ReflectUtils {
     private static String minecraftClassPath = null;
@@ -48,6 +49,28 @@ public class ReflectUtils {
             return !type.equals(getMcClass("EnumItemSlot"));
         } catch(NoSuchFieldException | SecurityException ex)    {
             ex.printStackTrace();
+            return false;
+        }
+    }
+
+    // If using 1.13 or below, we have to use the old PacketPlayOutSpawnEntity constructor, and the old PacketPlayOutRelEntityMove
+    public static boolean useNewEntitySpawnAndMoveImpl = getIfNewEntitySpawnAndMoveImpl();
+    private static boolean getIfNewEntitySpawnAndMoveImpl() {
+        try {
+            getMcClass("PacketPlayOutSpawnEntity").getConstructor(new Class[]{getMcClass("Entity")});
+            return true;
+        }   catch(NoSuchMethodException ex) {
+            return false;
+        }
+    }
+
+    // BaseBlockPosition uses the E field for the Z coordinate on 1.16 and up
+    public static boolean useNewBaseBlockPositionImpl = getIfNewBaseBlockPositionImpl();
+    private static boolean getIfNewBaseBlockPositionImpl()  {
+        try {
+            getMcClass("BaseBlockPosition").getDeclaredField("e");
+            return true;
+        }   catch(NoSuchFieldException ex)  {
             return false;
         }
     }
@@ -105,17 +128,16 @@ public class ReflectUtils {
     }
 
     // Attempts to find a field in the field cache, and gets it using reflection if it doesn't exist
-    private static Field findField(Object obj, String name) {
-        String fullName = String.format(String.format("%s.%s", obj.getClass().getName(), name));
+    private static Field findField(Object obj, String name, Class<?> cla) {
+        String fullName = String.format(String.format("%s.%s", cla.getName(), name));
         Field field = fieldCache.get(fullName);
         if(field == null)   { // Test if it is in the cache
-            Class<?> currentClass = obj.getClass();
-            while(currentClass != null && field == null) { // Keep looping until no superclass can be found
+            while(cla != null && field == null) { // Keep looping until no superclass can be found
                 try {
-                    field = currentClass.getDeclaredField(name);
+                    field = cla.getDeclaredField(name);
                 }   catch(NoSuchFieldException ex)  {
-                    currentClass = currentClass.getSuperclass();
-                    if(currentClass == null)    { // Print the exception if no field was found, even in the highest superclass
+                    cla = cla.getSuperclass();
+                    if(cla == null)    { // Print the exception if no field was found, even in the highest superclass
                         ex.printStackTrace();
                     }
                 }
@@ -158,10 +180,34 @@ public class ReflectUtils {
         return portalMaterial;
     }
 
-    // Sets a field in the given object, even if it is private
+    // Converts any NMS type that extends BaseBlockPosition to a Bukkit Vector.
+    private static Class<?> blockPosClass = getMcClass("BaseBlockPosition");
+    public static Vector blockPositionToVector(Object pos)  {
+        // In newer versions of the game, the E field stores the Z coordinate
+        if(useNewBaseBlockPositionImpl) {
+            return new Vector(
+                (int) ReflectUtils.getField(pos, blockPosClass, "a"),
+                (int) ReflectUtils.getField(pos, blockPosClass, "b"),
+                (int) ReflectUtils.getField(pos, blockPosClass, "e")
+            );
+        }   else    {
+            return new Vector(
+                (int) ReflectUtils.getField(pos, blockPosClass, "a"),
+                (int) ReflectUtils.getField(pos, blockPosClass, "b"),
+                (int) ReflectUtils.getField(pos, blockPosClass, "c")
+            );
+        }
+    }
+
+    // Sets a field in the given object, even if it is private (class is automatically determined)
     public static void setField(Object obj, String name, Object value)    {
+        setField(obj, obj.getClass(), name, value);
+    }
+
+    // Call this method if you need to override the class, for instance if there are two private fields with the same name
+    public static void setField(Object obj, Class<?> cla, String name, Object value)    {
         try {
-            Field field = findField(obj, name);
+            Field field = findField(obj, name, cla);
             field.setAccessible(true);
             field.set(obj, value);
         }   catch(IllegalAccessException ex) {
@@ -172,7 +218,7 @@ public class ReflectUtils {
     // Gets the value of the named field. Will return null if the field doesn't exist, or is of the wrong type
     public static Object getField(Object obj, Class<?> cla, String name)   {
         try {
-            Field field = findField(obj, name);
+            Field field = findField(obj, name, cla);
             field.setAccessible(true);
             return field.get(obj);
         }   catch(IllegalAccessException | ClassCastException ex) {
