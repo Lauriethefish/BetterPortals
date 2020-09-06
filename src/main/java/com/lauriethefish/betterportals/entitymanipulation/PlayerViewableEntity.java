@@ -34,7 +34,7 @@ public class PlayerViewableEntity {
     }
 
     public void calculateLocation() {
-        this.location = entity.getLocation().toVector().add(locationOffset);
+        this.location = PlayerEntityManipulator.getEntityPosition(entity, nmsEntity).add(locationOffset);
     }
 
     public void calculateRotation() {
