@@ -160,6 +160,11 @@ public class PlayerRayCast implements Runnable {
             Set<Entity> replicatedEntities = new HashSet<>();
             Vector locationOffset = portal.portalPosition.toVector().subtract(portal.destinationPosition.toVector());
             for(Entity entity : portal.nearbyEntitiesDestination)   {
+                // If the entity is in a different world, or is on the same line as the portal destination, skip it
+                if(entity.getWorld() != portal.destinationPosition.getWorld() || portal.positionInlineWithDestination(entity.getLocation())) {
+                    continue;
+                }
+
                 // If an entity is visible through the portal, then we replicate it
                 if(checker.checkIfBlockVisible(entity.getLocation().toVector().add(locationOffset), portal.portalBL, portal.portalTR))  {
                     replicatedEntities.add(entity);
@@ -168,6 +173,12 @@ public class PlayerRayCast implements Runnable {
 
             Set<Entity> hiddenEntities = new HashSet<>();
             for(Entity entity : portal.nearbyEntitiesOrigin)   {
+                // If the entity isn't in the same world, we skip it
+                // We also skip entities directly in line with the portal window, since they generally get hidden and reshown glitchily
+                if(entity.getWorld() != portal.portalPosition.getWorld() || portal.positionInlineWithOrigin(entity.getLocation())) {
+                    continue;
+                }
+
                 // If an entity is visible through the portal, then we hide it
                 if(checker.checkIfBlockVisible(entity.getLocation().toVector(), portal.portalBL, portal.portalTR))  {
                     hiddenEntities.add(entity);
