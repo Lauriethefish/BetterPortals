@@ -4,11 +4,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
+import com.lauriethefish.betterportals.multiblockchange.MultiBlockChangeManager;
+
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.WorldBorder;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 // Stores all of the attributes required for one direction of a portal
@@ -168,6 +171,40 @@ public class PortalPos {
 
         Block block = destinationPosition.clone().add(x, y, z).getBlock();
         return !block.getType().isOccluding();
+    }
+
+    public void removePortalBlocks(Player player)    {
+        setPortalBlocks(player, false);
+    }
+
+    public void recreatePortalBlocks(Player player)    {
+        setPortalBlocks(player, true);
+    }
+    
+    // Sends a packet to the player setting the portal blocks to air (if reset is false), or back to what they were (if reset is true)
+    private void setPortalBlocks(Player player, boolean reset)  {
+        MultiBlockChangeManager manager = MultiBlockChangeManager.createInstance(player);
+
+        Vector actualSize = VisibilityChecker.orientVector(portalDirection, portalSize).clone();
+        Vector blockBL = portalPosition.toVector().subtract(actualSize.multiply(0.5));
+
+        // Loop through each block of the portal, and set them to either air or back to portal
+        Object nmsAirData = BlockRaycastData.getNMSData(Material.AIR);
+        for(int x = 0; x < portalSize.getX(); x++)  {
+            for(int y = 0; y < portalSize.getY(); y++)  {
+                Vector offset = VisibilityChecker.orientVector(portalDirection, new Vector(x, y, 0.0));
+                Location position = blockBL.toLocation(portalPosition.getWorld()).add(offset);
+                
+                // Add the changes to our manager
+                if(reset)   {
+                    manager.addChange(position, BlockRaycastData.getNMSData(position.getBlock()));
+                }   else    {
+                    manager.addChange(position, nmsAirData);
+                }
+            }
+        }
+
+        manager.sendChanges(); // Send the packet to the player
     }
 
     // Checks if the location is on the plane made by the portal window
