@@ -2,6 +2,7 @@ package com.lauriethefish.betterportals.multiblockchange;
 
 import com.lauriethefish.betterportals.ReflectUtils;
 
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -17,5 +18,9 @@ public interface MultiBlockChangeManager {
     }
 
     public void addChange(Vector location, Object newType);
+    public default void addChange(Location location, Object newType) {
+        addChange(location.toVector(), newType);
+    }
+
     public void sendChanges();
 }
