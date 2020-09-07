@@ -19,6 +19,10 @@ portalBlockUpdateInterval: 120 # How often the portal will re-check for the bloc
 enableEntitySupport: true
 entityCheckInterval: 30 # How often the portal will check for surrounding entities
 
+# Setting this to true will allow you to see straight through a portal
+# NOTE: This generally makes it look a bit less convincing, since it's easier to see when the player's client doesn't quite keep up
+hidePortalBlocks: false
+
 # The distance that the ray from the ray cast system used to calculate
 # the view frustrum will be advanced each iteration
 # Increasing this beyond 0.7 can cause strange behaviour, but should help performance

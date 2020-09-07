@@ -52,6 +52,9 @@ public class Config {
     public boolean enableEntitySupport;
     public int entityCheckInterval;
 
+    // If this is true then we will send packets to hide and show the portal blocks
+    public boolean hidePortalBlocks;
+
     // Loads the configuration from the given file, setting all the parameters of the class
     public Config(BetterPortals pl)   {
         this.pl = pl;
@@ -82,6 +85,8 @@ public class Config {
 
         enableEntitySupport = file.getBoolean("enableEntitySupport");
         entityCheckInterval = file.getInt("entityCheckInterval");
+
+        hidePortalBlocks = file.getBoolean("hidePortalBlocks");
 
         // If the maxRayCastDistance is set to -1, work it out based on the portalActivationDistance
         if(maxRayCastDistance == -1)    {

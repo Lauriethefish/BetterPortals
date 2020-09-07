@@ -246,6 +246,16 @@ public class PlayerRayCast implements Runnable {
             if(playerData.lastActivePortal != portal)    {
                 playerData.resetSurroundingBlockStates();
 
+                if(pl.config.hidePortalBlocks)  {
+                    // If we're not in the same world as our last portal, there's no point recreating the portal blocks
+                    if(playerData.lastActivePortal != null && playerData.lastActivePortal.portalPosition.getWorld() == player.getWorld())   {
+                        playerData.lastActivePortal.recreatePortalBlocks(player);
+                    }
+                    if(portal != null)  {
+                        portal.removePortalBlocks(player);
+                    }
+                }
+
                 // Do not send the packets to destroy and recreate entities if we used a portal last tick
                 playerData.entityManipulator.resetAll(playerData.lastUsedPortal == null);
                 playerData.lastActivePortal = portal;
