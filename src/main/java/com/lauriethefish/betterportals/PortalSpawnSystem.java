@@ -78,9 +78,9 @@ public class PortalSpawnSystem {
         double closestSuitableDistance = Double.POSITIVE_INFINITY;
 
         // Loop through a few areas around the portal
-        for(double z = -35.0; z < 35.0; z += 5.0)  {
-            for(double y = link.minSpawnY; y < link.maxSpawnY; y++) {
-                for(double x = -35.0; x < 35.0; x += 5.0)  {
+        for(double z = -128.0; z < 128.0; z += 1.0)  {
+            for(double y = link.minSpawnY; y <= link.maxSpawnY; y++) {
+                for(double x = -128.0; x < 128.0; x += 1.0)  {
                     // Find the location of the current potential portal spawn
                     Location newLoc = new Location(prefferedLocation.getWorld(), prefferedLocation.getX() + x, y, prefferedLocation.getZ() + z);
 
@@ -93,7 +93,7 @@ public class PortalSpawnSystem {
                     double distance = prefferedLocation.distance(newLoc);
                     if(distance < closestSuitableDistance)  {
                         // Check if it is suitable
-                        if(checkSuitableSpawnLocation(newLoc.clone(), direction, portalSize))  {
+                        if(checkSuitableSpawnLocation(newLoc.clone(), direction, portalSize) == PortalSuitability.SUITABLE)  {
                             closestSuitableLocation = newLoc;
                             closestSuitableDistance = distance;
                         }
@@ -116,20 +116,32 @@ public class PortalSpawnSystem {
         return mat == Material.WATER || mat == Material.LAVA;
     }
 
+    private enum PortalSuitability  {
+        UNSUITABLE,
+        SUITABLE,
+        PREFERRED
+    }
+
     // Checks if the position is given is suitable for spawning a portal
     // See definition of a suitable location above
-    public boolean checkSuitableSpawnLocation(Location location, PortalDirection direction, Vector portalSize)   {
-        boolean allSuitable = true;
-        // Loop through the two columbs of portal blocks
-        outer:
+    public PortalSuitability checkSuitableSpawnLocation(Location location, PortalDirection direction, Vector portalSize) {
+        // Return unsuitable if we are too close to another portal
+        for(PortalPos portal : pl.rayCastingSystem.portals.values())    {
+            Location otherPos = portal.portalPosition;
+
+            if(otherPos.getWorld() == location.getWorld() && otherPos.distance(location) < pl.config.minimumPortalSpawnDistance) {
+                return PortalSuitability.UNSUITABLE;
+            }
+        }
+
+        // Loop through the two colums of portal blocks
         for(double x = 1.0; x <= portalSize.getX(); x++)  {
             // Get our current position on the x/z
             Location currentPosX = location.clone().add(VisibilityChecker.orientVector(direction, new Vector(x, 0.0, 0.0)));
             
             // If the ground is not solid, it is not suitable 
             if(!currentPosX.getBlock().getType().isSolid())  {
-                allSuitable = false;
-                break outer;
+                return PortalSuitability.UNSUITABLE;
             }
 
             // If the air above the columns is solid or lava/water then it is not suitable
@@ -139,19 +151,16 @@ public class PortalSpawnSystem {
                 Material currentType = currentPos.getBlock().getType();
 
                 if(currentType.isSolid() || isMaterialFluid(currentType))   {
-                    allSuitable = false;
-                    break outer;
+                    return PortalSuitability.UNSUITABLE;
                 }
             }
         }
-
-        // Return true if both the ground and ir is suitable
-        return allSuitable;
+        // If all the checks succeeded, then this location is suitable for portal spawning
+        return PortalSuitability.SUITABLE;
     }
 
     // Checks all four corners of the portal given to see if they are solid blocks
     // If they are not, they are set to stone
-    @SuppressWarnings("deprecation")
     public void fixPortalCorners(Location location, PortalDirection direction, Vector portalSize)  {
         Vector[] portalCornerLocations = {
             new Vector(0.0, 0.0, 0.0),
@@ -167,9 +176,8 @@ public class PortalSpawnSystem {
 
             // Find the location of the block
             Location newLoc = location.clone().add(offset);
-            // Check if it is transparent, if it is not, set it to stone
-            // Yes, I know this method is deprecated, but I can't be bothered to write out 100+ different allowed blocks
-            if(newLoc.getBlock().getType().isTransparent())  {
+            // If the block isn't fully occluding, set it to stone
+            if(!newLoc.getBlock().getType().isOccluding())  {
                 newLoc.getBlock().setType(Material.STONE);
             }
         }
