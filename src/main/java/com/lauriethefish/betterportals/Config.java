@@ -55,6 +55,9 @@ public class Config {
     // If this is true then we will send packets to hide and show the portal blocks
     public boolean hidePortalBlocks;
 
+    // How close portals will spawn to each other
+    public int minimumPortalSpawnDistance;
+
     // Loads the configuration from the given file, setting all the parameters of the class
     public Config(BetterPortals pl)   {
         this.pl = pl;
@@ -87,6 +90,8 @@ public class Config {
         entityCheckInterval = file.getInt("entityCheckInterval");
 
         hidePortalBlocks = file.getBoolean("hidePortalBlocks");
+
+        minimumPortalSpawnDistance = file.getInt("minimumPortalSpawnDistance");
 
         // If the maxRayCastDistance is set to -1, work it out based on the portalActivationDistance
         if(maxRayCastDistance == -1)    {

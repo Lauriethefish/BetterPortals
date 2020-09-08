@@ -23,6 +23,9 @@ entityCheckInterval: 30 # How often the portal will check for surrounding entiti
 # NOTE: This generally makes it look a bit less convincing, since it's easier to see when the player's client doesn't quite keep up
 hidePortalBlocks: false
 
+# How close portals can spawn to each other, in blocks
+minimumPortalSpawnDistance: 10
+
 # The distance that the ray from the ray cast system used to calculate
 # the view frustrum will be advanced each iteration
 # Increasing this beyond 0.7 can cause strange behaviour, but should help performance
