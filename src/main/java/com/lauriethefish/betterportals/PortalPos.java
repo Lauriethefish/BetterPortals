@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
+import com.lauriethefish.betterportals.math.Matrix;
 import com.lauriethefish.betterportals.multiblockchange.MultiBlockChangeManager;
 
 import org.bukkit.Location;
@@ -18,9 +19,6 @@ import org.bukkit.util.Vector;
 // Two of these should be created per portal, one for the effect on each side
 public class PortalPos {
     private BetterPortals pl;
-    // Corners of the portals collision box
-    public Vector portalBL;
-    public Vector portalTR;
 
     // The origin position and orientation of the portal
     public Location portalPosition;
@@ -30,7 +28,13 @@ public class PortalPos {
     public Location destinationPosition;
     public PortalDirection destinationDirection;
 
-    // The size of the portal's gateway in blocks
+    private Matrix originToDestination;
+    public Matrix rotateToDestination;
+
+    // Size of the plane the makes up the portal radius from the centerpoint of the portal
+    public Vector planeRadius;
+
+    // The size of the portal's gateway on the X and Y
     public Vector portalSize;
 
     // Array of the blocks at the destination of the portal that need checking for visibility
@@ -55,29 +59,23 @@ public class PortalPos {
     // NOTE: The portalPosition must be the EXACT center of the portal on the x, y and z
     public PortalPos(BetterPortals pl, Location portalPosition, PortalDirection portalDirection, 
                     Location destinationPosition, PortalDirection destinationDirection, Vector portalSize) {
-        Vector portalPosVec = portalPosition.toVector();
-
+        this.pl = pl;
         this.portalPosition = portalPosition;
         this.portalDirection = portalDirection;
         this.destinationPosition = destinationPosition;
         this.destinationDirection = destinationDirection;
         this.portalSize = portalSize;
-        this.pl = pl;
+
+        rotateToDestination = Matrix.makeRotation(portalDirection.toVector(), destinationDirection.toVector());
+
+        // Matrix that takes a coordinate at the origin of the portal, and rotates and translates it to the destination
+        originToDestination = Matrix.makeTranslation(destinationPosition.toVector())
+                                .multiply(rotateToDestination)
+                                .multiply(Matrix.makeTranslation(portalPosition.toVector().multiply(-1.0)));
         
         // Divide the size by 2 so it is the correct amount to subtract from the center to reach each corner
         // Then orient it so that is on the z if the portal is north/south
-        Vector orientedSize = VisibilityChecker.orientVector(portalDirection, portalSize.clone().multiply(0.5));
-
-        // Get the bottom left and top right blocks by subtracting our modified size
-        Vector bottomLeftBlock = portalPosVec.clone().subtract(orientedSize);
-        Vector topRightBlock = portalPosVec.clone().add(orientedSize);
-
-        // Get the correct collision box from the config
-        Vector collisionBox = pl.config.portalCollisionBox;
-
-        // Set the portals collision box. NOTE: The east/west collision box is different to the north/south one
-        portalBL = bottomLeftBlock.clone().subtract(VisibilityChecker.orientVector(portalDirection, collisionBox));
-        portalTR = topRightBlock.clone().add(VisibilityChecker.orientVector(portalDirection, collisionBox));
+        this.planeRadius = portalDirection.swapVector(portalSize.clone().multiply(0.5).add(pl.config.portalCollisionBox));
     }
 
     // Forces this portal to recheck for entities next tick
@@ -98,29 +96,6 @@ public class PortalPos {
         nearbyEntitiesDestination = destinationPosition.getWorld().getNearbyEntities(destinationPosition, pl.config.maxXZ, pl.config.maxY, pl.config.maxXZ);
     }
 
-    // Transforms the vector input, which should be relative to the center of the portal,
-    // to world coordinates at the destination of the portal
-    public Vector applyTransformationsDestination(Vector input) {
-        // If the two portals are facing different ways then the x and z coordinates have to be flipped
-        // and one of them must be inverted. This is equivilient to a rotation about the origin of 90 degrees
-        if(portalDirection != destinationDirection) {
-            if(portalDirection == PortalDirection.EAST_WEST)    {
-                input = new Vector(input.getZ() * -1.0, input.getY(), input.getX());
-            }   else    {
-                input = new Vector(input.getZ(), input.getY(), input.getX() * -1.0);
-            }
-        }
-
-        // Add the destinationPosition to the input to transform the vector
-        return input.add(destinationPosition.toVector());
-    }
-
-    // Transforms the vector input, which should be relative to the center of the portal
-    // to world coordinates at the origin of the portal
-    public Vector applyTransformationsOrigin(Vector input) {
-        return input.add(portalPosition.toVector());
-    }
-
     public boolean checkOriginAndDestination()  {
         PortalPos destination = pl.rayCastingSystem.portals.get(destinationPosition);
         // Remove the portal if either the origin or destination is broken
@@ -135,7 +110,7 @@ public class PortalPos {
     // This is used to remove the portal from the plugins list of active portals
     public boolean checkIfStillActive() {
         // Get the offset from the portals absolute center to the top left and bottom right corners of the portal blocks
-        Vector subAmount = VisibilityChecker.orientVector(portalDirection, portalSize.clone().multiply(0.5).add(new Vector(0.0, 0.0, 0.5)));
+        Vector subAmount = portalDirection.swapVector(portalSize.clone().multiply(0.5).add(new Vector(0.0, 0.0, 0.5)));
         WorldBorder border = portalPosition.getWorld().getWorldBorder();
 
         // Check if the block at the centre of the portal is a portal block
@@ -144,6 +119,10 @@ public class PortalPos {
                 // since portals outside the worldborder should be broken
                 border.isInside(portalPosition.clone().subtract(subAmount)) &&
                 border.isInside(portalPosition.clone().add(subAmount));
+    }
+
+    public Location moveOriginToDestination(Location loc)   {
+        return originToDestination.transform(loc.toVector()).toLocation(destinationPosition.getWorld());
     }
 
     // Removes this portal, and its destination portal, from the map in PlayerRayCast
@@ -185,14 +164,14 @@ public class PortalPos {
     private void setPortalBlocks(Player player, boolean reset)  {
         MultiBlockChangeManager manager = MultiBlockChangeManager.createInstance(player);
 
-        Vector actualSize = VisibilityChecker.orientVector(portalDirection, portalSize).clone();
+        Vector actualSize = portalDirection.swapVector(portalSize);
         Vector blockBL = portalPosition.toVector().subtract(actualSize.multiply(0.5));
 
         // Loop through each block of the portal, and set them to either air or back to portal
         Object nmsAirData = BlockRaycastData.getNMSData(Material.AIR);
         for(int x = 0; x < portalSize.getX(); x++)  {
             for(int y = 0; y < portalSize.getY(); y++)  {
-                Vector offset = VisibilityChecker.orientVector(portalDirection, new Vector(x, y, 0.0));
+                Vector offset = portalDirection.swapVector(new Vector(x, y, 0.0));
                 Location position = blockBL.toLocation(portalPosition.getWorld()).add(offset);
                 
                 // Add the changes to our manager
@@ -210,19 +189,11 @@ public class PortalPos {
     // Checks if the location is on the plane made by the portal window
     // This is used because entities in line with the portal should not be rendered
     public boolean positionInlineWithOrigin(Location loc)  {
-        if(portalDirection == PortalDirection.EAST_WEST)    {
-            return loc.getBlockZ() == portalPosition.getBlockZ();
-        }   else    {
-            return loc.getBlockX() == portalPosition.getBlockX();
-        }
+        return portalDirection.swapLocation(loc).getZ() == portalDirection.swapLocation(portalPosition).getZ();
     }
 
     public boolean positionInlineWithDestination(Location loc)  {
-        if(portalDirection == PortalDirection.EAST_WEST)    {
-            return loc.getBlockZ() == destinationPosition.getBlockZ();
-        }   else    {
-            return loc.getBlockX() == destinationPosition.getBlockX();
-        }
+        return destinationDirection.swapLocation(loc).getZ() == destinationDirection.swapLocation(destinationPosition).getZ();
     }
 
     // Loops through the blocks at the destination position, and finds the ones that aren't obscured by other solid blocks
@@ -239,15 +210,16 @@ public class PortalPos {
         ArrayList<BlockRaycastData> newBlocks = new ArrayList<>();
         // Loop through all blocks around the portal
         for(double z = config.minXZ; z <= config.maxXZ; z++) {
-        if(portalDirection == PortalDirection.EAST_WEST && z == 0.0) {continue;}
             for(double y = config.minY; y <= config.maxY; y++) {
                 for(double x = config.minXZ; x <= config.maxXZ; x++) {
-                    if(portalDirection == PortalDirection.NORTH_SOUTH && x == 0.0) {continue;}
+                    Location originLoc = portalPosition.clone().add(x, y, z);
+                    // Skip blocks directly in line with the portal
+                    if(positionInlineWithOrigin(originLoc)) {
+                        continue;
+                    }
 
                     boolean edge = x == config.maxXZ || x == config.minXZ || z == config.maxXZ || z == config.minXZ || y == config.maxY || y == config.minY;
-
-                    Location originLoc = portalPosition.clone().add(x, y, z);
-                    Location destLoc = destinationPosition.clone().add(x, y, z);
+                    Location destLoc = moveOriginToDestination(originLoc);
                     
                     // First check if the block is visible from any neighboring block
                     boolean transparentBlock = false;

@@ -6,7 +6,7 @@ import com.lauriethefish.betterportals.BetterPortals;
 import com.lauriethefish.betterportals.PortalDirection;
 import com.lauriethefish.betterportals.PortalPos;
 import com.lauriethefish.betterportals.ReflectUtils;
-import com.lauriethefish.betterportals.VisibilityChecker;
+import com.lauriethefish.betterportals.math.MathUtils;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -55,37 +55,37 @@ public class PortalCreate implements Listener {
             if(block.getType() == Material.OBSIDIAN)  {continue;}
 
             // Get the position of the portal as a block vector, so that all of the coodinates are rounded down
-            Vector blockLoc = block.getLocation().toVector().toBlockVector();
+            Vector blockLoc = block.getLocation().toVector();
 
             // Update the bottom left block
-            if(smallestLocation == null || VisibilityChecker.vectorGreaterThan(smallestLocation, blockLoc)) {
+            if(smallestLocation == null || MathUtils.greaterThanEq(smallestLocation, blockLoc)) {
                 smallestLocation = blockLoc;
             }
-            if(largestLocation == null || VisibilityChecker.vectorGreaterThan(blockLoc, largestLocation))   {
+            if(largestLocation == null || MathUtils.lessThanEq(largestLocation, blockLoc))   {
                 largestLocation = blockLoc;
             }
         }
 
         // Get the direction of the portal, based on wheather the blocks are on the same z coordinate
         PortalDirection direction = largestLocation.getZ() == smallestLocation.getZ() ? PortalDirection.EAST_WEST : PortalDirection.NORTH_SOUTH;
+
         // Get the location of the bottom left of the portal blocks
         Location location = smallestLocation.toLocation(event.getWorld());
 
         // Get the size of the portal on the x and y coordinates, this requires flipping them if the portal faces north/south
-        Vector portalSize = VisibilityChecker.orientVector(direction, largestLocation.clone().subtract(smallestLocation))
+        Vector portalSize = direction.swapVector(largestLocation.clone().subtract(smallestLocation))
             .add(new Vector(1.0, 1.0, 0.0));
 
         // Check that the portal is smaller than the max size
         Vector maxPortalSize = pl.config.maxPortalSize;
         if(portalSize.getX() > maxPortalSize.getX() || portalSize.getY() > maxPortalSize.getY())    {
-            // Cancel the event
             event.setCancelled(true);
             return;
         }
 
         // Subtract 1 from the x and y of the location to get the location relative to the bottom left block of obisidan
         // This changes to z and y if the portal is oriented north/south
-        location.subtract(VisibilityChecker.orientVector(direction, new Vector(1.0, 1.0, 0.0)));
+        location.subtract(direction.swapVector(new Vector(1.0, 1.0, 0.0)));
 
         // Find a suitable location for spawning the portal
         Location spawnLocation = pl.spawningSystem.findSuitablePortalLocation(location, direction, portalSize);
@@ -99,6 +99,7 @@ public class PortalCreate implements Listener {
 
         // Spawn a portal in the opposite world and the right location
         pl.spawningSystem.spawnPortal(spawnLocation, direction, portalSize);
+
         // Fill in any missing corners of the current portal with stone,
         // because lack of corners can break the illusion
         pl.spawningSystem.fixPortalCorners(location.clone(), direction, portalSize);
@@ -106,7 +107,7 @@ public class PortalCreate implements Listener {
         // Add to the portals position, as the PlayerRayCast requires coordinates to be at
         // the absolute center of the portal
         // Swap around the x and z offsets if the portal is facing a different direction
-        Vector portalAddAmount = VisibilityChecker.orientVector(direction, portalSize.clone().multiply(0.5).add(new Vector(1.0, 1.0, 0.5)));
+        Vector portalAddAmount = direction.swapVector(portalSize.clone().multiply(0.5).add(new Vector(1.0, 1.0, 0.5)));
         location.add(portalAddAmount);
         spawnLocation.add(portalAddAmount);
 
