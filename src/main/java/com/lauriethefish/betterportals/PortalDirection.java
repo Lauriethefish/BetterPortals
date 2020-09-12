@@ -1,5 +1,6 @@
 package com.lauriethefish.betterportals;
 
+import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
 // Two directions of a portal, used for more ergonomic handling
@@ -30,5 +31,9 @@ public enum PortalDirection {
                 return vec.clone();
         }
         return null;
+    }
+
+    public Location swapLocation(Location loc)  {
+        return swapVector(loc.toVector()).toLocation(loc.getWorld());
     }
 }
