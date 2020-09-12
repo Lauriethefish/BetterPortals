@@ -7,21 +7,20 @@ import org.bukkit.util.Vector;
 
 public class PlaneIntersectionChecker {
     // This value is arbitrarily small
-    private static double EPSILON = 0.000001;
+    public static double EPSILON = 0.000001;
 
     private Vector planeCenter;
     private Vector planeNormal;
-    private Vector rayOrigin;
+    private Vector maxDev;
 
-    private double xDev = EPSILON;
-    private double yDev = 2.0;
-    private double zDev = 1.5;
+    private Vector rayOrigin;
 
     public PlaneIntersectionChecker(Player player, PortalPos portal)    {
         this.planeCenter = portal.portalPosition.toVector();
-        this.planeNormal = portal.portalDirection.getDirection();
+        this.planeNormal = portal.portalDirection.toVector();
+        this.maxDev = portal.planeRadius;    
 
-        this.rayOrigin = player.getEyeLocation().toVector();       
+        this.rayOrigin = player.getEyeLocation().toVector();
     }
 
     // Contrustor used for testing
@@ -29,6 +28,7 @@ public class PlaneIntersectionChecker {
         this.planeCenter = planeCenter;
         this.planeNormal = planeNormal;
         this.rayOrigin = planeOrigin;
+        this.maxDev = new Vector(1.5, 2.5, 0.5);
     }
 
     // Checks if the given ray intersects this plane
@@ -49,8 +49,9 @@ public class PlaneIntersectionChecker {
             if(t > EPSILON) {
                 Vector portalIntersectPoint = rayOrigin.clone().add(direction.multiply(t));
                 Vector distCenter = portalIntersectPoint.subtract(planeCenter);
+
                 // Return true if the intersection point was close enough to the portal window
-                return Math.abs(distCenter.getX()) <= xDev && Math.abs(distCenter.getY()) <= yDev && Math.abs(distCenter.getZ()) <= zDev;
+                return Math.abs(distCenter.getX()) <= maxDev.getX() && Math.abs(distCenter.getY()) <= maxDev.getY() && Math.abs(distCenter.getZ()) <= Math.abs(maxDev.getZ());
             }
         }
 
