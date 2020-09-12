@@ -33,7 +33,10 @@ public class PortalPos {
     public PortalDirection destinationDirection;
 
     private Matrix originToDestination;
-    public Matrix rotateToDestination;
+    private Matrix rotateToDestination;
+
+    private Matrix destinationToOrigin;
+    private Matrix rotateToOrigin;
 
     // Size of the plane the makes up the portal radius from the centerpoint of the portal
     public Vector planeRadius;
@@ -71,11 +74,16 @@ public class PortalPos {
         this.portalSize = portalSize;
 
         rotateToDestination = Matrix.makeRotation(portalDirection.toVector(), destinationDirection.toVector());
+        rotateToOrigin = Matrix.makeRotation(destinationDirection.toVector(), portalDirection.toVector());
 
         // Matrix that takes a coordinate at the origin of the portal, and rotates and translates it to the destination
         originToDestination = Matrix.makeTranslation(destinationPosition.toVector())
                                 .multiply(rotateToDestination)
                                 .multiply(Matrix.makeTranslation(portalPosition.toVector().multiply(-1.0)));
+        
+        destinationToOrigin = Matrix.makeTranslation(portalPosition.toVector())
+                                .multiply(rotateToOrigin)
+                                .multiply(Matrix.makeTranslation(destinationPosition.toVector().multiply(-1.0)));
         
         // Divide the size by 2 so it is the correct amount to subtract from the center to reach each corner
         // Then orient it so that is on the z if the portal is north/south
@@ -127,6 +135,26 @@ public class PortalPos {
 
     public Location moveOriginToDestination(Location loc)   {
         return originToDestination.transform(loc.toVector()).toLocation(destinationPosition.getWorld());
+    }
+
+    public Vector moveOriginToDestination(Vector vec)   {
+        return originToDestination.transform(vec);
+    }
+
+    public Location moveDestinationToOrigin(Location loc)   {
+        return destinationToOrigin.transform(loc.toVector()).toLocation(portalPosition.getWorld());
+    }
+
+    public Vector moveDestinationToOrigin(Vector vec)   {
+        return destinationToOrigin.transform(vec);
+    }
+
+    public Vector rotateToOrigin(Vector dir)    {
+        return rotateToOrigin.transform(dir);
+    }
+
+    public Vector rotateToDestination(Vector dir)    {
+        return rotateToDestination.transform(dir);
     }
 
     // Removes this portal, and its destination portal, from the map in PlayerRayCast

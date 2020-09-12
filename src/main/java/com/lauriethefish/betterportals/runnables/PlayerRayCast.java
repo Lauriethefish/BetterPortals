@@ -115,10 +115,8 @@ public class PlayerRayCast implements Runnable {
         Vector playerVelocity = player.getVelocity().clone();
         // Move them to the other portal
         Location newLoc = portal.moveOriginToDestination(player.getLocation());
-        newLoc.setDirection(player.getLocation().getDirection());
-
-        // Rotate the player to the destination
-        portal.rotateToDestination.transform(newLoc.getDirection());    
+        newLoc.setDirection(portal.rotateToOrigin(player.getLocation().getDirection()));
+ 
         player.teleport(newLoc);
         
         // Set their velocity back to what it was
@@ -168,7 +166,7 @@ public class PlayerRayCast implements Runnable {
             }
 
             playerData.entityManipulator.swapHiddenEntities(hiddenEntities);
-            playerData.entityManipulator.swapReplicatedEntities(replicatedEntities, locationOffset);
+            playerData.entityManipulator.swapReplicatedEntities(replicatedEntities, portal);
         }
 
         // Optimisation: Check if the player has moved before re-rendering the view

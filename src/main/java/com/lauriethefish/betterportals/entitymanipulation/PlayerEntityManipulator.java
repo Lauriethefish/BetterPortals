@@ -11,6 +11,7 @@ import java.util.Set;
 
 import com.lauriethefish.betterportals.PlayerData;
 import com.lauriethefish.betterportals.ReflectUtils;
+import com.lauriethefish.betterportals.portal.PortalPos;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -72,7 +73,7 @@ public class PlayerEntityManipulator {
     public void resetAll(boolean sendPackets)  {
         if(sendPackets) {
             swapHiddenEntities(new HashSet<>());
-            swapReplicatedEntities(new HashSet<>(), new Vector());
+            swapReplicatedEntities(new HashSet<>(), null);
         }   else    {
             hiddenEntities = new HashSet<>();
             replicatedEntites = new HashMap<>();
@@ -80,7 +81,7 @@ public class PlayerEntityManipulator {
     }
 
     // Swaps the list of fake entities with the new one, adding or removing any new entities
-    public void swapReplicatedEntities(Set<Entity> newReplicatedEntities, Vector locationOffset)  {
+    public void swapReplicatedEntities(Set<Entity> newReplicatedEntities, PortalPos portal)  {
         // Loop through all of the existing fake entities and remove any that will no longer be visible to the player
         Iterator<Entity> removingIterator = replicatedEntites.keySet().iterator();
         while(removingIterator.hasNext())   {
@@ -98,7 +99,7 @@ public class PlayerEntityManipulator {
             // If the current entity does not exist in the list
             if(!replicatedEntites.containsKey(entity))   {
                 // Make a new PlayerViewableEntity instance from the entity, then send the packets to show it
-                PlayerViewableEntity newEntity = new PlayerViewableEntity(entity, locationOffset);
+                PlayerViewableEntity newEntity = new PlayerViewableEntity(entity, portal);
                 showEntity(entity, newEntity.location);
                 replicatedEntites.put(entity, newEntity); // Add the entity to the list
             }
