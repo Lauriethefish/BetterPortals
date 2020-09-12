@@ -4,6 +4,7 @@ import java.util.HashMap;
 
 import com.lauriethefish.betterportals.entitymanipulation.PlayerEntityManipulator;
 import com.lauriethefish.betterportals.multiblockchange.MultiBlockChangeManager;
+import com.lauriethefish.betterportals.portal.PortalPos;
 
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;

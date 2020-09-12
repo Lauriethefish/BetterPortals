@@ -3,10 +3,10 @@ package com.lauriethefish.betterportals.events;
 import java.util.List;
 
 import com.lauriethefish.betterportals.BetterPortals;
-import com.lauriethefish.betterportals.PortalDirection;
-import com.lauriethefish.betterportals.PortalPos;
 import com.lauriethefish.betterportals.ReflectUtils;
 import com.lauriethefish.betterportals.math.MathUtils;
+import com.lauriethefish.betterportals.portal.PortalDirection;
+import com.lauriethefish.betterportals.portal.PortalPos;
 
 import org.bukkit.Location;
 import org.bukkit.Material;

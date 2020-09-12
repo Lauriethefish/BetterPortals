@@ -1,6 +1,6 @@
 package com.lauriethefish.betterportals.math;
 
-import com.lauriethefish.betterportals.PortalPos;
+import com.lauriethefish.betterportals.portal.PortalPos;
 
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;

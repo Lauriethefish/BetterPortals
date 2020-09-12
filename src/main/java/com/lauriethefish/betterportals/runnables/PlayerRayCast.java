@@ -12,9 +12,9 @@ import com.lauriethefish.betterportals.BetterPortals;
 import com.lauriethefish.betterportals.BlockRaycastData;
 import com.lauriethefish.betterportals.Config;
 import com.lauriethefish.betterportals.PlayerData;
-import com.lauriethefish.betterportals.PortalPos;
 import com.lauriethefish.betterportals.math.PlaneIntersectionChecker;
 import com.lauriethefish.betterportals.multiblockchange.MultiBlockChangeManager;
+import com.lauriethefish.betterportals.portal.PortalPos;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;

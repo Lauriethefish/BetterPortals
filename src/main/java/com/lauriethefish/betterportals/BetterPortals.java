@@ -9,6 +9,9 @@ import com.lauriethefish.betterportals.commands.MainCommand;
 import com.lauriethefish.betterportals.events.PlayerJoin;
 import com.lauriethefish.betterportals.events.PlayerPortal;
 import com.lauriethefish.betterportals.events.PortalCreate;
+import com.lauriethefish.betterportals.portal.PortalPos;
+import com.lauriethefish.betterportals.portal.PortalSpawnSystem;
+import com.lauriethefish.betterportals.portal.PortalStorage;
 import com.lauriethefish.betterportals.runnables.PlayerRayCast;
 
 import org.bstats.bukkit.Metrics;
