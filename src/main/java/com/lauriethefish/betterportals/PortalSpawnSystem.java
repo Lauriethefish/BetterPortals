@@ -26,7 +26,7 @@ public class PortalSpawnSystem {
         double wbRadius = (worldBorder.getSize() / 2.0) - 3.0;
         Vector wbCenter = worldBorder.getCenter().toVector();
         Vector lowXZLimit = wbCenter.clone().subtract(new Vector(wbRadius, 0.0, wbRadius));
-        Vector highXZLimit = wbCenter.clone().add(new Vector(wbRadius, 0.0, wbRadius)).subtract(VisibilityChecker.orientVector(direction, realPSize.clone()));
+        Vector highXZLimit = wbCenter.clone().add(new Vector(wbRadius, 0.0, wbRadius)).subtract(direction.swapVector(realPSize));
 
         // Limit the X and Z values by the world border
         destLoc.setX(Math.min(destLoc.getX(), highXZLimit.getX())); destLoc.setX(Math.max(destLoc.getX(), lowXZLimit.getX()));
@@ -137,7 +137,7 @@ public class PortalSpawnSystem {
         // Loop through the two colums of portal blocks
         for(double x = 1.0; x <= portalSize.getX(); x++)  {
             // Get our current position on the x/z
-            Location currentPosX = location.clone().add(VisibilityChecker.orientVector(direction, new Vector(x, 0.0, 0.0)));
+            Location currentPosX = location.clone().add(direction.swapVector(new Vector(x, 0.0, 0.0)));
             
             // If the ground is not solid, it is not suitable 
             if(!currentPosX.getBlock().getType().isSolid())  {
@@ -172,7 +172,7 @@ public class PortalSpawnSystem {
         // Loop through all four corners
         for(Vector offset : portalCornerLocations)  {
             // If the portal is facing north/south, invert the x and z coordinates
-            offset = VisibilityChecker.orientVector(direction, offset);
+            offset = direction.swapVector(offset);
 
             // Find the location of the block
             Location newLoc = location.clone().add(offset);
@@ -194,7 +194,7 @@ public class PortalSpawnSystem {
             for(double y = 0.0; y <= portalSize.getY() + 1.0; y++)  {
                 for(double x = 0.0; x <= portalSize.getX() + 1.0; x++)  {
                     // Calculate the location next to the portal
-                    Location newLoc = location.clone().add(VisibilityChecker.orientVector(direction, new Vector(x, y, z)));
+                    Location newLoc = location.clone().add(direction.swapVector(new Vector(x, y, z)));
 
                     // If the z is not 0, generate the blocks at the sides of the portal
                     if(z != 0.0)    {
