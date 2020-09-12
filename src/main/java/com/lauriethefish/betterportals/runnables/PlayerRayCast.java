@@ -12,9 +12,8 @@ import com.lauriethefish.betterportals.BetterPortals;
 import com.lauriethefish.betterportals.BlockRaycastData;
 import com.lauriethefish.betterportals.Config;
 import com.lauriethefish.betterportals.PlayerData;
-import com.lauriethefish.betterportals.PortalDirection;
 import com.lauriethefish.betterportals.PortalPos;
-import com.lauriethefish.betterportals.VisibilityChecker;
+import com.lauriethefish.betterportals.math.PlaneIntersectionChecker;
 import com.lauriethefish.betterportals.multiblockchange.MultiBlockChangeManager;
 
 import org.bukkit.Location;
@@ -35,9 +34,9 @@ public class PlayerRayCast implements Runnable {
     public Thread renderThread;
     private class PortalUpdateData  { // Class to store data that is sent to another thread that handles the portal updates, since we cannot get this through bukkit if not on the main thread
         public PlayerData playerData;
-        public VisibilityChecker checker;
+        public PlaneIntersectionChecker checker;
         public PortalPos portal;
-        public PortalUpdateData(PlayerData playerData, VisibilityChecker checker, PortalPos portal)   {
+        public PortalUpdateData(PlayerData playerData, PlaneIntersectionChecker checker, PortalPos portal)   {
             this.playerData = playerData; this.portal = portal; this.checker = checker;
         }
     }
@@ -104,53 +103,36 @@ public class PlayerRayCast implements Runnable {
 
     // Teleports the player using the given portal if the player is within the portal
     // Returns wheather the player was in the teleport area, not necessarily wheather a teleport was performed
-    public boolean performPlayerTeleport(PlayerData playerData, PortalPos portal)  {
+    public boolean performPlayerTeleport(PlayerData playerData, PortalPos portal, PlaneIntersectionChecker checker)  {
         Player player = playerData.player;
-
-        // Get the players position as a 3D vector
-        Vector playerVec = player.getLocation().toVector();
-
-        // Check if they are inside the portal
-        if(VisibilityChecker.vectorGreaterThan(playerVec, portal.portalBL)
-         && VisibilityChecker.vectorGreaterThan(portal.portalTR, playerVec)) {
-            if(playerData.lastUsedPortal == null) {
-                // Save their velocity for later
-                Vector playerVelocity = player.getVelocity().clone();
-                // Move them to the other portal
-                playerVec.subtract(portal.portalPosition.toVector());
-                playerVec = portal.applyTransformationsDestination(playerVec);
-
-                // Convert the vector to a location
-                Location newLoc = playerVec.toLocation(portal.destinationPosition.getWorld());
-                newLoc.setDirection(player.getLocation().getDirection());
-
-                // Rotate the player if the exit portal faces a different direction
-                if(portal.portalDirection != portal.destinationDirection) {
-                    if(portal.portalDirection == PortalDirection.EAST_WEST)  {
-                        newLoc.setYaw(newLoc.getYaw() + 90.0f);
-                    }   else    {
-                        newLoc.setYaw(newLoc.getYaw() - 90.0f);
-                    }
-                }      
-                // Teleport them to the modified vector
-                player.teleport(newLoc);
-                
-                // Set their velocity back to what it was
-                player.setVelocity(playerVelocity);
-                playerData.lastUsedPortal = portal.destinationPosition;
-            }
-            return true;
-        }   else    {
-            playerData.lastUsedPortal = null;
+        
+        // If the player's position the previous tick was on the other side of the portal window, then we should teleport the player, otherwise return
+        if(playerData.lastPosition == null || !checker.checkIfVisibleThroughPortal(playerData.lastPosition))   {
+            return false;
         }
-        return false;
+        
+        // Save their velocity for later
+        Vector playerVelocity = player.getVelocity().clone();
+        // Move them to the other portal
+        Location newLoc = portal.moveOriginToDestination(player.getLocation());
+        newLoc.setDirection(player.getLocation().getDirection());
+
+        // Rotate the player to the destination
+        portal.rotateToDestination.transform(newLoc.getDirection());    
+        player.teleport(newLoc);
+        
+        // Set their velocity back to what it was
+        player.setVelocity(playerVelocity);
+        return true;
     }
     
     // This function is responsible for iterating over all of the blocks surrounding the portal,
     // and performing a raycast on each of them to check if they should be visible
-    public void updatePortal(PlayerData playerData, PortalPos portal) {
-        // Class to check if a block is visible through the portal
-        VisibilityChecker checker = new VisibilityChecker(playerData.player.getEyeLocation(), config.rayCastIncrement, config.maxRayCastDistance);
+    public void updatePortal(PlayerData playerData, PortalPos portal, PlaneIntersectionChecker checker) {
+        // If we loaded a world last tick, we skip rendering, since the chunks might not be loaded yet
+        if(playerData.loadedWorldLastTick)   {
+            return;
+        }
         
         // We need to update the fake entities every tick, regardless of if the player moved
         if(pl.config.enableEntitySupport)   {
@@ -166,7 +148,7 @@ public class PlayerRayCast implements Runnable {
                 }
 
                 // If an entity is visible through the portal, then we replicate it
-                if(checker.checkIfBlockVisible(entity.getLocation().toVector().add(locationOffset), portal.portalBL, portal.portalTR))  {
+                if(checker.checkIfVisibleThroughPortal(entity.getLocation().toVector().add(locationOffset)))  {
                     replicatedEntities.add(entity);
                 }
             }
@@ -180,7 +162,7 @@ public class PlayerRayCast implements Runnable {
                 }
 
                 // If an entity is visible through the portal, then we hide it
-                if(checker.checkIfBlockVisible(entity.getLocation().toVector(), portal.portalBL, portal.portalTR))  {
+                if(checker.checkIfVisibleThroughPortal(entity.getLocation().toVector()))  {
                     hiddenEntities.add(entity);
                 }
             }
@@ -192,7 +174,6 @@ public class PlayerRayCast implements Runnable {
         // Optimisation: Check if the player has moved before re-rendering the view
         Vector currentLoc = playerData.player.getLocation().toVector();
         if(currentLoc.equals(playerData.lastPosition))  {return;}
-        playerData.lastPosition = currentLoc;
 
         updateQueue.add(new PortalUpdateData(playerData, checker, portal));
     }
@@ -200,14 +181,9 @@ public class PlayerRayCast implements Runnable {
     private void handleUpdate(PortalUpdateData data)    {
         ArrayList<BlockRaycastData> currentBlocks = data.portal.currentBlocks; // Store the current blocks incase they change while being processed
         MultiBlockChangeManager changeManager = MultiBlockChangeManager.createInstance(data.playerData.player);
-        for(int i = 0; i < currentBlocks.size(); i++)    {
-            BlockRaycastData raycastData = currentBlocks.get(i);
-            
-            // Convert it to a location for use later
-            Vector aRelativePos = raycastData.originVec;
-        
+        for(BlockRaycastData raycastData : currentBlocks)    {                    
             // Check if the block is visible
-            boolean visible = data.checker.checkIfBlockVisible(raycastData.originVec, data.portal.portalBL, data.portal.portalTR);
+            boolean visible = data.checker.checkIfVisibleThroughPortal(raycastData.originVec);
 
             Object oldState = data.playerData.surroundingPortalBlockStates.get(raycastData.originVec); // Find if it was visible last tick
             Object newState = visible ? raycastData.destData : raycastData.originData;
@@ -215,7 +191,7 @@ public class PlayerRayCast implements Runnable {
             // If we are overwriting the block, change it in the player's block array and send them a block update
             if(!newState.equals(oldState)) {
                 data.playerData.surroundingPortalBlockStates.put(raycastData.originVec, newState);
-                changeManager.addChange(aRelativePos, newState);
+                changeManager.addChange(raycastData.originVec, newState);
             }
         }
 
@@ -237,6 +213,12 @@ public class PlayerRayCast implements Runnable {
         for (Player player : pl.getServer().getOnlinePlayers()) {
             PlayerData playerData = pl.players.get(player.getUniqueId());
 
+            // If we changed worlds in the last tick, we wait to avoid chunks not being loaded while sending updates
+            if(playerData.loadedWorldLastTick)  {
+                playerData.loadedWorldLastTick = false;
+                continue;
+            }
+
             // Find the closest portal to the player
             PortalPos portal = findClosestPortal(player);
 
@@ -256,27 +238,30 @@ public class PlayerRayCast implements Runnable {
                     }
                 }
 
-                // Do not send the packets to destroy and recreate entities if we used a portal last tick
-                playerData.entityManipulator.resetAll(playerData.lastUsedPortal == null);
+                // Do not send the packets to destroy and recreate entities if we loaded into a world last tick
+                playerData.entityManipulator.resetAll(!playerData.loadedWorldLastTick);
                 playerData.lastActivePortal = portal;
+                playerData.lastPosition = null;
             }
 
-            // If no portals were found, skip the rest of the loop
-            if(portal == null) {
-                continue;
-            }
+            // If no portals were found, don't update anything
+            if(portal == null) {continue;}
 
-            // Create the player's block state array if necessary
+            // Create the portal's block state array if necessary
             portal.findCurrentBlocks();
 
-            // Teleport the player if they are inside a portal
-            // If the player teleported, exit the loop as they are no longer near the target portal
-            if(performPlayerTeleport(playerData, portal))    {
+            PlaneIntersectionChecker intersectionChecker = new PlaneIntersectionChecker(
+                    playerData.player, portal);
+            // Queue the update to happen on another thread
+            updatePortal(playerData, portal, intersectionChecker);
+
+            // Teleport the player if they cross through a portal
+            if(performPlayerTeleport(playerData, portal, intersectionChecker))    {
+                playerData.loadedWorldLastTick = true;
                 continue;
             }
 
-            // Queue the update to happen on another thread
-            updatePortal(playerData, portal);
+            playerData.lastPosition = player.getLocation().toVector();
         }
     }
 }

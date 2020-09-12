@@ -5,7 +5,6 @@ import java.util.HashMap;
 import com.lauriethefish.betterportals.entitymanipulation.PlayerEntityManipulator;
 import com.lauriethefish.betterportals.multiblockchange.MultiBlockChangeManager;
 
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -13,10 +12,9 @@ import org.bukkit.util.Vector;
 public class PlayerData {
     // Reference to the player
     public Player player;
-    // The destination of the last portal that they used
-    // This is used as a form of cooldown for portals
-    // If it is null then they were not in a portal during the last tick
-    public Location lastUsedPortal = null;
+    
+    // Used to disable sending entity packets after a world load
+    public boolean loadedWorldLastTick = false;
 
     // The last portal that had the portal effect active.
     // If this changes, then the ghost blocks sent to the player are reset to avoid phantom blocks breaking the illusion
@@ -41,6 +39,7 @@ public class PlayerData {
 
         this.lastPosition = null; // Make sure the portal re-renders
         this.lastActivePortal = null; // No portal was active last tick, since we just logged in
+        this.loadedWorldLastTick = true;
         resetSurroundingBlockStates();
     }
 
