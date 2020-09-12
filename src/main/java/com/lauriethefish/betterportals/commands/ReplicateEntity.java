@@ -14,6 +14,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
+// Testing command for the entity manipulator
 public class ReplicateEntity implements CommandExecutor {
     private BetterPortals pl;
     public ReplicateEntity(BetterPortals pl) {
