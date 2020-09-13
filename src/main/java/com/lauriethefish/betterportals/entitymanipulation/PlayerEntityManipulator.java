@@ -14,7 +14,6 @@ import com.lauriethefish.betterportals.PlayerData;
 import com.lauriethefish.betterportals.ReflectUtils;
 import com.lauriethefish.betterportals.portal.PortalPos;
 
-import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ExperienceOrb;
 import org.bukkit.entity.Hanging;
@@ -186,7 +185,7 @@ public class PlayerEntityManipulator {
         sendPacket(spawnPacket);
 
         // Force the entity to update its data, since it just spawned
-        updateEntityData(nmsEntity, entityId, true);
+        updateEntityData(nmsEntity, entityId);
 
         // If the entity is living, we have to set its armor and hand/offhand
         if(entity instanceof LivingEntity)   {
@@ -195,21 +194,18 @@ public class PlayerEntityManipulator {
     }
 
     // Sends a PacketPlayOutEntityMetadata to update the entities data, if necessary
-    private void updateEntityData(Object nmsEntity, int entityId, boolean force) {
+    private void updateEntityData(Object nmsEntity, int entityId) {
         // The NMS DataWatcher deals with checking an entity for data changes, we use it to send the metadata packet
         Object dataWatcher = ReflectUtils.getField(nmsEntity, "datawatcher");
-
-        // Check if we actually need to update the metadata
-        if(force || (boolean) ReflectUtils.runMethod(dataWatcher, "a")) {
-            Object dataPacket = ReflectUtils.newInstance("PacketPlayOutEntityMetadata", new Class[]{int.class, dataWatcher.getClass(), boolean.class},
-                                                                                        new Object[]{entityId, dataWatcher, true});
-            sendPacket(dataPacket);
-        }
+        Object dataPacket = ReflectUtils.newInstance("PacketPlayOutEntityMetadata", new Class[]{int.class, dataWatcher.getClass(), boolean.class},
+                                                                                    new Object[]{entityId, dataWatcher, true});
+        sendPacket(dataPacket);
+        
     }
 
     // Sends either a move or teleport packet, depending on the distance
-    private void sendMovePacket(PlayerViewableEntity entity, Vector oldLocation)    {
-        Vector offset = entity.location.clone().subtract(oldLocation); // Find the difference we need to move
+    private void sendMovePacket(PlayerViewableEntity entity)    {
+        Vector offset = entity.location.clone().subtract(entity.oldLocation); // Find the difference we need to move
 
         // If the distance is short enough for a relative move packet
         if(offset.getX() < 8 && offset.getY() < 8 && offset.getZ() < 8) {
@@ -234,8 +230,8 @@ public class PlayerEntityManipulator {
     }
 
     // Sends a PacketPlayOutRelEntityMoveLook packet to the player, or a PacketPlayOutEntityTeleport and PacketPlayOutEntityLook if the distance is too long
-    private void sendMoveLookPacket(PlayerViewableEntity entity, Vector oldLocation)    {
-        Vector offset = entity.location.clone().subtract(oldLocation); // Find the difference we need to move
+    private void sendMoveLookPacket(PlayerViewableEntity entity)    {
+        Vector offset = entity.location.clone().subtract(entity.oldLocation); // Find the difference we need to move
 
         // If the distance is short enough for a relative move and look packet
         if(offset.getX() < 8 && offset.getY() < 8 && offset.getZ() < 8) {
@@ -243,30 +239,21 @@ public class PlayerEntityManipulator {
             short y = (short) (offset.getY() * 4096);
             short z = (short) (offset.getZ() * 4096);
 
-            Location loc = entity.entity.getLocation();
-            byte yaw = getByteAngle(loc.getYaw());
-            byte pitch = getByteAngle(loc.getPitch());
-
-            sendHeadRotationPacket(entity, yaw);
             // In newer versions, a short is used for relative move packets, but in 1.13 and under, a long is used
             if(ReflectUtils.useNewEntitySpawnAndMoveImpl)   {
                 sendPacket(ReflectUtils.newInstance("PacketPlayOutEntity$PacketPlayOutRelEntityMoveLook", 
                             new Class[]{int.class, short.class, short.class, short.class, byte.class, byte.class, boolean.class},
-                            new Object[]{entity.entityId, x, y, z, yaw, pitch, true}));
+                            new Object[]{entity.entityId, x, y, z, entity.byteYaw, entity.bytePitch, true}));
             }   else    {
                 sendPacket(ReflectUtils.newInstance("PacketPlayOutEntity$PacketPlayOutRelEntityMoveLook", 
                             new Class[]{int.class, long.class, long.class, long.class, byte.class, byte.class, boolean.class},
-                            new Object[]{entity.entityId, (long) x, (long) y, (long) z, yaw, pitch, true}));
+                            new Object[]{entity.entityId, (long) x, (long) y, (long) z, entity.byteYaw, entity.bytePitch, true}));
             }
         }   else    {
             // Otherwise, just send a teleport packet and a look packet
             sendTeleportPacket(entity);
             sendLookPacket(entity);
         }
-    }
-
-    private byte getByteAngle(double angle) {
-        return (byte) (angle * 256 / 360);
     }
 
     private void sendTeleportPacket(PlayerViewableEntity entity)    {
@@ -284,55 +271,45 @@ public class PlayerEntityManipulator {
         sendPacket(packet);
     }
 
-    private void sendHeadRotationPacket(PlayerViewableEntity entity, byte yaw)    {
-        Object packet = ReflectUtils.newInstance("PacketPlayOutEntityHeadRotation", 
-                new Class[]{ReflectUtils.getMcClass("Entity"), byte.class},
-                new Object[]{entity.nmsEntity, yaw});
-        ReflectUtils.setField(packet, "a", entity.entityId); // Use the randomized entity ID of fake entities
+    private void sendHeadRotationPacket(PlayerViewableEntity entity)    {
+        Object packet = ReflectUtils.newInstance("PacketPlayOutEntityHeadRotation");
+        ReflectUtils.setField(packet, "a", entity.entityId); // Set the overridden entityId
+        ReflectUtils.setField(packet, "b", entity.byteYaw); // Use the randomized entity ID of fake entities
 
         sendPacket(packet);
     }
 
     // Sends the two packets that rotate an entities head
     private void sendLookPacket(PlayerViewableEntity entity)   {
-        Location loc = entity.entity.getLocation();
-
-        byte yaw = getByteAngle(loc.getYaw());
-        byte pitch = getByteAngle(loc.getPitch());
         // Send both the head rotation and look packets
-        sendHeadRotationPacket(entity, yaw);
         sendPacket(ReflectUtils.newInstance("PacketPlayOutEntity$PacketPlayOutEntityLook", 
                                             new Class[]{int.class, byte.class, byte.class, boolean.class},
-                                            new Object[]{entity.entityId, yaw, pitch, true}));                                  
+                                            new Object[]{entity.entityId, entity.byteYaw, entity.bytePitch, true}));                                  
     }
 
     // Loops through all the fake entities and updates their position and equipment
     public void updateFakeEntities()   {      
         for(PlayerViewableEntity playerEntity : replicatedEntites.values()) {
-            // First store the old location
-            Vector oldLocation = playerEntity.location;
-            playerEntity.calculateLocation();
-            boolean updateLocation = !playerEntity.location.equals(oldLocation);
-
-            // Find if we need to update the rotation
-            Vector oldRotation = playerEntity.rotation;
-            playerEntity.calculateRotation();
-            boolean updateRotation = !playerEntity.rotation.equals(oldRotation);
+            boolean updateLocation = playerEntity.calculateLocation();
+            boolean updateRotation = playerEntity.calculateRotation();
             
             // If we are updating both the entities position and rotation, use a MoveLook packet (not doing this causes glitches)
 
             // Don't send the rotation of hanging entities, since it causes glitches
             boolean lookNeeded = !(playerEntity.entity instanceof Hanging);
+
             if(updateLocation && updateRotation && lookNeeded)    {
-                sendMoveLookPacket(playerEntity, oldLocation);
+                sendMoveLookPacket(playerEntity);
+                sendHeadRotationPacket(playerEntity);
             }   else if(updateLocation) {
-                sendMovePacket(playerEntity, oldLocation);
+                sendMovePacket(playerEntity);
             }   else if(updateRotation && lookNeeded)   {
                 sendLookPacket(playerEntity);
+                sendHeadRotationPacket(playerEntity);
             }
 
             // Send a metadata packet if we need to
-            updateEntityData(playerEntity.nmsEntity, playerEntity.entityId, false);
+            updateEntityData(playerEntity.nmsEntity, playerEntity.entityId);
 
             // Update the entity equipment, then send EntityEquipment packets to the player if required
             EntityEquipmentState oldEntityEquipment = playerEntity.equipment;

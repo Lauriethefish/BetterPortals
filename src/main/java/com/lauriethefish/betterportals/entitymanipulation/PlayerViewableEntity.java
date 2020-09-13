@@ -5,6 +5,7 @@ import java.util.Random;
 import com.lauriethefish.betterportals.ReflectUtils;
 import com.lauriethefish.betterportals.portal.PortalPos;
 
+import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
@@ -15,14 +16,16 @@ public class PlayerViewableEntity {
     public Object nmsEntity;
     public int entityId;
     
-    // The location that the player currently sees the entity
-    public Vector location;
     public PortalPos portal; // Used to find where to entity should appear on this side of the portal
     public EntityEquipmentState equipment; // The equipment that the player current sees on the entity
 
-    public Vector rotation; // Rotation of the entity in the last tick, used to find if we need to resend the entity look packet
-
     // The rotation and location could just be stored together, however this would be annoying when checking for equality
+    public Vector location;
+    public Vector rotation; // Rotation of the entity in the last tick, used to find if we need to resend the entity look packet
+    public byte byteYaw;
+    public byte bytePitch;
+    // Store the location in the previous tick, as this is needed to send relative move packets
+    public Vector oldLocation;
 
     public PlayerViewableEntity(Entity entity, PortalPos portal, Random random)   {
         this.entity = entity;
@@ -33,16 +36,26 @@ public class PlayerViewableEntity {
         this.entityId = random.nextInt(Integer.MAX_VALUE);
 
         calculateLocation();
-        calculateRotation();
         updateEntityEquipment();
     }
 
-    public void calculateLocation() {
-        this.location = portal.moveDestinationToOrigin(PlayerEntityManipulator.getEntityPosition(entity, nmsEntity));
+    public boolean calculateLocation() {
+        oldLocation = location;
+        location = portal.moveDestinationToOrigin(PlayerEntityManipulator.getEntityPosition(entity, nmsEntity));
+
+        return !location.equals(oldLocation);
     }
 
-    public void calculateRotation() {
-        this.rotation = entity.getLocation().getDirection();
+    public boolean calculateRotation() {
+        Vector oldRotation = rotation;
+        rotation = portal.rotateToOrigin(entity.getLocation().getDirection());
+
+        // Dummy location to get the pitch and yaw more easily
+        Location loc = entity.getLocation();
+        loc.setDirection(rotation);
+        byteYaw = (byte) (loc.getYaw() * 256 / 360);
+        bytePitch = (byte) (loc.getPitch() * 256 / 360);
+        return !rotation.equals(oldRotation);
     }
 
     public void updateEntityEquipment()    {
