@@ -14,7 +14,6 @@ import com.lauriethefish.betterportals.multiblockchange.MultiBlockChangeManager;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.WorldBorder;
-import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -55,16 +54,6 @@ public class PortalPos {
 
     public boolean inverted;
     public boolean anchored;
-
-    // Offsets for checking if a block needs to be rendered
-    private static final int[][] offsets = new int[][]{
-        new int[]{1, 0, 0},
-        new int[]{-1, 0, 0},
-        new int[]{0, 1, 0},
-        new int[]{0, -1, 0},
-        new int[]{0, 0, 1},
-        new int[]{0, 0, -1},
-    };
 
     // Constructor to generate the collision box for a given portal
     // NOTE: The portalPosition must be the EXACT center of the portal on the x, y and z
@@ -207,20 +196,15 @@ public class PortalPos {
         destinationPosition.getBlock().setType(Material.AIR);
     }
 
-    // Finds if the given offset from the portal is see through, returns true if an edge block or outside
-    private boolean isSurroundingBlockTransparent(double x, double y, double z, int[] offset)    {
-        double maxXZ = pl.config.maxXZ; double minXZ = pl.config.minXZ;
-        double maxY = pl.config.maxY; double minY = pl.config.minY;
-        x += offset[0]; y += offset[1]; z += offset[2];
-
-        // Check if the block is outside
-        if(x >= maxXZ || x <= minXZ || z >= maxXZ || z <= minXZ || y <= minY || y >= maxY)  {
-            return false;
-        }
-
-        Block block = destinationPosition.clone().add(x, y, z).getBlock();
-        return !block.getType().isOccluding();
-    }
+    // Offsets for checking if a block needs to be rendered
+    private static final Vector[] offsets = new Vector[]    {
+        new Vector(1, 0, 0),
+        new Vector(-1, 0, 0),
+        new Vector(0, 1, 0),
+        new Vector(0, -1, 0),
+        new Vector(0, 0, 1),
+        new Vector(0, 0, -1),
+    };
 
     public void removePortalBlocks(Player player)    {
         setPortalBlocks(player, false);
@@ -293,8 +277,10 @@ public class PortalPos {
                     
                     // First check if the block is visible from any neighboring block
                     boolean transparentBlock = false;
-                    for(int[] offset : offsets) {
-                        if(isSurroundingBlockTransparent(x, y, z, offset))  {
+                    for(Vector offset : offsets) {
+                        Location blockPos = destLoc.clone().add(offset);
+
+                        if(!blockPos.getBlock().getType().isOccluding())    {
                             transparentBlock = true;
                             break;
                         }
