@@ -117,6 +117,8 @@ public class PlayerRayCast implements Runnable {
         newLoc.setDirection(portal.rotateToDestination(player.getLocation().getDirection()));
 
         player.teleport(newLoc);
+        // Set the player's last position to null, since otherwise portals that they moved through while teleporting will move them again
+        playerData.lastPosition = null;
         
         // Set their velocity back to what it was
         player.setVelocity(playerVelocity);
@@ -137,15 +139,15 @@ public class PlayerRayCast implements Runnable {
             portal.updateNearbyEntities();
 
             Set<Entity> replicatedEntities = new HashSet<>();
-            Vector locationOffset = portal.portalPosition.toVector().subtract(portal.destinationPosition.toVector());
             for(Entity entity : portal.nearbyEntitiesDestination)   {
                 // If the entity is in a different world, or is on the same line as the portal destination, skip it
                 if(entity.getWorld() != portal.destinationPosition.getWorld() || portal.positionInlineWithDestination(entity.getLocation())) {
                     continue;
                 }
 
+                Vector originPos = portal.moveDestinationToOrigin(entity.getLocation().toVector());
                 // If an entity is visible through the portal, then we replicate it
-                if(checker.checkIfVisibleThroughPortal(entity.getLocation().toVector().add(locationOffset)))  {
+                if(checker.checkIfVisibleThroughPortal(originPos))  {
                     replicatedEntities.add(entity);
                 }
             }
