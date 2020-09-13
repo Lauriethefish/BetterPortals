@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import com.lauriethefish.betterportals.PlayerData;
@@ -25,6 +26,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 public class PlayerEntityManipulator {
+    private Random random;
     private Object playerConnection; // Store the NMS connection update to increase speed of sending packets
 
     // Set of all hidden entities
@@ -35,6 +37,7 @@ public class PlayerEntityManipulator {
     private Map<Entity, PlayerViewableEntity> replicatedEntites = new HashMap<Entity, PlayerViewableEntity>();
 
     public PlayerEntityManipulator(PlayerData playerData)    {
+        random = new Random(playerData.player.getEntityId());
         // Find the NMS connection using reflection
         Object craftPlayer = ReflectUtils.runMethod(playerData.player, "getHandle");
         playerConnection = ReflectUtils.getField(craftPlayer, "playerConnection");
@@ -54,42 +57,35 @@ public class PlayerEntityManipulator {
 
             // If the entity was shown previously, and should now be hidden, hide it
             if(!hiddenEntities.contains(entity))  {
-                hideEntity(entity);
+                hideEntity(entity.getEntityId());
             }
         }
 
         // Show the entities corresponding to the entries in the current array,
         // since these are the entities that should not stay hidden
         for(Entity entity : hiddenEntities)  {
-            showEntity(entity, null);
+            showEntity(entity, null, entity.getEntityId());
         }
 
         hiddenEntities = newHiddenEntites; // Update the array
     }
 
-    // Removes all replicated and hidden entities
-    // If sendpackets is false, then this just removes entities from the object, and doesn't actually send the packets to add or remove them
-    // This is necessary if moving between portals, since otherwise, entities glitch weirdly
-    public void resetAll(boolean sendPackets)  {
-        if(sendPackets) {
-            swapHiddenEntities(new HashSet<>());
-            swapReplicatedEntities(new HashSet<>(), null);
-        }   else    {
-            hiddenEntities = new HashSet<>();
-            replicatedEntites = new HashMap<>();
-        }
+    // Removes all replicated entities and shows any hidden entities
+    public void resetAll()  {
+        swapHiddenEntities(new HashSet<>());
+        swapReplicatedEntities(new HashSet<>(), null);
     }
 
     // Swaps the list of fake entities with the new one, adding or removing any new entities
     public void swapReplicatedEntities(Set<Entity> newReplicatedEntities, PortalPos portal)  {
         // Loop through all of the existing fake entities and remove any that will no longer be visible to the player
-        Iterator<Entity> removingIterator = replicatedEntites.keySet().iterator();
+        Iterator<PlayerViewableEntity> removingIterator = replicatedEntites.values().iterator();
         while(removingIterator.hasNext())   {
-            // Get then next id, check if it is still visible in the new entities
-            Entity entity = removingIterator.next();
-            if(!newReplicatedEntities.contains(entity))    {
+            // Get the next entity, check if it is still visible in the new entities
+            PlayerViewableEntity entity = removingIterator.next();
+            if(!newReplicatedEntities.contains(entity.entity))    {
                 // If not, send an entity destroy packet, then remove the entity
-                hideEntity(entity);
+                hideEntity(entity.entityId);
                 removingIterator.remove();
             }
         }
@@ -99,8 +95,8 @@ public class PlayerEntityManipulator {
             // If the current entity does not exist in the list
             if(!replicatedEntites.containsKey(entity))   {
                 // Make a new PlayerViewableEntity instance from the entity, then send the packets to show it
-                PlayerViewableEntity newEntity = new PlayerViewableEntity(entity, portal);
-                showEntity(entity, newEntity.location);
+                PlayerViewableEntity newEntity = new PlayerViewableEntity(entity, portal, random);
+                showEntity(entity, newEntity.location, newEntity.entityId);
                 replicatedEntites.put(entity, newEntity); // Add the entity to the list
             }
         }
@@ -109,12 +105,11 @@ public class PlayerEntityManipulator {
     // Hides the given entity, adding it to the set
     public void addHiddenEntity(Entity entity)  {
         hiddenEntities.add(entity);
-        hideEntity(entity);
+        hideEntity(entity.getEntityId());
     }
 
     // Sends a packet to hide the entity with the given ID
-    private void hideEntity(Entity entity)   {
-        int entityId = entity.getEntityId();
+    private void hideEntity(int entityId)   {
         Object idArray = Array.newInstance(int.class, 1);
         Array.set(idArray, 0, entityId);
 
@@ -152,7 +147,7 @@ public class PlayerEntityManipulator {
     }
 
     // Sends all of the packets necessary to spawn a fake entity, or respawn a real one after it was removed
-    private void showEntity(Entity entity, Vector locationOverride)   {
+    private void showEntity(Entity entity, Vector locationOverride, int entityId)   {
         if(entity.isDead()) {return;}
         Object nmsEntity = ReflectUtils.runMethod(entity, "getHandle");
 
@@ -186,26 +181,28 @@ public class PlayerEntityManipulator {
             }
             setSpawnLocation(spawnPacket, location, "c", "d", "e");
         }
+
+        ReflectUtils.setField(spawnPacket, "a", entityId);
         sendPacket(spawnPacket);
 
-        // Force the entity to update it's data, since it just spawned
-        updateEntityData(entity, nmsEntity, true);
+        // Force the entity to update its data, since it just spawned
+        updateEntityData(nmsEntity, entityId, true);
 
         // If the entity is living, we have to set its armor and hand/offhand
         if(entity instanceof LivingEntity)   {
-            sendEntityEquipmentPackets((LivingEntity) entity);
+            sendEntityEquipmentPackets((LivingEntity) entity, entityId);
         }
     }
 
     // Sends a PacketPlayOutEntityMetadata to update the entities data, if necessary
-    private void updateEntityData(Entity entity, Object nmsEntity, boolean force) {
+    private void updateEntityData(Object nmsEntity, int entityId, boolean force) {
         // The NMS DataWatcher deals with checking an entity for data changes, we use it to send the metadata packet
         Object dataWatcher = ReflectUtils.getField(nmsEntity, "datawatcher");
 
         // Check if we actually need to update the metadata
         if(force || (boolean) ReflectUtils.runMethod(dataWatcher, "a")) {
             Object dataPacket = ReflectUtils.newInstance("PacketPlayOutEntityMetadata", new Class[]{int.class, dataWatcher.getClass(), boolean.class},
-                                                                                        new Object[]{entity.getEntityId(), dataWatcher, true});
+                                                                                        new Object[]{entityId, dataWatcher, true});
             sendPacket(dataPacket);
         }
     }
@@ -232,7 +229,7 @@ public class PlayerEntityManipulator {
                 }
         }   else    {
             // Otherwise, just send a teleport packet, since this works for any distance
-            sendTeleportPacket(entity.nmsEntity, entity.location);
+            sendTeleportPacket(entity);
         }
     }
 
@@ -263,7 +260,7 @@ public class PlayerEntityManipulator {
             }
         }   else    {
             // Otherwise, just send a teleport packet and a look packet
-            sendTeleportPacket(entity.nmsEntity, entity.location);
+            sendTeleportPacket(entity);
             sendLookPacket(entity);
         }
     }
@@ -272,11 +269,13 @@ public class PlayerEntityManipulator {
         return (byte) (angle * 256 / 360);
     }
 
-    private void sendTeleportPacket(Object nmsEntity, Vector location)    {
+    private void sendTeleportPacket(PlayerViewableEntity entity)    {
         // Make a teleport packet
         Object packet = ReflectUtils.newInstance("PacketPlayOutEntityTeleport", new Class[]{ReflectUtils.getMcClass("Entity")},
-            new Object[]{nmsEntity});
+            new Object[]{entity.nmsEntity});
+        ReflectUtils.setField(packet, "a", entity.entityId);
 
+        Vector location = entity.location;
         // Set the teleport location to the position of the entity on the player's side of the portal
         ReflectUtils.setField(packet, "b", location.getX());
         ReflectUtils.setField(packet, "c", location.getY());
@@ -286,9 +285,12 @@ public class PlayerEntityManipulator {
     }
 
     private void sendHeadRotationPacket(PlayerViewableEntity entity, byte yaw)    {
-        sendPacket(ReflectUtils.newInstance("PacketPlayOutEntityHeadRotation", 
-                                            new Class[]{ReflectUtils.getMcClass("Entity"), byte.class},
-                                            new Object[]{entity.nmsEntity, yaw}));
+        Object packet = ReflectUtils.newInstance("PacketPlayOutEntityHeadRotation", 
+                new Class[]{ReflectUtils.getMcClass("Entity"), byte.class},
+                new Object[]{entity.nmsEntity, yaw});
+        ReflectUtils.setField(packet, "a", entity.entityId); // Use the randomized entity ID of fake entities
+
+        sendPacket(packet);
     }
 
     // Sends the two packets that rotate an entities head
@@ -330,13 +332,13 @@ public class PlayerEntityManipulator {
             }
 
             // Send a metadata packet if we need to
-            updateEntityData(playerEntity.entity, playerEntity.nmsEntity, false);
+            updateEntityData(playerEntity.nmsEntity, playerEntity.entityId, false);
 
             // Update the entity equipment, then send EntityEquipment packets to the player if required
             EntityEquipmentState oldEntityEquipment = playerEntity.equipment;
             playerEntity.updateEntityEquipment();
             if(oldEntityEquipment != null && !oldEntityEquipment.equals(playerEntity.equipment))  {
-                sendEntityEquipmentPackets((LivingEntity) playerEntity.entity);
+                sendEntityEquipmentPackets((LivingEntity) playerEntity.entity, playerEntity.entityId);
             }
         }
     }
@@ -383,13 +385,11 @@ public class PlayerEntityManipulator {
 
     // Sends the 6 entity equipment packets required to change the items in the
     // entities armor slots and hands
-    private void sendEntityEquipmentPackets(LivingEntity entity)    {
+    private void sendEntityEquipmentPackets(LivingEntity entity, int entityId)    {
         EntityEquipment equipment = entity.getEquipment(); // Get all of the equipment slots from the entity
         if(equipment == null)   { // Null check for the equipment, since not all living entities can equip armor
             return;
         }
-
-        int entityId = entity.getEntityId(); // Get the entity ID, since this is what the packets use
 
         // Add each item to the map
         Map<String, ItemStack> newItems = new HashMap<>();

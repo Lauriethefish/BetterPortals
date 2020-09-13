@@ -1,5 +1,7 @@
 package com.lauriethefish.betterportals.entitymanipulation;
 
+import java.util.Random;
+
 import com.lauriethefish.betterportals.ReflectUtils;
 import com.lauriethefish.betterportals.portal.PortalPos;
 
@@ -7,7 +9,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
 
-// Stores the current state of a fake entity that the player can see
+// Stores the current state of a fake entity
 public class PlayerViewableEntity {
     public Entity entity; // The entity that this fake entity replicates
     public Object nmsEntity;
@@ -22,12 +24,13 @@ public class PlayerViewableEntity {
 
     // The rotation and location could just be stored together, however this would be annoying when checking for equality
 
-    public PlayerViewableEntity(Entity entity, PortalPos portal)   {
+    public PlayerViewableEntity(Entity entity, PortalPos portal, Random random)   {
         this.entity = entity;
         this.portal = portal;
         // Find the nms entity and its id here to avoid doing it multiple times
         this.nmsEntity = ReflectUtils.runMethod(entity, "getHandle");
-        this.entityId = (int) ReflectUtils.runMethod(nmsEntity, "getId");
+        // Generate a random entityId, since otherwise, the real entity with the same ID may be moved instead of the fake one
+        this.entityId = random.nextInt(Integer.MAX_VALUE);
 
         calculateLocation();
         calculateRotation();
