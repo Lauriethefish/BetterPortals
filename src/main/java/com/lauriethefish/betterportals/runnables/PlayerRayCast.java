@@ -235,8 +235,8 @@ public class PlayerRayCast implements Runnable {
                     }
                 }
 
-                // Do not send the packets to destroy and recreate entities if we loaded into a world last tick
-                playerData.entityManipulator.resetAll(!playerData.loadedWorldLastTick);
+                // Destroy any fake entities and recreate any hidden ones
+                playerData.entityManipulator.resetAll();
                 playerData.lastActivePortal = portal;
                 playerData.lastPosition = null;
             }
