@@ -106,7 +106,9 @@ public class PortalStorage {
             portalSection.set("portalDirection", portal.portalDirection.toString());
             setLocation(portalSection.createSection("destinationPosition"), portal.destinationPosition);
             portalSection.set("destinationDirection", portal.destinationDirection.toString());
-            
+            portalSection.set("inverted", portal.inverted);
+            portalSection.set("anchored", portal.anchored);
+
             // Set the portal's size
             setPortalSize(portalSection.createSection("portalSize"), portal.portalSize);
             i++;
@@ -144,11 +146,17 @@ public class PortalStorage {
             Location destinationPosition = loadLocation(nextPortalSection.getConfigurationSection("destinationPosition"));
             PortalDirection destinationDirection = PortalDirection.valueOf(nextPortalSection.getString("destinationDirection"));
 
+            boolean anchored = nextPortalSection.getBoolean("anchored");
+            boolean inverted = nextPortalSection.getBoolean("inverted");
+            if(inverted)  {
+                destinationDirection.invert();
+            }
+
             // Load thr portal's size
             Vector portalSize = loadPortalSize(nextPortalSection.getConfigurationSection("portalSize"));
 
             // Add a new portal to the map with the given values
-            portals.put(portalPosition, new PortalPos(pl, portalPosition, portalDirection, destinationPosition, destinationDirection, portalSize));
+            portals.put(portalPosition, new PortalPos(pl, portalPosition, portalDirection, destinationPosition, destinationDirection, portalSize, inverted, anchored));
         }
 
         // Return the map of all portals

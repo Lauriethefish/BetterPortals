@@ -52,6 +52,9 @@ public class PortalPos {
     public Collection<Entity> nearbyEntitiesDestination = null;
     private int ticksSinceLastEntityCheck = Integer.MAX_VALUE;
 
+    public boolean inverted;
+    public boolean anchored;
+
     // Offsets for checking if a block needs to be rendered
     private static final int[][] offsets = new int[][]{
         new int[]{1, 0, 0},
@@ -65,13 +68,16 @@ public class PortalPos {
     // Constructor to generate the collision box for a given portal
     // NOTE: The portalPosition must be the EXACT center of the portal on the x, y and z
     public PortalPos(BetterPortals pl, Location portalPosition, PortalDirection portalDirection, 
-                    Location destinationPosition, PortalDirection destinationDirection, Vector portalSize) {
+                    Location destinationPosition, PortalDirection destinationDirection, Vector portalSize,
+                    boolean inverted, boolean anchored) {
         this.pl = pl;
         this.portalPosition = portalPosition;
         this.portalDirection = portalDirection;
         this.destinationPosition = destinationPosition;
         this.destinationDirection = destinationDirection;
         this.portalSize = portalSize;
+        this.inverted = inverted;
+        this.anchored = anchored;
 
         rotateToDestination = Matrix.makeRotation(portalDirection.toVector(), destinationDirection.toVector());
         rotateToOrigin = Matrix.makeRotation(destinationDirection.toVector(), portalDirection.toVector());
@@ -111,7 +117,7 @@ public class PortalPos {
     public boolean checkOriginAndDestination()  {
         PortalPos destination = pl.rayCastingSystem.portals.get(destinationPosition);
         // Remove the portal if either the origin or destination is broken
-        if(!(checkIfStillActive() && destination.checkIfStillActive())) {
+        if(destination != null && !(checkIfStillActive() && destination.checkIfStillActive())) {
             remove();
             return false;
         }
@@ -121,6 +127,11 @@ public class PortalPos {
     // Checks if the portal has been broken
     // This is used to remove the portal from the plugins list of active portals
     public boolean checkIfStillActive() {
+        // If the portal is anchored, don't remove it
+        if(anchored)    {
+            return true;
+        }
+
         // Get the offset from the portals absolute center to the top left and bottom right corners of the portal blocks
         Vector subAmount = portalDirection.swapVector(portalSize.clone().multiply(0.5).add(new Vector(0.0, 0.0, 0.5)));
         WorldBorder border = portalPosition.getWorld().getWorldBorder();
