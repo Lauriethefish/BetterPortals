@@ -15,6 +15,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.WorldBorder;
 import org.bukkit.block.Block;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -79,6 +80,10 @@ public class PortalPos {
         this.inverted = inverted;
         this.anchored = anchored;
 
+        if(inverted)    {
+            destinationDirection.invert();
+        }
+
         rotateToDestination = Matrix.makeRotation(portalDirection.toVector(), destinationDirection.toVector());
         rotateToOrigin = Matrix.makeRotation(destinationDirection.toVector(), portalDirection.toVector());
 
@@ -94,6 +99,28 @@ public class PortalPos {
         // Divide the size by 2 so it is the correct amount to subtract from the center to reach each corner
         // Then orient it so that is on the z if the portal is north/south
         this.planeRadius = portalDirection.swapVector(portalSize.clone().multiply(0.5).add(pl.config.portalCollisionBox));
+    }
+
+    // Loads all of the values for this portal from the data file
+    public PortalPos(BetterPortals pl, PortalStorage storage, ConfigurationSection sect)  {
+        this(pl, 
+            storage.loadLocation(sect.getConfigurationSection("portalPosition")),
+            PortalDirection.valueOf(sect.getString("portalDirection")),
+            storage.loadLocation(sect.getConfigurationSection("destinationPosition")),
+            PortalDirection.valueOf(sect.getString("destinationDirection")),
+            storage.loadPortalSize(sect.getConfigurationSection("portalSize")), 
+            sect.getBoolean("inverted"), sect.getBoolean("anchored"));
+    }
+
+    // Saves all of the values for this portal into sect
+    public void save(PortalStorage storage, ConfigurationSection sect)   {
+        storage.setLocation(sect.createSection("portalPosition"), portalPosition);
+        sect.set("portalDirection", portalDirection.toString());
+        storage.setLocation(sect.createSection("destinationPosition"), destinationPosition);
+        sect.set("destinationDirection", destinationDirection.toString());
+        storage.setPortalSize(sect.createSection("portalSize"), portalSize);
+        sect.set("inverted", inverted);
+        sect.set("anchored", anchored);
     }
 
     // Forces this portal to recheck for entities next tick

@@ -101,16 +101,8 @@ public class PortalStorage {
         for(PortalPos portal : portals.values())    {
             // Create a section of the list for this portal
             ConfigurationSection portalSection = portalsSection.createSection(String.valueOf(i));
-            // Set the two location and two directions of the portal
-            setLocation(portalSection.createSection("portalPosition"), portal.portalPosition);
-            portalSection.set("portalDirection", portal.portalDirection.toString());
-            setLocation(portalSection.createSection("destinationPosition"), portal.destinationPosition);
-            portalSection.set("destinationDirection", portal.destinationDirection.toString());
-            portalSection.set("inverted", portal.inverted);
-            portalSection.set("anchored", portal.anchored);
+            portal.save(this, portalSection);
 
-            // Set the portal's size
-            setPortalSize(portalSection.createSection("portalSize"), portal.portalSize);
             i++;
         }
 
@@ -140,23 +132,9 @@ public class PortalStorage {
             // Get a ConfigurationSection for the next portal
             ConfigurationSection nextPortalSection = portalsSection.getConfigurationSection(portalItems.next());
 
-            // Get the two positions and two directions of the portal
-            Location portalPosition = loadLocation(nextPortalSection.getConfigurationSection("portalPosition"));
-            PortalDirection portalDirection = PortalDirection.valueOf(nextPortalSection.getString("portalDirection"));
-            Location destinationPosition = loadLocation(nextPortalSection.getConfigurationSection("destinationPosition"));
-            PortalDirection destinationDirection = PortalDirection.valueOf(nextPortalSection.getString("destinationDirection"));
-
-            boolean anchored = nextPortalSection.getBoolean("anchored");
-            boolean inverted = nextPortalSection.getBoolean("inverted");
-            if(inverted)  {
-                destinationDirection.invert();
-            }
-
-            // Load thr portal's size
-            Vector portalSize = loadPortalSize(nextPortalSection.getConfigurationSection("portalSize"));
-
-            // Add a new portal to the map with the given values
-            portals.put(portalPosition, new PortalPos(pl, portalPosition, portalDirection, destinationPosition, destinationDirection, portalSize, inverted, anchored));
+            // Add a new portal to the map, using the loading constructor
+            PortalPos newPortal = new PortalPos(pl, this, nextPortalSection);
+            portals.put(newPortal.portalPosition, newPortal);
         }
 
         // Return the map of all portals
