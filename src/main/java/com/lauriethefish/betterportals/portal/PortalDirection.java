@@ -33,6 +33,10 @@ public enum PortalDirection {
         return null;
     }
 
+    public void invert()    {
+        direction.multiply(-1.0);
+    }
+
     public Location swapLocation(Location loc)  {
         return swapVector(loc.toVector()).toLocation(loc.getWorld());
     }
