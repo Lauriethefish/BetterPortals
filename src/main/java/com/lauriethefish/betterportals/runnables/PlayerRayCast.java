@@ -102,7 +102,6 @@ public class PlayerRayCast implements Runnable {
     }
 
     // Teleports the player using the given portal if the player is within the portal
-    // Returns wheather the player was in the teleport area, not necessarily wheather a teleport was performed
     public boolean performPlayerTeleport(PlayerData playerData, PortalPos portal, PlaneIntersectionChecker checker)  {
         Player player = playerData.player;
         
@@ -115,8 +114,8 @@ public class PlayerRayCast implements Runnable {
         Vector playerVelocity = player.getVelocity().clone();
         // Move them to the other portal
         Location newLoc = portal.moveOriginToDestination(player.getLocation());
-        newLoc.setDirection(portal.rotateToOrigin(player.getLocation().getDirection()));
- 
+        newLoc.setDirection(portal.rotateToDestination(player.getLocation().getDirection()));
+
         player.teleport(newLoc);
         
         // Set their velocity back to what it was
