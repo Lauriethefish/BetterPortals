@@ -67,7 +67,7 @@ public class PortalCreate implements Listener {
         }
 
         // Get the direction of the portal, based on wheather the blocks are on the same z coordinate
-        PortalDirection direction = largestLocation.getZ() == smallestLocation.getZ() ? PortalDirection.EAST_WEST : PortalDirection.NORTH_SOUTH;
+        PortalDirection direction = largestLocation.getZ() == smallestLocation.getZ() ? PortalDirection.NORTH : PortalDirection.EAST;
 
         // Get the location of the bottom left of the portal blocks
         Location location = smallestLocation.toLocation(event.getWorld());
@@ -115,11 +115,11 @@ public class PortalCreate implements Listener {
         // so that the portal effect can be active!
         pl.rayCastingSystem.portals.put(location, new PortalPos(pl,
             location, direction,
-            spawnLocation, direction, portalSize, false, false
+            spawnLocation, direction, portalSize, false
         ));
         pl.rayCastingSystem.portals.put(spawnLocation, new PortalPos(pl,
             spawnLocation, direction,
-            location, direction, portalSize, false, false
+            location, direction, portalSize, false
         ));
     }    
 }

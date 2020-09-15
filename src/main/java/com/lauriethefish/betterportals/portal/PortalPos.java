@@ -52,29 +52,22 @@ public class PortalPos {
     public Collection<Entity> nearbyEntitiesDestination = null;
     private int ticksSinceLastEntityCheck = Integer.MAX_VALUE;
 
-    public boolean inverted;
     public boolean anchored;
 
     // Constructor to generate the collision box for a given portal
     // NOTE: The portalPosition must be the EXACT center of the portal on the x, y and z
     public PortalPos(BetterPortals pl, Location portalPosition, PortalDirection portalDirection, 
-                    Location destinationPosition, PortalDirection destinationDirection, Vector portalSize,
-                    boolean inverted, boolean anchored) {
+                    Location destinationPosition, PortalDirection destinationDirection, Vector portalSize, boolean anchored) {
         this.pl = pl;
         this.portalPosition = portalPosition;
         this.portalDirection = portalDirection;
         this.destinationPosition = destinationPosition;
         this.destinationDirection = destinationDirection;
         this.portalSize = portalSize;
-        this.inverted = inverted;
         this.anchored = anchored;
 
-        if(inverted)    {
-            destinationDirection.invert();
-        }
-
-        rotateToDestination = Matrix.makeRotation(portalDirection.toVector(), destinationDirection.toVector());
-        rotateToOrigin = Matrix.makeRotation(destinationDirection.toVector(), portalDirection.toVector());
+        rotateToDestination = Matrix.makeRotation(portalDirection, destinationDirection);
+        rotateToOrigin = Matrix.makeRotation(destinationDirection, portalDirection);
 
         // Matrix that takes a coordinate at the origin of the portal, and rotates and translates it to the destination
         originToDestination = Matrix.makeTranslation(destinationPosition.toVector())
@@ -98,7 +91,7 @@ public class PortalPos {
             storage.loadLocation(sect.getConfigurationSection("destinationPosition")),
             PortalDirection.valueOf(sect.getString("destinationDirection")),
             storage.loadPortalSize(sect.getConfigurationSection("portalSize")), 
-            sect.getBoolean("inverted"), sect.getBoolean("anchored"));
+            sect.getBoolean("anchored"));
     }
 
     // Saves all of the values for this portal into sect
@@ -108,7 +101,6 @@ public class PortalPos {
         storage.setLocation(sect.createSection("destinationPosition"), destinationPosition);
         sect.set("destinationDirection", destinationDirection.toString());
         storage.setPortalSize(sect.createSection("portalSize"), portalSize);
-        sect.set("inverted", inverted);
         sect.set("anchored", anchored);
     }
 
