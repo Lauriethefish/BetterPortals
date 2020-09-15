@@ -238,7 +238,7 @@ public class PlayerRayCast implements Runnable {
                 }
 
                 // Destroy any fake entities and recreate any hidden ones
-                playerData.entityManipulator.resetAll();
+                playerData.entityManipulator.resetAll(!playerData.loadedWorldLastTick);
                 playerData.lastActivePortal = portal;
                 playerData.lastPosition = null;
             }
