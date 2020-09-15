@@ -229,7 +229,7 @@ public class PortalSpawnSystem {
                         // Set the centre to portal. NOTE: The portal must be rotated if the portal faces north/south
                         // Rotating is done using the manual block data byte method, since this works on all version AFAIK
                         state.setType(ReflectUtils.getPortalMaterial());
-                        if(direction == PortalDirection.NORTH_SOUTH)    {
+                        if(direction == PortalDirection.EAST || direction == PortalDirection.WEST)    {
                             state.setRawData((byte) 2);
                         }
                     }
