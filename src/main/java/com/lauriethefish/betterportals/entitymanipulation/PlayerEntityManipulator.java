@@ -63,16 +63,21 @@ public class PlayerEntityManipulator {
         // Show the entities corresponding to the entries in the current array,
         // since these are the entities that should not stay hidden
         for(Entity entity : hiddenEntities)  {
-            showEntity(entity, null, entity.getEntityId());
+            showEntity(entity, null, null, entity.getEntityId());
         }
 
         hiddenEntities = newHiddenEntites; // Update the array
     }
 
     // Removes all replicated entities and shows any hidden entities
-    public void resetAll()  {
-        swapHiddenEntities(new HashSet<>());
-        swapReplicatedEntities(new HashSet<>(), null);
+    public void resetAll(boolean sendPackets)  {
+        if(sendPackets)    {
+            swapHiddenEntities(new HashSet<>());
+            swapReplicatedEntities(new HashSet<>(), null);
+        }   else    {
+            hiddenEntities = new HashSet<>();
+            replicatedEntites = new HashMap<>();
+        }
     }
 
     // Swaps the list of fake entities with the new one, adding or removing any new entities
@@ -95,7 +100,7 @@ public class PlayerEntityManipulator {
             if(!replicatedEntites.containsKey(entity))   {
                 // Make a new PlayerViewableEntity instance from the entity, then send the packets to show it
                 PlayerViewableEntity newEntity = new PlayerViewableEntity(entity, portal, random);
-                showEntity(entity, newEntity.location, newEntity.entityId);
+                showEntity(entity, newEntity.location, newEntity.rotation, newEntity.entityId);
                 replicatedEntites.put(entity, newEntity); // Add the entity to the list
             }
         }
@@ -146,21 +151,25 @@ public class PlayerEntityManipulator {
     }
 
     // Sends all of the packets necessary to spawn a fake entity, or respawn a real one after it was removed
-    private void showEntity(Entity entity, Vector locationOverride, int entityId)   {
+    private void showEntity(Entity entity, Vector locationOverride, Vector directionOverride, int entityId)   {
         if(entity.isDead()) {return;}
         Object nmsEntity = ReflectUtils.runMethod(entity, "getHandle");
 
         // Use either the entities location, or the override
-        Vector location = locationOverride == null ?  getEntityPosition(entity, nmsEntity) : locationOverride;
+        Vector location = locationOverride == null ? getEntityPosition(entity, nmsEntity) : locationOverride;
+        Vector direction = directionOverride == null ? entity.getLocation().getDirection() : directionOverride;
 
         // Create the correct type of spawn packet, depending on the entity
         Object spawnPacket;
         if(entity instanceof Painting)  {
             spawnPacket = ReflectUtils.newInstance("PacketPlayOutSpawnEntityPainting", new Class[]{ReflectUtils.getMcClass("EntityPainting")}, new Object[]{nmsEntity});
-            // Painting spawn packets are slightly different, as they use a BlockPosition
+            // Painting spawn packets are slightly different, as they use a BlockPosition and EnumDirection
             Object blockPosition = ReflectUtils.newInstance("BlockPosition", new Class[]{int.class, int.class, int.class},
                                                             new Object[]{location.getBlockX(), location.getBlockY(), location.getBlockZ()});
             ReflectUtils.setField(spawnPacket, "c", blockPosition);
+
+            Object enumDirection = ReflectUtils.getEnumDirection(direction);
+            ReflectUtils.setField(spawnPacket, "d", enumDirection);
         }   else if(entity instanceof ExperienceOrb)    {
             spawnPacket = ReflectUtils.newInstance("PacketPlayOutSpawnEntityExperienceOrb", new Class[]{ReflectUtils.getMcClass("EntityExperienceOrb")}, new Object[]{nmsEntity});
             setSpawnLocation(spawnPacket, location, "b", "c", "d");

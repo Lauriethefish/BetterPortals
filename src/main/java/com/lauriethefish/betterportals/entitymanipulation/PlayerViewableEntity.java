@@ -3,10 +3,12 @@ package com.lauriethefish.betterportals.entitymanipulation;
 import java.util.Random;
 
 import com.lauriethefish.betterportals.ReflectUtils;
+import com.lauriethefish.betterportals.math.MathUtils;
 import com.lauriethefish.betterportals.portal.PortalPos;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Hanging;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
 
@@ -24,6 +26,7 @@ public class PlayerViewableEntity {
     public Vector rotation; // Rotation of the entity in the last tick, used to find if we need to resend the entity look packet
     public byte byteYaw;
     public byte bytePitch;
+    public byte byteHeadRotation;
     // Store the location in the previous tick, as this is needed to send relative move packets
     public Vector oldLocation;
 
@@ -36,12 +39,17 @@ public class PlayerViewableEntity {
         this.entityId = random.nextInt(Integer.MAX_VALUE);
 
         calculateLocation();
+        calculateRotation();
         updateEntityEquipment();
     }
 
     public boolean calculateLocation() {
         oldLocation = location;
+        
         location = portal.moveDestinationToOrigin(PlayerEntityManipulator.getEntityPosition(entity, nmsEntity));
+        if(entity instanceof Hanging)   {
+            location = MathUtils.round(location);
+        }
 
         return !location.equals(oldLocation);
     }
