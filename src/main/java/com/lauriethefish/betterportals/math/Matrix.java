@@ -1,5 +1,7 @@
 package com.lauriethefish.betterportals.math;
 
+import com.lauriethefish.betterportals.portal.PortalDirection;
+
 import org.bukkit.util.Vector;
 
 // Represents a 4x4 matrix, used for portal transformations
@@ -39,6 +41,17 @@ public class Matrix {
             {0, 0, 1, 0},
             {0, 0, 0, 1}
         });
+    }
+
+    public static Matrix makeRotation(PortalDirection from, PortalDirection to) {
+        Vector fromVec = from.toVector();
+        Vector toVec = to.toVector();
+        // If the two vectors are exactly in opposite directions, use the inversion rotation axis
+        if(fromVec.equals(toVec.clone().multiply(-1.0))) {
+            return makeRotation(from.getInversionRotationAxis(), Math.PI);
+        }
+
+        return makeRotation(fromVec, toVec);
     }
 
     // Makes a rotation matrix using the given rotation vector
