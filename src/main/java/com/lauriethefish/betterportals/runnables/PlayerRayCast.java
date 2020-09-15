@@ -61,10 +61,6 @@ public class PlayerRayCast implements Runnable {
         pl.getServer().getScheduler().scheduleSyncRepeatingTask(pl, this, 0, 1);
     }
 
-    public static Vector moveVectorToCenterOfBlock(Vector vec)  {
-        return new Vector(Math.floor(vec.getX()) + 0.5, Math.floor(vec.getY()) + 0.5, Math.floor(vec.getZ()) + 0.5);
-    }
-
     // Finds the closest portal to the given player,
     // this also deletes portals if they have been broken amongst other things
     // Will return null if not portals can be found within the portal activation distance

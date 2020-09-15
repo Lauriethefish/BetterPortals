@@ -19,4 +19,8 @@ public class MathUtils {
     public static boolean lessThanEq(Vector a, Vector b)   {
         return a.getX() <= b.getX() && a.getY() <= b.getY() && a.getZ() <= b.getZ();
     }
+    
+    public static Vector moveVectorToCenterOfBlock(Vector vec)  {
+        return new Vector(Math.floor(vec.getX()) + 0.5, Math.floor(vec.getY()) + 0.5, Math.floor(vec.getZ()) + 0.5);
+    }
 }

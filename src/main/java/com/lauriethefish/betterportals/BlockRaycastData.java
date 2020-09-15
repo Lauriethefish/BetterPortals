@@ -1,6 +1,6 @@
 package com.lauriethefish.betterportals;
 
-import com.lauriethefish.betterportals.runnables.PlayerRayCast;
+import com.lauriethefish.betterportals.math.MathUtils;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -23,7 +23,7 @@ public class BlockRaycastData {
     public Object originData;
     public Object destData;
     public BlockRaycastData(Location originLoc, Location destLoc, boolean edge)   {
-        this.originVec = PlayerRayCast.moveVectorToCenterOfBlock(originLoc.toVector());
+        this.originVec = MathUtils.moveVectorToCenterOfBlock(originLoc.toVector());
         this.originData = getNMSData(originLoc.getBlock());
         this.destData = edge ? edgeData : getNMSData(destLoc.getBlock());
     }
