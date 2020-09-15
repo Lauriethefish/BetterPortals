@@ -7,6 +7,8 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.lauriethefish.betterportals.math.MathUtils;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -275,5 +277,27 @@ public class ReflectUtils {
 
     public static Object runMethod(Object obj, String name)  {
         return runMethod(obj, name, new Class[]{}, new Object[]{});
+    }
+
+    // Store the EnumDirection variants for quicker lookup
+    public static Map<Vector, Object> enumDirectionVariants = getEnumDirectionVariants();
+    private static Map<Vector, Object> getEnumDirectionVariants()   {
+        Class<?> enumDirection = getMcClass("EnumDirection");
+        
+        // Loop through each variant of the EnumDirection class
+        Map<Vector, Object> variants = new HashMap<>();
+        for(Object constant : enumDirection.getEnumConstants()) {
+            // Find the BlockPosition that represents this variant's direction, then convert it to a vector
+            Vector direction = blockPositionToVector(ReflectUtils.getField(constant, "m"));
+            variants.put(direction, constant); // Add it to the map
+        }
+
+        return variants;
+    }
+
+    // Gets the NMS EnumDirection object from a direction vector
+    public static Object getEnumDirection(Vector dir)   {
+        // Round the direction, since otherwise it is usually slightly off, causing this function to return null
+        return enumDirectionVariants.get(MathUtils.round(dir));
     }
 }
