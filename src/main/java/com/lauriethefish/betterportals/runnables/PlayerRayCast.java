@@ -124,12 +124,7 @@ public class PlayerRayCast implements Runnable {
     
     // This function is responsible for iterating over all of the blocks surrounding the portal,
     // and performing a raycast on each of them to check if they should be visible
-    public void updatePortal(PlayerData playerData, PortalPos portal, PlaneIntersectionChecker checker) {
-        // If we loaded a world last tick, we skip rendering, since the chunks might not be loaded yet
-        if(playerData.loadedWorldLastTick)   {
-            return;
-        }
-        
+    public void updatePortal(PlayerData playerData, PortalPos portal, PlaneIntersectionChecker checker) {        
         // We need to update the fake entities every tick, regardless of if the player moved
         if(pl.config.enableEntitySupport)   {
             playerData.entityManipulator.updateFakeEntities();
