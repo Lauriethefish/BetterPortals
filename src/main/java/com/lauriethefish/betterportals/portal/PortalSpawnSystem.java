@@ -7,6 +7,7 @@ import com.lauriethefish.betterportals.WorldLink;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.WorldBorder;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.util.Vector;
 
@@ -80,6 +81,7 @@ public class PortalSpawnSystem {
         Location closestSuitableLocation = null;
         // Set the current closest distance to infinity so that all numbers are less than it
         double closestSuitableDistance = Double.POSITIVE_INFINITY;
+        PortalSuitability currentSuitability = PortalSuitability.UNSUITABLE;
 
         // Loop through a few areas around the portal
         for(double z = -128.0; z < 128.0; z += 1.0)  {
@@ -95,12 +97,12 @@ public class PortalSpawnSystem {
 
                     // Check if the distance is less than the closest distance first, for performance
                     double distance = prefferedLocation.distance(newLoc);
-                    if(distance < closestSuitableDistance)  {
-                        // Check if it is suitable
-                        if(checkSuitableSpawnLocation(newLoc.clone(), direction, portalSize) == PortalSuitability.SUITABLE)  {
-                            closestSuitableLocation = newLoc;
-                            closestSuitableDistance = distance;
-                        }
+                    PortalSuitability suitability = checkSuitableSpawnLocation(newLoc.clone(), direction, portalSize);
+                    // If the current closest portal is less suitable that this portal, or is equally as suitable AND is closer, then overrite the closest portal
+                    if(suitability.val > currentSuitability.val || (suitability.val == currentSuitability.val && distance < closestSuitableDistance))  {
+                        closestSuitableLocation = newLoc;
+                        closestSuitableDistance = distance;
+                        currentSuitability = suitability;
                     }
                 }  
             }
@@ -115,20 +117,48 @@ public class PortalSpawnSystem {
         return prefferedLocation;
     }
 
-    // Checks if a material is any type of fluid
-    private boolean isMaterialFluid(Material mat)  {
-        return mat == Material.WATER || mat == Material.LAVA;
-    }
-
     private enum PortalSuitability  {
-        UNSUITABLE,
-        SUITABLE,
-        PREFERRED
+        UNSUITABLE(0),
+        SUITABLE(1),
+        PREFERRED(2);
+        public final int val;
+        private PortalSuitability(int val)  {
+            this.val = val;
+        }
     }
 
     // Checks if the position is given is suitable for spawning a portal
     // See definition of a suitable location above
     public PortalSuitability checkSuitableSpawnLocation(Location location, PortalDirection direction, Vector portalSize) {
+        int existingCorrectBlocks = 0;
+        // Loop through the two colums of portal blocks
+        for(double x = 0.0; x <= portalSize.getX() + 1.0; x++)  {
+            Location currentPosX = location.clone().add(direction.swapVector(new Vector(x, 0.0, 0.0)));
+        
+            Material groundType = currentPosX.getBlock().getType();
+            // If the ground is not solid, it is not suitable 
+            if(!groundType.isSolid())  {
+                return PortalSuitability.UNSUITABLE;
+            }
+
+            // If the air above the columns is solid or lava/water then it is not suitable
+            for(double y = 1.0; y <= portalSize.getY() + 1.0; y++)    {
+                // Get our current position including the y
+                Block currentBlock = currentPosX.clone().add(0.0, y, 0.0).getBlock();
+                Material type = currentBlock.getType();
+
+                boolean shouldBeObsidian = (x == 0 || x == portalSize.getX() + 1.0 || y == portalSize.getY() + 1.0);
+                if((shouldBeObsidian && type == Material.OBSIDIAN) || (!shouldBeObsidian && type == ReflectUtils.portalMaterial))   {
+                    existingCorrectBlocks++;
+                    continue;
+                }
+
+                if(type.isSolid() || currentBlock.isLiquid())   {
+                    return PortalSuitability.UNSUITABLE;
+                }
+            }
+        }
+
         // Return unsuitable if we are too close to another portal
         for(PortalPos portal : pl.rayCastingSystem.portals.values())    {
             Location otherPos = portal.portalPosition;
@@ -138,27 +168,10 @@ public class PortalSpawnSystem {
             }
         }
 
-        // Loop through the two colums of portal blocks
-        for(double x = 1.0; x <= portalSize.getX(); x++)  {
-            // Get our current position on the x/z
-            Location currentPosX = location.clone().add(direction.swapVector(new Vector(x, 0.0, 0.0)));
-            
-            // If the ground is not solid, it is not suitable 
-            if(!currentPosX.getBlock().getType().isSolid())  {
-                return PortalSuitability.UNSUITABLE;
-            }
-
-            // If the air above the columns is solid or lava/water then it is not suitable
-            for(double y = 1.0; y <= portalSize.getY(); y++)    {
-                // Get our current position including the y
-                Location currentPos = currentPosX.clone().add(0.0, y, 0.0);
-                Material currentType = currentPos.getBlock().getType();
-
-                if(currentType.isSolid() || isMaterialFluid(currentType))   {
-                    return PortalSuitability.UNSUITABLE;
-                }
-            }
+        if(existingCorrectBlocks >= 8)   {
+            return PortalSuitability.PREFERRED;
         }
+
         // If all the checks succeeded, then this location is suitable for portal spawning
         return PortalSuitability.SUITABLE;
     }
@@ -185,6 +198,23 @@ public class PortalSpawnSystem {
                 newLoc.getBlock().setType(Material.STONE);
             }
         }
+    }
+
+    public int checkForExistingObsidian(Location location, PortalDirection direction, Vector portalSize)   {
+        int blocksExisting = 0;
+
+        Vector realSize = portalSize.add(new Vector(1.0, 1.0, 0.0));
+        for(double y = 0.0; y <= realSize.getY(); y++)  {
+            for(double x = 0.0; x <= realSize.getX(); x++)  {
+                if(!(x == 0 || x == realSize.getX() || y == 0.0 || y == realSize.getY()))  {
+                    continue;
+                }
+
+
+            }
+        }
+
+        return blocksExisting;
     }
 
     // Spawns a portal at the given location, with the correct orientation
@@ -228,7 +258,7 @@ public class PortalSpawnSystem {
                     }   else    {
                         // Set the centre to portal. NOTE: The portal must be rotated if the portal faces north/south
                         // Rotating is done using the manual block data byte method, since this works on all version AFAIK
-                        state.setType(ReflectUtils.getPortalMaterial());
+                        state.setType(ReflectUtils.portalMaterial);
                         if(direction == PortalDirection.EAST || direction == PortalDirection.WEST)    {
                             state.setRawData((byte) 2);
                         }
