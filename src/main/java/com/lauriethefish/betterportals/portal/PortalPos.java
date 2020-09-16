@@ -145,7 +145,7 @@ public class PortalPos {
         WorldBorder border = portalPosition.getWorld().getWorldBorder();
 
         // Check if the block at the centre of the portal is a portal block
-        return portalPosition.getBlock().getType() == ReflectUtils.getPortalMaterial() &&
+        return portalPosition.getBlock().getType() == ReflectUtils.portalMaterial &&
                 // Check that the bottom left and top right of the portal are both inside the worldborder,
                 // since portals outside the worldborder should be broken
                 border.isInside(portalPosition.clone().subtract(subAmount)) &&

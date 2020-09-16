@@ -21,9 +21,9 @@ public class ReflectUtils {
     private static Map<String, Class<?>> classCache = new HashMap<>();
     private static Map<String, Field> fieldCache = new HashMap<>();
     private static Map<String, Method> methodCache = new HashMap<>();
-    private static Material portalMaterial = null;
 
     public static boolean isLegacy = getIfLegacy();
+    public static Material portalMaterial = getPortalMaterial();
 
     private static boolean getIfLegacy() {
         // Test if this is a legacy version by checking if blocks have the getBlockData
@@ -171,15 +171,12 @@ public class ReflectUtils {
     }
 
     // Creates and retrieves the portal material depending on version
-    public static Material getPortalMaterial()  {
-        if(portalMaterial == null)  {
-            if(getIfLegacy())   {
-                portalMaterial = Material.valueOf("PORTAL");
-            }   else    {
-                portalMaterial = Material.NETHER_PORTAL;
-            }
+    private static Material getPortalMaterial()  {
+        if(getIfLegacy())   {
+            return Material.valueOf("PORTAL");
+        }   else    {
+            return Material.NETHER_PORTAL;
         }
-        return portalMaterial;
     }
 
     // Converts any NMS type that extends BaseBlockPosition to a Bukkit Vector.
