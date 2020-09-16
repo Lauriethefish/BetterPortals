@@ -87,9 +87,9 @@ public class PortalPos {
     public PortalPos(BetterPortals pl, PortalStorage storage, ConfigurationSection sect)  {
         this(pl, 
             storage.loadLocation(sect.getConfigurationSection("portalPosition")),
-            PortalDirection.valueOf(sect.getString("portalDirection")),
+            PortalDirection.fromStorage(sect.getString("portalDirection")),
             storage.loadLocation(sect.getConfigurationSection("destinationPosition")),
-            PortalDirection.valueOf(sect.getString("destinationDirection")),
+            PortalDirection.fromStorage(sect.getString("destinationDirection")),
             storage.loadPortalSize(sect.getConfigurationSection("portalSize")), 
             sect.getBoolean("anchored"));
     }
@@ -107,6 +107,7 @@ public class PortalPos {
     // Forces this portal to recheck for entities next tick
     public void forceEntityUpdate()  {
         ticksSinceLastEntityCheck = Integer.MAX_VALUE;
+        
     }
 
     // Updates the two lists of neaby entities, if it is time to

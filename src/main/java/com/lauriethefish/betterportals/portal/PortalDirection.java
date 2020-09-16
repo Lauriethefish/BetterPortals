@@ -21,6 +21,18 @@ public enum PortalDirection {
         this.inversionRotationAxis = inversionRotationAxis;
     }
 
+    // Gets a PortalDirection from the given string, and converts the old EAST_WEST and NORTH_SOUTH directions into the new variants
+    public static PortalDirection fromStorage(String string) {
+        switch(string) {
+            case "EAST_WEST":
+                return NORTH;
+            case "NORTH_SOUTH":
+                return EAST;
+            default:
+                return valueOf(string);
+        }
+    }
+
     public Vector toVector()    {
         return direction;
     }
