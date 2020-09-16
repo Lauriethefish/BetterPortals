@@ -1,8 +1,8 @@
 package com.lauriethefish.betterportals.runnables;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
@@ -24,6 +24,7 @@ import org.bukkit.util.Vector;
 // Casts a ray from each player every tick
 // If it passes through the portal, set the end of it to a redstone block
 public class PlayerRayCast implements Runnable {
+    private int currentTick = 0;
     private Config config;
 
     private BetterPortals pl;
@@ -132,7 +133,6 @@ public class PlayerRayCast implements Runnable {
         // We need to update the fake entities every tick, regardless of if the player moved
         if(pl.config.enableEntitySupport)   {
             playerData.entityManipulator.updateFakeEntities();
-            portal.updateNearbyEntities();
 
             Set<Entity> replicatedEntities = new HashSet<>();
             for(Entity entity : portal.nearbyEntitiesDestination)   {
@@ -174,7 +174,7 @@ public class PlayerRayCast implements Runnable {
     }
 
     private void handleUpdate(PortalUpdateData data)    {
-        ArrayList<BlockRaycastData> currentBlocks = data.portal.currentBlocks; // Store the current blocks incase they change while being processed
+        List<BlockRaycastData> currentBlocks = data.portal.currentBlocks; // Store the current blocks incase they change while being processed
         MultiBlockChangeManager changeManager = MultiBlockChangeManager.createInstance(data.playerData.player);
         for(BlockRaycastData raycastData : currentBlocks)    {                    
             // Check if the block is visible
@@ -243,7 +243,7 @@ public class PlayerRayCast implements Runnable {
             if(portal == null) {continue;}
 
             // Create the portal's block state array if necessary
-            portal.findCurrentBlocks();
+            portal.update(currentTick);
 
             PlaneIntersectionChecker intersectionChecker = new PlaneIntersectionChecker(
                     playerData.player, portal);
@@ -258,5 +258,6 @@ public class PlayerRayCast implements Runnable {
 
             playerData.lastPosition = player.getLocation().toVector();
         }
+        currentTick++;
     }
 }

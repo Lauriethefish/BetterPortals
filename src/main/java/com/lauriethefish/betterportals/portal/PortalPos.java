@@ -2,6 +2,7 @@ package com.lauriethefish.betterportals.portal;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import com.lauriethefish.betterportals.BetterPortals;
@@ -44,13 +45,12 @@ public class PortalPos {
     // The size of the portal's gateway on the X and Y
     public Vector portalSize;
 
-    // Array of the blocks at the destination of the portal that need checking for visibility
-    public ArrayList<BlockRaycastData> currentBlocks;
-    private int ticksSinceLastRebuild = Integer.MAX_VALUE;
+    public int lastActive = -2;
+    public int activationTime;
 
+    public List<BlockRaycastData> currentBlocks;
     public Collection<Entity> nearbyEntitiesOrigin = null;
     public Collection<Entity> nearbyEntitiesDestination = null;
-    private int ticksSinceLastEntityCheck = Integer.MAX_VALUE;
 
     public boolean anchored;
 
@@ -104,23 +104,29 @@ public class PortalPos {
         sect.set("anchored", anchored);
     }
 
-    // Forces this portal to recheck for entities next tick
-    public void forceEntityUpdate()  {
-        ticksSinceLastEntityCheck = Integer.MAX_VALUE;
-        
+    public void update(int currentTick)    {
+        // If it has been longer than one tick since the portal was active, set the activation time to now
+        if(currentTick - lastActive > 1)    {
+            activationTime = currentTick;
+        }
+        lastActive = currentTick;
+
+        int ticksSinceActivation = currentTick - activationTime;
+        // Update the entities and blocks if we need to
+        if(ticksSinceActivation % pl.config.entityCheckInterval == 0)   {
+            updateNearbyEntities();
+        }
+        if(ticksSinceActivation % pl.config.portalBlockUpdateInterval == 0)   {
+            findCurrentBlocks();
+        }
     }
 
-    // Updates the two lists of neaby entities, if it is time to
-    public void updateNearbyEntities()   {
-        if(ticksSinceLastEntityCheck < pl.config.entityCheckInterval)  {
-            ticksSinceLastEntityCheck++;
-            return;
-        }
-        
-        ticksSinceLastEntityCheck = 0;
-        
-        nearbyEntitiesOrigin = portalPosition.getWorld().getNearbyEntities(portalPosition, pl.config.maxXZ, pl.config.maxY, pl.config.maxXZ);
-        nearbyEntitiesDestination = destinationPosition.getWorld().getNearbyEntities(destinationPosition, pl.config.maxXZ, pl.config.maxY, pl.config.maxXZ);
+    // Updates the two lists of neaby entities
+    private void updateNearbyEntities()   {
+        nearbyEntitiesOrigin = portalPosition.getWorld()
+                    .getNearbyEntities(portalPosition, pl.config.maxXZ, pl.config.maxY, pl.config.maxXZ);
+        nearbyEntitiesDestination = destinationPosition.getWorld()
+                    .getNearbyEntities(destinationPosition, pl.config.maxXZ, pl.config.maxY, pl.config.maxXZ);
     }
 
     public boolean checkOriginAndDestination()  {
@@ -244,15 +250,8 @@ public class PortalPos {
     }
 
     // Loops through the blocks at the destination position, and finds the ones that aren't obscured by other solid blocks
-    public void findCurrentBlocks()  {
+    private void findCurrentBlocks()  {
         Config config = pl.config;
-
-        // Make sure that the portal only updates its blocks if it is the correct time
-        if(ticksSinceLastRebuild < config.portalBlockUpdateInterval)    {
-            ticksSinceLastRebuild++;
-            return;
-        }
-        ticksSinceLastRebuild = 0;
 
         ArrayList<BlockRaycastData> newBlocks = new ArrayList<>();
         // Loop through all blocks around the portal
