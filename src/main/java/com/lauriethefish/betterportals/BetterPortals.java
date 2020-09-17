@@ -118,7 +118,6 @@ public class BetterPortals extends JavaPlugin {
         }
     }
 
-    // This function is currently empty, as we have no commands
     private void registerCommands() {
         getCommand("betterportals").setExecutor(new MainCommand(this));
     }
