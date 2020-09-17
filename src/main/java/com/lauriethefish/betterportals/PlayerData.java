@@ -1,6 +1,7 @@
 package com.lauriethefish.betterportals;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import com.lauriethefish.betterportals.entitymanipulation.PlayerEntityManipulator;
 import com.lauriethefish.betterportals.multiblockchange.MultiBlockChangeManager;
@@ -20,8 +21,8 @@ public class PlayerData {
     // The last portal that had the portal effect active.
     // If this changes, then the ghost blocks sent to the player are reset to avoid phantom blocks breaking the illusion
     public PortalPos lastActivePortal = null;
-    // Store the surrouding blocks that have been sent to the player (false = the player can see the origin block, true = the player can see the destination block)
-    public HashMap<Vector, Object> surroundingPortalBlockStates = new HashMap<>();
+    // Store the surrouding blocks that have been sent to the player
+    public Map<Vector, Object> surroundingPortalBlockStates = new HashMap<>();
 
     // Deals with hiding and showing entities
     public PlayerEntityManipulator entityManipulator;
@@ -41,24 +42,23 @@ public class PlayerData {
         this.lastPosition = null; // Make sure the portal re-renders
         this.lastActivePortal = null; // No portal was active last tick, since we just logged in
         this.loadedWorldLastTick = true;
-        resetSurroundingBlockStates();
+        resetSurroundingBlockStates(false);
     }
 
     // Resets all of the ghost block updates that have been set to the player
     // This also has the effect of changing surroundingPortalBlockStates to be all null
-    public void resetSurroundingBlockStates()   {
+    public void resetSurroundingBlockStates(boolean sendPackets)   {
+        // If we are still in the same world, then we have to send packets to reset the blocks
+        if(sendPackets) {
+            MultiBlockChangeManager changeManager = MultiBlockChangeManager.createInstance(player);
+            // Loop through all of the potential ghost blocks, and add to the change manager to change them back
+            for(BlockRaycastData data : lastActivePortal.currentBlocks)   {
+                if(!surroundingPortalBlockStates.get(data.originVec).equals(data.originData))    {
+                    changeManager.addChange(data.originVec, data.originData);
+                }
+            }
+            changeManager.sendChanges();
+        }
         surroundingPortalBlockStates = new HashMap<>();
-
-        // If the last portal was in a different world, we don't need to reset the blocks
-        if(lastActivePortal == null || lastActivePortal.portalPosition.getWorld() != player.getWorld()) {
-            return;
-        }
-
-        MultiBlockChangeManager changeManager = MultiBlockChangeManager.createInstance(player);
-        // Loop through all of the potential ghost blocks, and add to the change manager to change them back
-        for(BlockRaycastData data : lastActivePortal.currentBlocks)   {
-            changeManager.addChange(data.originVec, data.originData);
-        }
-        changeManager.sendChanges();
     }
 }

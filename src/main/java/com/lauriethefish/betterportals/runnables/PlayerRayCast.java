@@ -127,8 +127,6 @@ public class PlayerRayCast implements Runnable {
     public void updatePortal(PlayerData playerData, PortalPos portal, PlaneIntersectionChecker checker) {        
         // We need to update the fake entities every tick, regardless of if the player moved
         if(pl.config.enableEntitySupport)   {
-            playerData.entityManipulator.updateFakeEntities();
-
             Set<Entity> replicatedEntities = new HashSet<>();
             for(Entity entity : portal.nearbyEntitiesDestination)   {
                 // If the entity is in a different world, or is on the same line as the portal destination, skip it
@@ -169,8 +167,14 @@ public class PlayerRayCast implements Runnable {
     }
 
     private void handleUpdate(PortalUpdateData data)    {
+        Player player = data.playerData.player;
+        // Skip this portal if the player is no longer in the right world
+        if(player.getWorld() != data.portal.portalPosition.getWorld())  {
+            return;
+        }
+
         List<BlockRaycastData> currentBlocks = data.portal.currentBlocks; // Store the current blocks incase they change while being processed
-        MultiBlockChangeManager changeManager = MultiBlockChangeManager.createInstance(data.playerData.player);
+        MultiBlockChangeManager changeManager = MultiBlockChangeManager.createInstance(player);
         for(BlockRaycastData raycastData : currentBlocks)    {                    
             // Check if the block is visible
             boolean visible = data.checker.checkIfVisibleThroughPortal(raycastData.originVec);
@@ -215,12 +219,14 @@ public class PlayerRayCast implements Runnable {
             // If the portal that is currently active is different to the one that was active before,
             // We reset the surrounding blocks from the previous portal so that the player does not see blocks
             // where they shouldn't be
-            if(playerData.lastActivePortal != portal)    {
-                playerData.resetSurroundingBlockStates();
+            PortalPos lastPortal = playerData.lastActivePortal;
+            if(lastPortal != portal)    {
+                boolean changedWorlds = lastPortal == null || lastPortal.portalPosition.getWorld() != player.getWorld();
+                playerData.resetSurroundingBlockStates(!changedWorlds);
 
                 if(pl.config.hidePortalBlocks)  {
                     // If we're not in the same world as our last portal, there's no point recreating the portal blocks
-                    if(playerData.lastActivePortal != null && playerData.lastActivePortal.portalPosition.getWorld() == player.getWorld())   {
+                    if(!changedWorlds)   {
                         playerData.lastActivePortal.recreatePortalBlocks(player);
                     }
                     if(portal != null)  {
@@ -229,7 +235,7 @@ public class PlayerRayCast implements Runnable {
                 }
 
                 // Destroy any fake entities and recreate any hidden ones
-                playerData.entityManipulator.resetAll(!playerData.loadedWorldLastTick);
+                playerData.entityManipulator.resetAll(!changedWorlds);
                 playerData.lastActivePortal = portal;
                 playerData.lastPosition = null;
             }
@@ -240,8 +246,7 @@ public class PlayerRayCast implements Runnable {
             // Create the portal's block state array if necessary
             portal.update(currentTick);
 
-            PlaneIntersectionChecker intersectionChecker = new PlaneIntersectionChecker(
-                    playerData.player, portal);
+            PlaneIntersectionChecker intersectionChecker = new PlaneIntersectionChecker(playerData.player, portal);
             // Queue the update to happen on another thread
             updatePortal(playerData, portal, intersectionChecker);
 
