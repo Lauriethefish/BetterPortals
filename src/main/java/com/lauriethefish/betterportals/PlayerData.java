@@ -12,11 +12,10 @@ import org.bukkit.util.Vector;
 
 // This class stores information about the player, required by the plugin
 public class PlayerData {
-    // Reference to the player
     public Player player;
     
     // Used to disable sending entity packets after a world load
-    public boolean loadedWorldLastTick = false;
+    public boolean loadedWorldLastTick = true;
 
     // The last portal that had the portal effect active.
     // If this changes, then the ghost blocks sent to the player are reset to avoid phantom blocks breaking the illusion
@@ -30,26 +29,15 @@ public class PlayerData {
     // Last position of the player recorded by PlayerRayCast, used to decide whether or not to re-render to portal view
     public Vector lastPosition = null;
 
-    public PlayerData(Player player) {
-        resetPlayer(player);
-    }
-
-    // Used whenever a player relogs/ logs in for the first time
-    public void resetPlayer(Player newPlayer)   {
-        this.player = newPlayer;
-        entityManipulator = new PlayerEntityManipulator(this);
-
-        this.lastPosition = null; // Make sure the portal re-renders
-        this.lastActivePortal = null; // No portal was active last tick, since we just logged in
-        this.loadedWorldLastTick = true;
-        resetSurroundingBlockStates(false);
+    public PlayerData(BetterPortals pl, Player player) {
+        this.player = player;
+        entityManipulator = new PlayerEntityManipulator(pl, this);
     }
 
     // Resets all of the ghost block updates that have been set to the player
     // This also has the effect of changing surroundingPortalBlockStates to be all null
     public void resetSurroundingBlockStates(boolean sendPackets)   {
-        // If we are still in the same world, then we have to send packets to reset the blocks
-        if(sendPackets) {
+        if(sendPackets && lastActivePortal != null) {
             MultiBlockChangeManager changeManager = MultiBlockChangeManager.createInstance(player);
             // Loop through all of the potential ghost blocks, and add to the change manager to change them back
             for(BlockRaycastData data : lastActivePortal.currentBlocks)   {

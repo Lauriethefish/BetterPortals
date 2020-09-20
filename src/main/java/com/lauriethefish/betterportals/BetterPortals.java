@@ -1,14 +1,19 @@
 package com.lauriethefish.betterportals;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
 import com.lauriethefish.betterportals.commands.MainCommand;
-import com.lauriethefish.betterportals.events.PlayerJoin;
+import com.lauriethefish.betterportals.events.ChunkUnload;
+import com.lauriethefish.betterportals.events.EntityReplicationEvents;
+import com.lauriethefish.betterportals.events.JoinLeave;
 import com.lauriethefish.betterportals.events.PlayerPortal;
 import com.lauriethefish.betterportals.events.PortalCreate;
+import com.lauriethefish.betterportals.multiblockchange.ChunkCoordIntPair;
 import com.lauriethefish.betterportals.portal.PortalPos;
 import com.lauriethefish.betterportals.portal.PortalSpawnSystem;
 import com.lauriethefish.betterportals.portal.PortalStorage;
@@ -29,12 +34,15 @@ public class BetterPortals extends JavaPlugin {
     public Metrics metrics;
 
     // Stores players previous portal positions
-    public HashMap<UUID, PlayerData> players = new HashMap<UUID, PlayerData>();
+    public Map<UUID, PlayerData> players = new HashMap<UUID, PlayerData>();
 
     public PortalSpawnSystem spawningSystem = new PortalSpawnSystem(this);
     public PlayerRayCast rayCastingSystem;
     public Config config;
     private PortalStorage storage;
+
+    // Used if on a version where you can cancel ChunkUnloadEvent
+    public Set<ChunkCoordIntPair> forceLoadedChunks = new HashSet<>();
 
     // This method is called once when our plugin is enabled
     @Override
@@ -109,6 +117,11 @@ public class BetterPortals extends JavaPlugin {
     // This method is called when the plugin is disabled
     @Override
     public void onDisable() {
+        for(PlayerData player : players.values())   {
+            player.entityManipulator.resetAll(true);
+            player.resetSurroundingBlockStates(true);
+        }
+
         // Save all of the portals to disk
         try {
             storage.savePortals(rayCastingSystem.portals);
@@ -127,7 +140,7 @@ public class BetterPortals extends JavaPlugin {
         // For each online player
         for(Player player : getServer().getOnlinePlayers()) {
             // Add a new player data with the player's UUID
-            players.put(player.getUniqueId(), new PlayerData(player));
+            players.put(player.getUniqueId(), new PlayerData(this, player));
         }
     }
 
@@ -146,9 +159,13 @@ public class BetterPortals extends JavaPlugin {
     // Registers all of the events with spigot, so that they are fired correctly
     private void registerEvents() {
         PluginManager pm = getServer().getPluginManager();
-
-        pm.registerEvents(new PortalCreate(this), this);        
-        pm.registerEvents(new PlayerJoin(this), this);
+        // If we are catching the ChunkUnloadEvent to forceload chunks, then register it
+        if(!ReflectUtils.useNewChunkLoadingImpl)    {
+            pm.registerEvents(new ChunkUnload(this), this);
+        }
+        pm.registerEvents(new EntityReplicationEvents(this), this);
+        pm.registerEvents(new JoinLeave(this), this);
+        pm.registerEvents(new PortalCreate(this), this);
         pm.registerEvents(new PlayerPortal(), this);
     }
 }
