@@ -125,6 +125,7 @@ public class PlayerEntityManipulator    {
                 // Make a new PlayerViewableEntity instance from the entity, then send the packets to show it
                 PlayerViewableEntity newEntity = new PlayerViewableEntity(entity, portal, random);
                 showEntity(entity, newEntity.location, newEntity.rotation, newEntity.entityId);
+                sendHeadRotationPacket(newEntity);
                 replicatedEntites.put(entity, newEntity); // Add the entity to the list
             }
         }
@@ -307,7 +308,7 @@ public class PlayerEntityManipulator    {
     private void sendHeadRotationPacket(PlayerViewableEntity entity)    {
         Object packet = ReflectUtils.newInstance("PacketPlayOutEntityHeadRotation");
         ReflectUtils.setField(packet, "a", entity.entityId); // Set the overridden entityId
-        ReflectUtils.setField(packet, "b", entity.byteYaw); // Use the randomized entity ID of fake entities
+        ReflectUtils.setField(packet, "b", entity.byteHeadRotation); // Use the randomized entity ID of fake entities
 
         sendPacket(packet);
     }
