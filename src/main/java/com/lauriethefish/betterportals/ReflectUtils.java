@@ -10,8 +10,11 @@ import java.util.Map;
 import com.lauriethefish.betterportals.math.MathUtils;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.event.Cancellable;
+import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.util.Vector;
 
 public class ReflectUtils {
@@ -77,6 +80,10 @@ public class ReflectUtils {
         }
     }
 
+    // If we cannot cancel ChunkUnloadEvent (this is true in newer versions), then we use a different method to forceload chunks
+    public static boolean useNewChunkLoadingImpl = !Cancellable.class.isAssignableFrom(ChunkUnloadEvent.class);
+    public static boolean sendBedPackets = ReflectUtils.getMcClass("PacketPlayOutBed", false) != null;
+
     public static Class<?> getClass(String path, boolean printErrors)   {
         // Find if we have a cached version of this class
         Class<?> cachedClass = classCache.get(path);
@@ -130,8 +137,8 @@ public class ReflectUtils {
     }
 
     // Attempts to find a field in the field cache, and gets it using reflection if it doesn't exist
-    private static Field findField(Object obj, String name, Class<?> cla) {
-        String fullName = String.format(String.format("%s.%s", cla.getName(), name));
+    public static Field findField(Object obj, String name, Class<?> cla, boolean printErrors) {
+        String fullName = String.format("%s.%s", cla.getName(), name);
         Field field = fieldCache.get(fullName);
         if(field == null)   { // Test if it is in the cache
             while(cla != null && field == null) { // Keep looping until no superclass can be found
@@ -148,10 +155,14 @@ public class ReflectUtils {
         }
         return field;
     }
-    
+
+    public static Field findField(Object obj, String name, Class<?> cla) {
+        return findField(obj, name, cla, true);
+    }
+
     // Attempts to find the method from the cache, and gets it using reflection if it doesn't exist
-    private static Method findMethod(Object obj, Class<?> cla, String name, Class<?>[] params) {
-        String fullName = String.format(String.format("%s.%s", cla.getName(), name));
+    public static Method findMethod(Class<?> cla, String name, Class<?>[] params, boolean printErrors) {
+        String fullName = String.format("%s.%s", cla.getName(), name);
         Method method = methodCache.get(fullName);
         if(method == null)   { // Test if it is in the cache
             Class<?> currentClass = cla;
@@ -168,6 +179,10 @@ public class ReflectUtils {
             methodCache.put(fullName, method); // Add it to the cache
         }
         return method;
+    }
+
+    public static Method findMethod(Class<?> cla, String name, Class<?>[] params) {
+        return findMethod(cla, name, params, true);
     }
 
     // Creates and retrieves the portal material depending on version
@@ -233,7 +248,7 @@ public class ReflectUtils {
     // Runs the names method on the given object with the given args
     public static Object runMethod(Object obj, Class<?> cla, String name, Class<?>[] params, Object[] args)    {
         try {
-            Method method = findMethod(obj, cla, name, params);
+            Method method = findMethod(cla, name, params);
             method.setAccessible(true);
             Object result = method.invoke(obj, args);
             return result;
@@ -296,5 +311,14 @@ public class ReflectUtils {
     public static Object getEnumDirection(Vector dir)   {
         // Round the direction, since otherwise it is usually slightly off, causing this function to return null
         return enumDirectionVariants.get(MathUtils.round(dir));
+    }
+
+    public static Object createBlockPosition(Location location) {
+        return createBlockPosition(location.toVector());
+    }
+
+    public static Object createBlockPosition(Vector vec)    {
+        return newInstance("BlockPosition", new Class[]{int.class, int.class, int.class},
+                                            new Object[]{vec.getBlockX(), vec.getBlockY(), vec.getBlockZ()});
     }
 }
