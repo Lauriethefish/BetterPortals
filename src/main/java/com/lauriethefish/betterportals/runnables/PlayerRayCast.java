@@ -2,18 +2,15 @@ package com.lauriethefish.betterportals.runnables;
 
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import com.lauriethefish.betterportals.BetterPortals;
-import com.lauriethefish.betterportals.BlockRaycastData;
 import com.lauriethefish.betterportals.Config;
 import com.lauriethefish.betterportals.PlayerData;
+import com.lauriethefish.betterportals.ReflectUtils;
 import com.lauriethefish.betterportals.math.PlaneIntersectionChecker;
-import com.lauriethefish.betterportals.multiblockchange.MultiBlockChangeManager;
+import com.lauriethefish.betterportals.multiblockchange.ChunkCoordIntPair;
 import com.lauriethefish.betterportals.portal.PortalPos;
 
 import org.bukkit.Location;
@@ -31,32 +28,14 @@ public class PlayerRayCast implements Runnable {
     // Store a map of all of the currently active portals
     public Map<Location, PortalPos> portals;
 
-    private BlockingQueue<PortalUpdateData> updateQueue = new LinkedBlockingQueue<>();
-    public Thread renderThread;
-    private class PortalUpdateData  { // Class to store data that is sent to another thread that handles the portal updates, since we cannot get this through bukkit if not on the main thread
-        public PlayerData playerData;
-        public PlaneIntersectionChecker checker;
-        public PortalPos portal;
-        public PortalUpdateData(PlayerData playerData, PlaneIntersectionChecker checker, PortalPos portal)   {
-            this.playerData = playerData; this.portal = portal; this.checker = checker;
-        }
-    }
+    public Set<ChunkCoordIntPair> newForceLoadedChunks = new HashSet<>();
 
+    private BlockProcessor blockRenderer;
     public PlayerRayCast(BetterPortals pl, Map<Location, PortalPos> portals) {
+        blockRenderer = new BlockProcessor(pl);
         this.pl = pl;
         this.config = pl.config;
         this.portals = portals;
-
-        // Spawn a new thread to handle updating the portal
-        new Thread(() -> {
-            while(pl.isEnabled()) { // Make sure the thread stops when the plugin is disabled
-                try {
-                    handleUpdate(updateQueue.take());
-                }   catch(InterruptedException ex)  {
-                    ex.printStackTrace();
-                }
-            }
-        }).start();
 
         // Set the task to run every tick
         pl.getServer().getScheduler().scheduleSyncRepeatingTask(pl, this, 0, 1);
@@ -127,6 +106,7 @@ public class PlayerRayCast implements Runnable {
     public void updatePortal(PlayerData playerData, PortalPos portal, PlaneIntersectionChecker checker) {        
         // We need to update the fake entities every tick, regardless of if the player moved
         if(pl.config.enableEntitySupport)   {
+            playerData.entityManipulator.updateFakeEntities();
             Set<Entity> replicatedEntities = new HashSet<>();
             for(Entity entity : portal.nearbyEntitiesDestination)   {
                 // If the entity is in a different world, or is on the same line as the portal destination, skip it
@@ -162,47 +142,12 @@ public class PlayerRayCast implements Runnable {
         // Optimisation: Check if the player has moved before re-rendering the view
         Vector currentLoc = playerData.player.getLocation().toVector();
         if(currentLoc.equals(playerData.lastPosition))  {return;}
-
-        updateQueue.add(new PortalUpdateData(playerData, checker, portal));
-    }
-
-    private void handleUpdate(PortalUpdateData data)    {
-        Player player = data.playerData.player;
-        // Skip this portal if the player is no longer in the right world
-        if(player.getWorld() != data.portal.portalPosition.getWorld())  {
-            return;
-        }
-
-        List<BlockRaycastData> currentBlocks = data.portal.currentBlocks; // Store the current blocks incase they change while being processed
-        MultiBlockChangeManager changeManager = MultiBlockChangeManager.createInstance(player);
-        for(BlockRaycastData raycastData : currentBlocks)    {                    
-            // Check if the block is visible
-            boolean visible = data.checker.checkIfVisibleThroughPortal(raycastData.originVec);
-
-            Object oldState = data.playerData.surroundingPortalBlockStates.get(raycastData.originVec); // Find if it was visible last tick
-            Object newState = visible ? raycastData.destData : raycastData.originData;
-
-            // If we are overwriting the block, change it in the player's block array and send them a block update
-            if(!newState.equals(oldState)) {
-                data.playerData.surroundingPortalBlockStates.put(raycastData.originVec, newState);
-                changeManager.addChange(raycastData.originVec, newState);
-            }
-        }
-
-        // Send all the block changes
-        changeManager.sendChanges();
+        // Queue an update to happen on the async task
+        blockRenderer.queueUpdate(playerData, checker, portal);
     }
 
     @Override
     public void run() {
-        // Verify that all of the updates from the last tick have finished processing
-        // Generally this shouldn't stop the thread
-        while(!updateQueue.isEmpty())   {
-            try {
-                Thread.sleep(5);
-            }   catch(InterruptedException ex)  {ex.printStackTrace();}
-        }
-
         // Loop through every online player
         for (Player player : pl.getServer().getOnlinePlayers()) {
             PlayerData playerData = pl.players.get(player.getUniqueId());
@@ -258,6 +203,19 @@ public class PlayerRayCast implements Runnable {
 
             playerData.lastPosition = player.getLocation().toVector();
         }
+
         currentTick++;
+
+        // If we are using the force loading method, unforceload any chunks that are no longer loaded by portals
+        if(ReflectUtils.useNewChunkLoadingImpl) {
+            for(ChunkCoordIntPair chunk : pl.forceLoadedChunks) {
+                if(!newForceLoadedChunks.contains(chunk))   {
+                    chunk.getChunk().setForceLoaded(false);
+                }
+            }
+        }
+
+        pl.forceLoadedChunks = newForceLoadedChunks;
+        newForceLoadedChunks = new HashSet<>();
     }
 }
