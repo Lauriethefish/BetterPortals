@@ -14,10 +14,10 @@ portalEffectSizeY: 7
 # All others are discarded
 portalActivationDistance: 20
 
-portalBlockUpdateInterval: 120 # How often the portal will re-check for the blocks around it
+portalBlockUpdateInterval: 20 # How often the portal will re-check for the blocks around it
 
 enableEntitySupport: true
-entityCheckInterval: 30 # How often the portal will check for surrounding entities
+entityCheckInterval: 5 # How often the portal will check for surrounding entities
 
 # Setting this to true will allow you to see straight through a portal
 # NOTE: This generally makes it look a bit less convincing, since it's easier to see when the player's client doesn't quite keep up
