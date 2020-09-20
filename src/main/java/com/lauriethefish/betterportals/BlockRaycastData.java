@@ -1,5 +1,7 @@
 package com.lauriethefish.betterportals;
 
+import java.lang.reflect.Method;
+
 import com.lauriethefish.betterportals.math.MathUtils;
 
 import org.bukkit.Location;
@@ -39,12 +41,27 @@ public class BlockRaycastData {
         return ReflectUtils.runMethod(null, ReflectUtils.getMcClass("Block"), "getByCombinedId", new Class[]{int.class}, new Object[]{combinedId});
     }
 
-    // Finds the NMS IBlockData from a bukkit block, this differs depending on if using a legacy version or modern version
-    public static Object getNMSData(Block block)   {
-        if(ReflectUtils.isLegacy)  {
-            return ReflectUtils.runMethod(block, "getData0");
+    // Find the method used to get the NMS IBlockData from a Block
+    private static Method getDataMethod = findGetDataMethod();
+    private static Method findGetDataMethod()  {
+        if(ReflectUtils.isLegacy)   {
+            Method method = ReflectUtils.findMethod(ReflectUtils.getBukkitClass("block.CraftBlock"), "getData0", new Class[]{});
+            method.setAccessible(true);
+            return method;
         }   else    {
-            return ReflectUtils.getField(block.getBlockData(), "state");
+            Method method = ReflectUtils.findMethod(ReflectUtils.getBukkitClass("block.CraftBlock"), "getNMS", new Class[]{});
+            method.setAccessible(true);
+            return method;
+        }
+    }
+
+    // Finds the NMS IBlockData from a bukkit block
+    public static Object getNMSData(Block block)   {
+        try {
+            return getDataMethod.invoke(block);
+        } catch(ReflectiveOperationException ex)    {
+            ex.printStackTrace();
+            return null;
         }
     }
 }
