@@ -6,7 +6,6 @@ import com.lauriethefish.betterportals.ReflectUtils;
 import com.lauriethefish.betterportals.math.MathUtils;
 import com.lauriethefish.betterportals.portal.PortalPos;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Hanging;
@@ -69,7 +68,6 @@ public class PlayerViewableEntity {
 
         // Find the headRotation as well
         float headRotation = (float) ReflectUtils.runMethod(nmsEntity, "getHeadRotation");
-        Bukkit.getLogger().info(String.valueOf(headRotation));
         loc.setYaw(headRotation);
         loc = loc.setDirection(portal.rotateToOrigin(loc.getDirection()));
         byteHeadRotation = (byte) (loc.getYaw() * 256 / 360);
