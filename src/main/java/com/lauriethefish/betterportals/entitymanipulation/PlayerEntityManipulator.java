@@ -10,21 +10,24 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import com.lauriethefish.betterportals.BetterPortals;
 import com.lauriethefish.betterportals.PlayerData;
 import com.lauriethefish.betterportals.ReflectUtils;
 import com.lauriethefish.betterportals.portal.PortalPos;
 
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ExperienceOrb;
 import org.bukkit.entity.Hanging;
 import org.bukkit.entity.HumanEntity;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Painting;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
-public class PlayerEntityManipulator {
+public class PlayerEntityManipulator    {
     private Random random;
     private Object playerConnection; // Store the NMS connection update to increase speed of sending packets
 
@@ -35,11 +38,20 @@ public class PlayerEntityManipulator {
     // All of the fake entities that the player can currently see
     private Map<Entity, PlayerViewableEntity> replicatedEntites = new HashMap<Entity, PlayerViewableEntity>();
 
-    public PlayerEntityManipulator(PlayerData playerData)    {
+    public PlayerEntityManipulator(BetterPortals pl, PlayerData playerData)    {
         random = new Random(playerData.player.getEntityId());
         // Find the NMS connection using reflection
         Object craftPlayer = ReflectUtils.runMethod(playerData.player, "getHandle");
         playerConnection = ReflectUtils.getField(craftPlayer, "playerConnection");
+    }
+
+    // Sends a PacketPlayOutCollect to play the animation of entity picking up item
+    public void sendPickupItemPacket(PlayerViewableEntity entity, PlayerViewableEntity item)  {
+        Object packet = ReflectUtils.newInstance("PacketPlayOutCollect");
+        ReflectUtils.setField(packet, "a", item.entityId);
+        ReflectUtils.setField(packet, "b", entity.entityId);
+        ReflectUtils.setField(packet, "c", ((Item) item.entity).getItemStack().getAmount());
+        sendPacket(packet);
     }
 
     // Swaps the list of hidden entities with the new one, then
@@ -78,6 +90,18 @@ public class PlayerEntityManipulator {
             hiddenEntities = new HashSet<>();
             replicatedEntites = new HashMap<>();
         }
+    }
+
+    // Sends a PacketPlayOutAnimation to the player for the given entity
+    public void sendAnimationPacket(PlayerViewableEntity entity, int animationType) {
+        Object packet = ReflectUtils.newInstance("PacketPlayOutAnimation");
+        ReflectUtils.setField(packet, "a", entity.entityId);
+        ReflectUtils.setField(packet, "b", animationType);
+        sendPacket(packet);
+    }
+
+    public PlayerViewableEntity getViewedEntity(Entity entity)  {
+        return replicatedEntites.get(entity);
     }
 
     // Swaps the list of fake entities with the new one, adding or removing any new entities
@@ -296,17 +320,34 @@ public class PlayerEntityManipulator {
                                             new Object[]{entity.entityId, entity.byteYaw, entity.bytePitch, true}));                                  
     }
 
+    private void sendSleepPacket(PlayerViewableEntity entity)   {
+        Object packet = ReflectUtils.newInstance("PacketPlayOutBed");
+        Object blockPosition = ReflectUtils.getField(entity.nmsEntity, "bedPosition");
+
+        ReflectUtils.setField(packet, "a", entity.entityId);
+        ReflectUtils.setField(packet, "b", blockPosition);
+        sendPacket(packet);
+    }
+
+    public void sendBlockBreakPacket(PlayerViewableEntity entity, Block block)  {
+        Object packet = ReflectUtils.newInstance("PacketPlayOutBlockBreakAnimation", 
+                                                new Class[]{int.class, ReflectUtils.getMcClass("BlockPosition"), int.class},
+                                                new Object[]{entity.entityId, ReflectUtils.createBlockPosition(block.getLocation()), 0});
+        sendPacket(packet);
+    }
+
     // Loops through all the fake entities and updates their position and equipment
     public void updateFakeEntities()   {      
         for(PlayerViewableEntity playerEntity : replicatedEntites.values()) {
+            Entity entity = playerEntity.entity;
+
             boolean updateLocation = playerEntity.calculateLocation();
             boolean updateRotation = playerEntity.calculateRotation();
             
-            // If we are updating both the entities position and rotation, use a MoveLook packet (not doing this causes glitches)
-
             // Don't send the rotation of hanging entities, since it causes glitches
             boolean lookNeeded = !(playerEntity.entity instanceof Hanging);
 
+            // If we are updating both the entities position and rotation, use a MoveLook packet (not doing this causes glitches)
             if(updateLocation && updateRotation && lookNeeded)    {
                 sendMoveLookPacket(playerEntity);
                 sendHeadRotationPacket(playerEntity);
@@ -324,7 +365,25 @@ public class PlayerEntityManipulator {
             EntityEquipmentState oldEntityEquipment = playerEntity.equipment;
             playerEntity.updateEntityEquipment();
             if(oldEntityEquipment != null && !oldEntityEquipment.equals(playerEntity.equipment))  {
-                sendEntityEquipmentPackets((LivingEntity) playerEntity.entity, playerEntity.entityId);
+                sendEntityEquipmentPackets((LivingEntity) entity, playerEntity.entityId);
+            }
+
+            // Only human entities can sleep in beds
+            if(entity instanceof HumanEntity && ReflectUtils.sendBedPackets)  {
+                HumanEntity humanEntity = (HumanEntity) entity;
+                if(humanEntity.isSleeping())    {
+                    // If the entity is sleeping, and they weren't last tick, send the packet to put them in a bed
+                    if(!playerEntity.sleepingLastTick)  {
+                        sendSleepPacket(playerEntity);
+                        playerEntity.sleepingLastTick = true;
+                    }
+                }   else    {
+                    // If we were sleeping last tick, and aren't anymore, send the leave bed animation packet
+                    if(playerEntity.sleepingLastTick)   {
+                        sendAnimationPacket(playerEntity, 2);
+                        playerEntity.sleepingLastTick = false;
+                    }
+                }
             }
         }
     }
