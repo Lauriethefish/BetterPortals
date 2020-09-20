@@ -29,6 +29,7 @@ public class PlayerViewableEntity {
     public byte byteHeadRotation;
     // Store the location in the previous tick, as this is needed to send relative move packets
     public Vector oldLocation;
+    public boolean sleepingLastTick = false;
 
     public PlayerViewableEntity(Entity entity, PortalPos portal, Random random)   {
         this.entity = entity;
