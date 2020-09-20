@@ -36,9 +36,14 @@ public class Config {
     // Multiplyers used to access the array of changed blocks
     // This array stores the ghost blocks that have been changed
     // to help performance
-    public int yMultip;
-    public int zMultip;
+    private int yMultip;
+    private int zMultip;
+
+    public int arraySizeXZ;
+    public int arraySizeY;
     public int totalArrayLength;
+
+    public int[] surroundingOffsets;
 
     // Maximum size of portals
     public Vector maxPortalSize;
@@ -75,10 +80,20 @@ public class Config {
         maxY = file.getInt("portalEffectSizeY");
         minY = maxY * -1.0;
 
-        // Calculate the multiplyers for accessing the table
-        yMultip = (int) (maxXZ - minXZ);
-        zMultip = (int) (yMultip * (maxY - minY));
-        totalArrayLength = yMultip * zMultip;
+        // Calculate the multipliers for accessing the table
+        zMultip = (int) (maxXZ - minXZ + 1);
+        yMultip = zMultip * zMultip;
+        totalArrayLength = yMultip * (int) (maxY - minY + 1);
+
+        // Calculate the differences in index for quickly accessing the block array while building the mesh
+        surroundingOffsets = new int[]{
+            1,
+            -1,
+            yMultip,
+            -yMultip,
+            zMultip,
+            -zMultip
+        };
 
         portalActivationDistance = file.getDouble("portalActivationDistance");
         portalBlockUpdateInterval = file.getInt("portalBlockUpdateInterval");
@@ -178,5 +193,11 @@ public class Config {
 
         // Return the default config
         return defaultConfig;
+    }
+
+    // Finds the index in an array of blocks surrounding the portal
+    // Coordinates should be relative to the bottom left and lowest corner of the box
+    public int calculateBlockArrayIndex(double x, double y, double z)  {
+        return (int) (z * zMultip + y * yMultip + x) + totalArrayLength / 2;
     }
 }

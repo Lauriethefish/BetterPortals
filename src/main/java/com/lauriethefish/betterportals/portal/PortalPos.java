@@ -2,14 +2,17 @@ package com.lauriethefish.betterportals.portal;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.lauriethefish.betterportals.BetterPortals;
 import com.lauriethefish.betterportals.BlockRaycastData;
 import com.lauriethefish.betterportals.Config;
 import com.lauriethefish.betterportals.ReflectUtils;
 import com.lauriethefish.betterportals.math.Matrix;
+import com.lauriethefish.betterportals.multiblockchange.ChunkCoordIntPair;
 import com.lauriethefish.betterportals.multiblockchange.MultiBlockChangeManager;
 
 import org.bukkit.Location;
@@ -46,11 +49,13 @@ public class PortalPos {
     public Vector portalSize;
 
     public int lastActive = -2;
-    public int activationTime;
+    private int ticksSinceActivation = 0;
 
     public List<BlockRaycastData> currentBlocks;
     public Collection<Entity> nearbyEntitiesOrigin = null;
     public Collection<Entity> nearbyEntitiesDestination = null;
+
+    private Set<ChunkCoordIntPair> destinationChunks = new HashSet<>();
 
     public boolean anchored;
 
@@ -65,6 +70,12 @@ public class PortalPos {
         this.destinationDirection = destinationDirection;
         this.portalSize = portalSize;
         this.anchored = anchored;
+
+        // Find the chunks around the destination of the portal
+        Vector boxSize = new Vector(pl.config.maxXZ, pl.config.maxY, pl.config.maxXZ);
+        Location boxBL = destinationPosition.clone().subtract(boxSize);
+        Location boxTR = destinationPosition.clone().add(boxSize);
+        destinationChunks = ChunkCoordIntPair.findArea(boxBL, boxTR);
 
         rotateToDestination = Matrix.makeRotation(portalDirection, destinationDirection);
         rotateToOrigin = Matrix.makeRotation(destinationDirection, portalDirection);
@@ -106,12 +117,27 @@ public class PortalPos {
 
     public void update(int currentTick)    {
         // If it has been longer than one tick since the portal was active, set the activation time to now
-        if(currentTick - lastActive > 1)    {
-            activationTime = currentTick;
+        int timeSinceLastActive = currentTick - lastActive;
+        if(timeSinceLastActive > 1)    {
+            // Load the chunks on the other side when the portal is activated
+            for(ChunkCoordIntPair chunk : destinationChunks)    {
+                // Force load the chunk if this is supported in the current minecraft version
+                if(ReflectUtils.useNewChunkLoadingImpl) {
+                    chunk.getChunk().setForceLoaded(true);
+                }   else    {
+                    chunk.getChunk().load();
+                }
+            }
+
+            ticksSinceActivation = 0;
+        }   else if(timeSinceLastActive == 0)   {
+            return;
         }
         lastActive = currentTick;
 
-        int ticksSinceActivation = currentTick - activationTime;
+        // Since this portal is active, add it to the new force loaded chunks
+        pl.rayCastingSystem.newForceLoadedChunks.addAll(destinationChunks);
+
         // Update the entities and blocks if we need to
         if(ticksSinceActivation % pl.config.entityCheckInterval == 0)   {
             updateNearbyEntities();
@@ -119,6 +145,7 @@ public class PortalPos {
         if(ticksSinceActivation % pl.config.portalBlockUpdateInterval == 0)   {
             findCurrentBlocks();
         }
+        ticksSinceActivation++;
     }
 
     // Updates the two lists of neaby entities
@@ -195,16 +222,6 @@ public class PortalPos {
         destinationPosition.getBlock().setType(Material.AIR);
     }
 
-    // Offsets for checking if a block needs to be rendered
-    private static final Vector[] offsets = new Vector[]    {
-        new Vector(1, 0, 0),
-        new Vector(-1, 0, 0),
-        new Vector(0, 1, 0),
-        new Vector(0, -1, 0),
-        new Vector(0, 0, 1),
-        new Vector(0, 0, -1),
-    };
-
     public void removePortalBlocks(Player player)    {
         setPortalBlocks(player, false);
     }
@@ -250,29 +267,43 @@ public class PortalPos {
     }
 
     // Loops through the blocks at the destination position, and finds the ones that aren't obscured by other solid blocks
-    private void findCurrentBlocks()  {
+    public void findCurrentBlocks()  {
         Config config = pl.config;
 
-        ArrayList<BlockRaycastData> newBlocks = new ArrayList<>();
-        // Loop through all blocks around the portal
+        List<BlockRaycastData> newBlocks = new ArrayList<>();
+
+        // Loop through the surrounding blocks, and check which ones are occluding
+        boolean[] occlusionArray = new boolean[config.totalArrayLength];
         for(double z = config.minXZ; z <= config.maxXZ; z++) {
             for(double y = config.minY; y <= config.maxY; y++) {
                 for(double x = config.minXZ; x <= config.maxXZ; x++) {
                     Location originLoc = portalPosition.clone().add(x, y, z);
-                    // Skip blocks directly in line with the portal
-                    if(positionInlineWithOrigin(originLoc)) {
-                        continue;
-                    }
+                    Location position = moveOriginToDestination(originLoc);
+                    occlusionArray[config.calculateBlockArrayIndex(x, y, z)] = position.getBlock().getType().isOccluding();
+                }
+            }
+        }
 
-                    boolean edge = x == config.maxXZ || x == config.minXZ || z == config.maxXZ || z == config.minXZ || y == config.maxY || y == config.minY;
+        // Check to see if each block is fully obscured, if not, add it to the list
+        for(double z = config.minXZ; z <= config.maxXZ; z++) {
+            for(double y = config.minY; y <= config.maxY; y++) {
+                for(double x = config.minXZ; x <= config.maxXZ; x++) {
+                    int arrayIndex = config.calculateBlockArrayIndex(x, y, z);
+
+                    Location originLoc = portalPosition.clone().add(x, y, z);
                     Location destLoc = moveOriginToDestination(originLoc);
+                    // Skip blocks directly in line with the portal
+                    if(positionInlineWithOrigin(originLoc)) {continue;}
                     
                     // First check if the block is visible from any neighboring block
                     boolean transparentBlock = false;
-                    for(Vector offset : offsets) {
-                        Location blockPos = destLoc.clone().add(offset);
+                    for(int offset : config.surroundingOffsets) {
+                        int finalIndex = arrayIndex + offset;
+                        if(finalIndex < 0 || finalIndex >= config.totalArrayLength) {
+                            continue;
+                        }
 
-                        if(!blockPos.getBlock().getType().isOccluding())    {
+                        if(!occlusionArray[finalIndex])  {
                             transparentBlock = true;
                             break;
                         }
@@ -280,6 +311,7 @@ public class PortalPos {
 
                     // If the block is bordered by at least one transparent block, add it to the list
                     if(transparentBlock)    {
+                        boolean edge = x == config.maxXZ || x == config.minXZ || z == config.maxXZ || z == config.minXZ || y == config.maxY || y == config.minY;
                         newBlocks.add(new BlockRaycastData(originLoc, destLoc, edge));
                     }
                 }
