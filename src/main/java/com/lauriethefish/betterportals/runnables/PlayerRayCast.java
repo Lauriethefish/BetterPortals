@@ -17,19 +17,15 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import lombok.Getter;
-
 // Casts a ray from each player every tick
 // If it passes through the portal, set the end of it to a redstone block
 public class PlayerRayCast implements Runnable {
+    private BetterPortals pl;
+
     private int currentTick = 0;
     private Config config;
 
-    private BetterPortals pl;
-    // Store a map of all of the currently active portals
-
-    // TODO new forceloaded method
-    @Getter private Set<ChunkCoordIntPair> newForceLoadedChunks = new HashSet<>();
+    private Set<ChunkCoordIntPair> newForceLoadedChunks = new HashSet<>();
 
     private BlockProcessor blockRenderer;
     public PlayerRayCast(BetterPortals pl) {
@@ -39,6 +35,11 @@ public class PlayerRayCast implements Runnable {
 
         // Set the task to run every tick
         pl.getServer().getScheduler().scheduleSyncRepeatingTask(pl, this, 0, 1);
+    }
+
+    // Called by portals while they are active to keep chunks loaded
+    public void keepChunksForceLoaded(Set<ChunkCoordIntPair> chunks)  {
+        newForceLoadedChunks.addAll(chunks);
     }
 
     // Finds the closest portal to the given player,
