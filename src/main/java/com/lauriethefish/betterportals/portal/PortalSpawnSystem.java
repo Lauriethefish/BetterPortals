@@ -160,7 +160,7 @@ public class PortalSpawnSystem {
         }
 
         // Return unsuitable if we are too close to another portal
-        for(Portal portal : pl.getPortals().values())    {
+        for(Portal portal : pl.getPortals())    {
             Location otherPos = portal.getOriginPos();
 
             if(otherPos.getWorld() == location.getWorld() && otherPos.distance(location) < pl.config.minimumPortalSpawnDistance) {

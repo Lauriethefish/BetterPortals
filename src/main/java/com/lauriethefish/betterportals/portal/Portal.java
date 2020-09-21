@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import com.lauriethefish.betterportals.BetterPortals;
@@ -160,8 +159,7 @@ public class Portal {
     }
 
     public boolean checkOriginAndDestination()  {
-        // TODO
-        Portal destination = pl.getPortals().get(destPos);
+        Portal destination = pl.getPortal(destPos);
         // Remove the portal if either the origin or destination is broken
         if(destination != null && !(checkIfStillActive() && destination.checkIfStillActive())) {
             remove();
@@ -216,11 +214,9 @@ public class Portal {
 
     // Removes this portal, and its destination portal, from the map in PlayerRayCast
     public void remove()    {
-        // TODO: unregisterportal method
         // Remove both from the map
-        Map<Location, Portal> map = pl.getPortals();
-        map.remove(originPos);
-        map.remove(destPos);
+        pl.unregisterPortal(this);
+        pl.unregisterPortal(destPos);
 
         // Remove the portal blocks
         originPos.getBlock().setType(Material.AIR);

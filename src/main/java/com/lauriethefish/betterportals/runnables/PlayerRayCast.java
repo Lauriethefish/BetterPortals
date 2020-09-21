@@ -1,7 +1,6 @@
 package com.lauriethefish.betterportals.runnables;
 
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 import com.lauriethefish.betterportals.BetterPortals;
@@ -54,9 +53,7 @@ public class PlayerRayCast implements Runnable {
         // further than it will be activated
         double closestDistance = config.portalActivationDistance;
 
-        Iterator<Portal> iter = pl.getPortals().values().iterator();
-        while(iter.hasNext())   {
-            Portal portal = iter.next();
+        for(Portal portal : pl.getPortals())    {
             if(portal.getOriginPos().getWorld() != player.getWorld())  {
                 continue;
             }

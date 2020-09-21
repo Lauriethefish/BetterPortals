@@ -1,5 +1,6 @@
 package com.lauriethefish.betterportals;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -25,7 +26,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 
 // Main class for the plugin
@@ -36,7 +36,7 @@ public class BetterPortals extends JavaPlugin {
 
     // All PlayerData is stored in this map
     public Map<UUID, PlayerData> players = new HashMap<UUID, PlayerData>();
-    @Getter private Map<Location, Portal> portals;
+    private Map<Location, Portal> portals;
 
     public PortalSpawnSystem spawningSystem = new PortalSpawnSystem(this);
     public PlayerRayCast rayCastingSystem;
@@ -81,6 +81,28 @@ public class BetterPortals extends JavaPlugin {
         }
 
         initialiseStatistics();
+    }
+
+    // Adds a new portal
+    public void registerPortal(Portal portal)   {
+        portals.put(portal.getOriginPos(), portal);
+    }
+
+    // Removes a portal
+    public void unregisterPortal(Portal portal) {
+        unregisterPortal(portal.getOriginPos());
+    }
+
+    public void unregisterPortal(Location originPos)    {
+        portals.remove(originPos);
+    }
+
+    public Collection<Portal> getPortals()  {
+        return portals.values();
+    }
+
+    public Portal getPortal(Location originPos) {
+        return portals.get(originPos);
     }
 
     public void disablePlugin() {
