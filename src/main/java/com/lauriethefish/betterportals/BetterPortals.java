@@ -53,16 +53,15 @@ public class BetterPortals extends JavaPlugin {
         // This essentially terminates the plugin as the runnable will not start
         
         // Load the object used for storing portals to portals.yml
-        // TODO: Add disablePlugin method
         try {
             storage = new PortalStorage(this);
         }   catch(Exception e)  {
             getLogger().warning(ChatColor.RED + "Error loading portal data file, this could be due to lack of read file access");
-            getServer().getPluginManager().disablePlugin(this); return;
+            disablePlugin(); return;
         }
         // Load the config
         if(!loadConfig())   {
-            getServer().getPluginManager().disablePlugin(this); return; // If loading failed, disable the plugin
+            disablePlugin(); return; // If loading failed, disable the plugin
         }
 
         registerCommands();
@@ -78,10 +77,14 @@ public class BetterPortals extends JavaPlugin {
         }   catch(Exception e)  {
             getLogger().warning(ChatColor.RED + "Error parsing portal data file, this is likely because it is invalid yaml");
             e.printStackTrace();
-            getServer().getPluginManager().disablePlugin(this);
+            disablePlugin(); return;
         }
 
         initialiseStatistics();
+    }
+
+    public void disablePlugin() {
+        getServer().getPluginManager().disablePlugin(this);
     }
 
     // Initiailises bStats, and adds the various custom charts
