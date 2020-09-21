@@ -23,18 +23,20 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
+import lombok.Getter;
+
 // Stores all of the attributes required for one direction of a portal
 // Two of these should be created per portal, one for the effect on each side
 public class Portal {
     private BetterPortals pl;
 
     // The origin position and orientation of the portal
-    public Location originPos;
-    public PortalDirection originDir;
+    @Getter private Location originPos;
+    @Getter private PortalDirection originDir;
 
     // The destination position and orientation of the portal
-    public Location destPos;
-    public PortalDirection destDir;
+    @Getter private Location destPos;
+    private PortalDirection destDir;
 
     private Matrix originToDestination;
     private Matrix rotateToDestination;
@@ -51,13 +53,13 @@ public class Portal {
     public int lastActive = -2;
     private int ticksSinceActivation = 0;
 
-    public List<BlockRaycastData> currentBlocks;
-    public Collection<Entity> nearbyEntitiesOrigin = null;
-    public Collection<Entity> nearbyEntitiesDestination = null;
+    @Getter List<BlockRaycastData> currentBlocks;
+    @Getter private Collection<Entity> nearbyEntitiesOrigin = null;
+    @Getter private Collection<Entity> nearbyEntitiesDestination = null;
 
     private Set<ChunkCoordIntPair> destinationChunks = new HashSet<>();
 
-    public boolean anchored;
+    private boolean anchored;
 
     // Constructor to generate the collision box for a given portal
     // NOTE: The portalPosition must be the EXACT center of the portal on the x, y and z
@@ -135,8 +137,9 @@ public class Portal {
         }
         lastActive = currentTick;
 
+        // TODO
         // Since this portal is active, add it to the new force loaded chunks
-        pl.rayCastingSystem.newForceLoadedChunks.addAll(destinationChunks);
+        pl.rayCastingSystem.getNewForceLoadedChunks().addAll(destinationChunks);
 
         // Update the entities and blocks if we need to
         if(ticksSinceActivation % pl.config.entityCheckInterval == 0)   {
@@ -157,7 +160,8 @@ public class Portal {
     }
 
     public boolean checkOriginAndDestination()  {
-        Portal destination = pl.rayCastingSystem.portals.get(destPos);
+        // TODO
+        Portal destination = pl.getPortals().get(destPos);
         // Remove the portal if either the origin or destination is broken
         if(destination != null && !(checkIfStillActive() && destination.checkIfStillActive())) {
             remove();
@@ -212,8 +216,9 @@ public class Portal {
 
     // Removes this portal, and its destination portal, from the map in PlayerRayCast
     public void remove()    {
+        // TODO: unregisterportal method
         // Remove both from the map
-        Map<Location, Portal> map = pl.rayCastingSystem.portals;
+        Map<Location, Portal> map = pl.getPortals();
         map.remove(originPos);
         map.remove(destPos);
 

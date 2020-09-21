@@ -25,6 +25,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 
 // Main class for the plugin
@@ -33,8 +34,9 @@ public class BetterPortals extends JavaPlugin {
     private static final int pluginId = 8669;
     public Metrics metrics;
 
-    // Stores players previous portal positions
+    // All PlayerData is stored in this map
     public Map<UUID, PlayerData> players = new HashMap<UUID, PlayerData>();
+    @Getter private Map<Location, Portal> portals;
 
     public PortalSpawnSystem spawningSystem = new PortalSpawnSystem(this);
     public PlayerRayCast rayCastingSystem;
@@ -51,6 +53,7 @@ public class BetterPortals extends JavaPlugin {
         // This essentially terminates the plugin as the runnable will not start
         
         // Load the object used for storing portals to portals.yml
+        // TODO: Add disablePlugin method
         try {
             storage = new PortalStorage(this);
         }   catch(Exception e)  {
@@ -70,8 +73,8 @@ public class BetterPortals extends JavaPlugin {
 
         // Load all of the portals in portals.yml, then start the update loop
         try {
-            Map<Location, Portal> portals = storage.loadPortals();
-            rayCastingSystem = new PlayerRayCast(this, portals);
+            portals = storage.loadPortals();
+            rayCastingSystem = new PlayerRayCast(this);
         }   catch(Exception e)  {
             getLogger().warning(ChatColor.RED + "Error parsing portal data file, this is likely because it is invalid yaml");
             e.printStackTrace();
@@ -87,7 +90,7 @@ public class BetterPortals extends JavaPlugin {
         metrics.addCustomChart(new Metrics.SingleLineChart("portals_active", new Callable<Integer>()  {
             @Override
             public Integer call() throws Exception  {
-                return rayCastingSystem.portals.size() / 2; // Divide by 2, since each portal is 2 list items
+                return portals.size() / 2; // Divide by 2, since each portal is 2 list items
             }
         }));
         metrics.addCustomChart(new Metrics.SimplePie("render_distance_xz", new Callable<String>() {
@@ -118,13 +121,13 @@ public class BetterPortals extends JavaPlugin {
     @Override
     public void onDisable() {
         for(PlayerData player : players.values())   {
-            player.entityManipulator.resetAll(true);
+            player.getEntityManipulator().resetAll(true);
             player.resetSurroundingBlockStates(true);
         }
 
         // Save all of the portals to disk
         try {
-            storage.savePortals(rayCastingSystem.portals);
+            storage.savePortals(portals);
         }   catch(Exception e)    {
             getLogger().warning(ChatColor.RED + "Error saving portal data. This could be due to lack of write file access");
             e.printStackTrace();

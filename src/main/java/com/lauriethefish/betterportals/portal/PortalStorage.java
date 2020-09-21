@@ -134,7 +134,7 @@ public class PortalStorage {
 
             // Add a new portal to the map, using the loading constructor
             Portal newPortal = new Portal(pl, this, nextPortalSection);
-            portals.put(newPortal.originPos, newPortal);
+            portals.put(newPortal.getOriginPos(), newPortal);
         }
 
         // Return the map of all portals

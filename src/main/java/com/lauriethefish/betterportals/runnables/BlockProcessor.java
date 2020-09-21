@@ -1,6 +1,7 @@
 package com.lauriethefish.betterportals.runnables;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -12,6 +13,7 @@ import com.lauriethefish.betterportals.multiblockchange.MultiBlockChangeManager;
 import com.lauriethefish.betterportals.portal.Portal;
 
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 public class BlockProcessor implements Runnable {
     // Stores the information required to process the portal block update on another thread
@@ -49,24 +51,26 @@ public class BlockProcessor implements Runnable {
 
     // Processes the given update by sending the correctly changed blocks to the player
     private void handleUpdate(UpdateData data)    {
-        Player player = data.playerData.player;
+        Player player = data.playerData.getPlayer();
         // Skip this portal if the player is no longer in the right world
-        if(player.getWorld() != data.portal.originPos.getWorld())  {
+        if(player.getWorld() != data.portal.getOriginPos().getWorld())  {
             return;
         }
 
-        List<BlockRaycastData> currentBlocks = data.portal.currentBlocks; // Store the current blocks incase they change while being processed
+        List<BlockRaycastData> currentBlocks = data.portal.getCurrentBlocks(); // Store the current blocks incase they change while being processed
         MultiBlockChangeManager changeManager = MultiBlockChangeManager.createInstance(player);
+        Map<Vector, Object> blockStates = data.playerData.getSurroundingPortalBlockStates();
+
         for(BlockRaycastData raycastData : currentBlocks)    {                    
             // Check if the block is visible
             boolean visible = data.checker.checkIfVisibleThroughPortal(raycastData.originVec);
 
-            Object oldState = data.playerData.surroundingPortalBlockStates.get(raycastData.originVec); // Find if it was visible last tick
+            Object oldState = blockStates.get(raycastData.originVec); // Find if it was visible last tick
             Object newState = visible ? raycastData.destData : raycastData.originData;
 
             // If we are overwriting the block, change it in the player's block array and send them a block update
             if(!newState.equals(oldState)) {
-                data.playerData.surroundingPortalBlockStates.put(raycastData.originVec, newState);
+                blockStates.put(raycastData.originVec, newState);
                 changeManager.addChange(raycastData.originVec, newState);
             }
         }

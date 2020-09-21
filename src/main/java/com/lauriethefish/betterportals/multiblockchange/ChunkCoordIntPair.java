@@ -11,8 +11,13 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
+import lombok.Getter;
+import lombok.Setter;
+
 // A wrapper over the coordinates of a chunk that automatically converts them to the NMS version
 // This can also just be used to hold the coordinates of a chunk
+@Getter 
+@Setter
 public class ChunkCoordIntPair {
     public World world; // This can be null
     public int x;

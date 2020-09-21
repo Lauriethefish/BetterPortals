@@ -2,13 +2,13 @@ package com.lauriethefish.betterportals.runnables;
 
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 
 import com.lauriethefish.betterportals.BetterPortals;
 import com.lauriethefish.betterportals.Config;
 import com.lauriethefish.betterportals.PlayerData;
 import com.lauriethefish.betterportals.ReflectUtils;
+import com.lauriethefish.betterportals.entitymanipulation.PlayerEntityManipulator;
 import com.lauriethefish.betterportals.math.PlaneIntersectionChecker;
 import com.lauriethefish.betterportals.multiblockchange.ChunkCoordIntPair;
 import com.lauriethefish.betterportals.portal.Portal;
@@ -18,6 +18,8 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
+import lombok.Getter;
+
 // Casts a ray from each player every tick
 // If it passes through the portal, set the end of it to a redstone block
 public class PlayerRayCast implements Runnable {
@@ -26,16 +28,15 @@ public class PlayerRayCast implements Runnable {
 
     private BetterPortals pl;
     // Store a map of all of the currently active portals
-    public Map<Location, Portal> portals;
 
-    public Set<ChunkCoordIntPair> newForceLoadedChunks = new HashSet<>();
+    // TODO new forceloaded method
+    @Getter private Set<ChunkCoordIntPair> newForceLoadedChunks = new HashSet<>();
 
     private BlockProcessor blockRenderer;
-    public PlayerRayCast(BetterPortals pl, Map<Location, Portal> portals) {
+    public PlayerRayCast(BetterPortals pl) {
         blockRenderer = new BlockProcessor(pl);
         this.pl = pl;
         this.config = pl.config;
-        this.portals = portals;
 
         // Set the task to run every tick
         pl.getServer().getScheduler().scheduleSyncRepeatingTask(pl, this, 0, 1);
@@ -53,15 +54,15 @@ public class PlayerRayCast implements Runnable {
         // further than it will be activated
         double closestDistance = config.portalActivationDistance;
 
-        Iterator<Portal> iter = portals.values().iterator();
+        Iterator<Portal> iter = pl.getPortals().values().iterator();
         while(iter.hasNext())   {
             Portal portal = iter.next();
-            if(portal.originPos.getWorld() != player.getWorld())  {
+            if(portal.getOriginPos().getWorld() != player.getWorld())  {
                 continue;
             }
 
             // Check if the portal is closer that any portal so far
-            double distance = portal.originPos.distance(player.getLocation());
+            double distance = portal.getOriginPos().distance(player.getLocation());
             if(distance < closestDistance) {
                 closestPortal = portal;
                 closestDistance = distance;
@@ -79,10 +80,11 @@ public class PlayerRayCast implements Runnable {
 
     // Teleports the player using the given portal if the player is within the portal
     public boolean performPlayerTeleport(PlayerData playerData, Portal portal, PlaneIntersectionChecker checker)  {
-        Player player = playerData.player;
+        Player player = playerData.getPlayer();
         
+        Vector lastPos = playerData.getLastPosition();
         // If the player's position the previous tick was on the other side of the portal window, then we should teleport the player, otherwise return
-        if(playerData.lastPosition == null || !checker.checkIfVisibleThroughPortal(playerData.lastPosition))   {
+        if(lastPos == null || !checker.checkIfVisibleThroughPortal(lastPos))   {
             return false;
         }
         
@@ -94,7 +96,7 @@ public class PlayerRayCast implements Runnable {
 
         player.teleport(newLoc);
         // Set the player's last position to null, since otherwise portals that they moved through while teleporting will move them again
-        playerData.lastPosition = null;
+        playerData.setLastPosition(null);
         
         // Set their velocity back to what it was
         player.setVelocity(playerVelocity);
@@ -106,11 +108,13 @@ public class PlayerRayCast implements Runnable {
     public void updatePortal(PlayerData playerData, Portal portal, PlaneIntersectionChecker checker) {        
         // We need to update the fake entities every tick, regardless of if the player moved
         if(pl.config.enableEntitySupport)   {
-            playerData.entityManipulator.updateFakeEntities();
+            PlayerEntityManipulator manipulator = playerData.getEntityManipulator();
+            manipulator.updateFakeEntities();
+
             Set<Entity> replicatedEntities = new HashSet<>();
-            for(Entity entity : portal.nearbyEntitiesDestination)   {
+            for(Entity entity : portal.getNearbyEntitiesDestination())   {
                 // If the entity is in a different world, or is on the same line as the portal destination, skip it
-                if(entity.getWorld() != portal.destPos.getWorld() || portal.positionInlineWithDestination(entity.getLocation())) {
+                if(entity.getWorld() != portal.getDestPos().getWorld() || portal.positionInlineWithDestination(entity.getLocation())) {
                     continue;
                 }
 
@@ -122,10 +126,10 @@ public class PlayerRayCast implements Runnable {
             }
 
             Set<Entity> hiddenEntities = new HashSet<>();
-            for(Entity entity : portal.nearbyEntitiesOrigin)   {
+            for(Entity entity : portal.getNearbyEntitiesOrigin())   {
                 // If the entity isn't in the same world, we skip it
                 // We also skip entities directly in line with the portal window, since they generally get hidden and reshown glitchily
-                if(entity.getWorld() != portal.originPos.getWorld() || portal.positionInlineWithOrigin(entity.getLocation())) {
+                if(entity.getWorld() != portal.getOriginPos().getWorld() || portal.positionInlineWithOrigin(entity.getLocation())) {
                     continue;
                 }
 
@@ -135,13 +139,13 @@ public class PlayerRayCast implements Runnable {
                 }
             }
 
-            playerData.entityManipulator.swapHiddenEntities(hiddenEntities);
-            playerData.entityManipulator.swapReplicatedEntities(replicatedEntities, portal);
+            manipulator.swapHiddenEntities(hiddenEntities);
+            manipulator.swapReplicatedEntities(replicatedEntities, portal);
         }
 
         // Optimisation: Check if the player has moved before re-rendering the view
-        Vector currentLoc = playerData.player.getLocation().toVector();
-        if(currentLoc.equals(playerData.lastPosition))  {return;}
+        Vector currentLoc = playerData.getPlayer().getLocation().toVector();
+        if(currentLoc.equals(playerData.getLastPosition()))  {return;}
         // Queue an update to happen on the async task
         blockRenderer.queueUpdate(playerData, checker, portal);
     }
@@ -153,8 +157,8 @@ public class PlayerRayCast implements Runnable {
             PlayerData playerData = pl.players.get(player.getUniqueId());
 
             // If we changed worlds in the last tick, we wait to avoid chunks not being loaded while sending updates
-            if(playerData.loadedWorldLastTick)  {
-                playerData.loadedWorldLastTick = false;
+            if(playerData.getIfLoadedWorldLastTick())  {
+                playerData.unsetLoadedWorldLastTick();
                 continue;
             }
 
@@ -164,15 +168,15 @@ public class PlayerRayCast implements Runnable {
             // If the portal that is currently active is different to the one that was active before,
             // We reset the surrounding blocks from the previous portal so that the player does not see blocks
             // where they shouldn't be
-            Portal lastPortal = playerData.lastActivePortal;
+            Portal lastPortal = playerData.getLastActivePortal();
             if(lastPortal != portal)    {
-                boolean changedWorlds = lastPortal == null || lastPortal.originPos.getWorld() != player.getWorld();
+                boolean changedWorlds = lastPortal == null || lastPortal.getOriginPos().getWorld() != player.getWorld();
                 playerData.resetSurroundingBlockStates(!changedWorlds);
 
                 if(pl.config.hidePortalBlocks)  {
                     // If we're not in the same world as our last portal, there's no point recreating the portal blocks
                     if(!changedWorlds)   {
-                        playerData.lastActivePortal.recreatePortalBlocks(player);
+                        lastPortal.recreatePortalBlocks(player);
                     }
                     if(portal != null)  {
                         portal.removePortalBlocks(player);
@@ -180,9 +184,9 @@ public class PlayerRayCast implements Runnable {
                 }
 
                 // Destroy any fake entities and recreate any hidden ones
-                playerData.entityManipulator.resetAll(!changedWorlds);
-                playerData.lastActivePortal = portal;
-                playerData.lastPosition = null;
+                playerData.getEntityManipulator().resetAll(!changedWorlds);
+                playerData.setLastActivePortal(portal);
+                playerData.setLastPosition(null);
             }
 
             // If no portals were found, don't update anything
@@ -191,17 +195,17 @@ public class PlayerRayCast implements Runnable {
             // Create the portal's block state array if necessary
             portal.update(currentTick);
 
-            PlaneIntersectionChecker intersectionChecker = new PlaneIntersectionChecker(playerData.player, portal);
+            PlaneIntersectionChecker intersectionChecker = new PlaneIntersectionChecker(player, portal);
             // Queue the update to happen on another thread
             updatePortal(playerData, portal, intersectionChecker);
 
             // Teleport the player if they cross through a portal
             if(performPlayerTeleport(playerData, portal, intersectionChecker))    {
-                playerData.loadedWorldLastTick = true;
+                playerData.setLoadedWorldLastTick();
                 continue;
             }
 
-            playerData.lastPosition = player.getLocation().toVector();
+            playerData.setLastPosition(player.getLocation().toVector());
         }
 
         currentTick++;

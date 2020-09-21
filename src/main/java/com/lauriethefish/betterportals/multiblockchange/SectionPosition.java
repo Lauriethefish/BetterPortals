@@ -6,6 +6,11 @@ import com.lauriethefish.betterportals.ReflectUtils;
 
 import org.bukkit.util.Vector;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class SectionPosition {
     public int x;
     public int y;

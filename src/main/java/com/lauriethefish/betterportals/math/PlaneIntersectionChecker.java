@@ -16,8 +16,8 @@ public class PlaneIntersectionChecker {
     private Vector rayOrigin;
 
     public PlaneIntersectionChecker(Player player, Portal portal)    {
-        this.planeCenter = portal.originPos.toVector();
-        this.planeNormal = portal.originDir.toVector();
+        this.planeCenter = portal.getOriginPos().toVector();
+        this.planeNormal = portal.getOriginDir().toVector();
         this.maxDev = portal.planeRadius;    
 
         this.rayOrigin = player.getEyeLocation().toVector();

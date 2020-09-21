@@ -23,6 +23,7 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Painting;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
@@ -39,9 +40,11 @@ public class PlayerEntityManipulator    {
     private Map<Entity, PlayerViewableEntity> replicatedEntites = new HashMap<Entity, PlayerViewableEntity>();
 
     public PlayerEntityManipulator(BetterPortals pl, PlayerData playerData)    {
-        random = new Random(playerData.player.getEntityId());
+        Player player = playerData.getPlayer();
+
+        random = new Random(player.getEntityId());
         // Find the NMS connection using reflection
-        Object craftPlayer = ReflectUtils.runMethod(playerData.player, "getHandle");
+        Object craftPlayer = ReflectUtils.runMethod(player, "getHandle");
         playerConnection = ReflectUtils.getField(craftPlayer, "playerConnection");
     }
 

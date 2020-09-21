@@ -160,8 +160,8 @@ public class PortalSpawnSystem {
         }
 
         // Return unsuitable if we are too close to another portal
-        for(Portal portal : pl.rayCastingSystem.portals.values())    {
-            Location otherPos = portal.originPos;
+        for(Portal portal : pl.getPortals().values())    {
+            Location otherPos = portal.getOriginPos();
 
             if(otherPos.getWorld() == location.getWorld() && otherPos.distance(location) < pl.config.minimumPortalSpawnDistance) {
                 return PortalSuitability.UNSUITABLE;
