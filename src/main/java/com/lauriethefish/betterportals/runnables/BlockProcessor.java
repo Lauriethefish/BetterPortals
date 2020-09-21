@@ -51,7 +51,7 @@ public class BlockProcessor implements Runnable {
     private void handleUpdate(UpdateData data)    {
         Player player = data.playerData.player;
         // Skip this portal if the player is no longer in the right world
-        if(player.getWorld() != data.portal.portalPosition.getWorld())  {
+        if(player.getWorld() != data.portal.originPos.getWorld())  {
             return;
         }
 

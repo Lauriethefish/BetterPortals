@@ -29,12 +29,12 @@ public class Portal {
     private BetterPortals pl;
 
     // The origin position and orientation of the portal
-    public Location portalPosition;
-    public PortalDirection portalDirection;
+    public Location originPos;
+    public PortalDirection originDir;
 
     // The destination position and orientation of the portal
-    public Location destinationPosition;
-    public PortalDirection destinationDirection;
+    public Location destPos;
+    public PortalDirection destDir;
 
     private Matrix originToDestination;
     private Matrix rotateToDestination;
@@ -64,10 +64,10 @@ public class Portal {
     public Portal(BetterPortals pl, Location portalPosition, PortalDirection portalDirection, 
                     Location destinationPosition, PortalDirection destinationDirection, Vector portalSize, boolean anchored) {
         this.pl = pl;
-        this.portalPosition = portalPosition;
-        this.portalDirection = portalDirection;
-        this.destinationPosition = destinationPosition;
-        this.destinationDirection = destinationDirection;
+        this.originPos = portalPosition;
+        this.originDir = portalDirection;
+        this.destPos = destinationPosition;
+        this.destDir = destinationDirection;
         this.portalSize = portalSize;
         this.anchored = anchored;
 
@@ -107,10 +107,10 @@ public class Portal {
 
     // Saves all of the values for this portal into sect
     public void save(PortalStorage storage, ConfigurationSection sect)   {
-        storage.setLocation(sect.createSection("portalPosition"), portalPosition);
-        sect.set("portalDirection", portalDirection.toString());
-        storage.setLocation(sect.createSection("destinationPosition"), destinationPosition);
-        sect.set("destinationDirection", destinationDirection.toString());
+        storage.setLocation(sect.createSection("portalPosition"), originPos);
+        sect.set("portalDirection", originDir.toString());
+        storage.setLocation(sect.createSection("destinationPosition"), destPos);
+        sect.set("destinationDirection", destDir.toString());
         storage.setPortalSize(sect.createSection("portalSize"), portalSize);
         sect.set("anchored", anchored);
     }
@@ -150,14 +150,14 @@ public class Portal {
 
     // Updates the two lists of neaby entities
     private void updateNearbyEntities()   {
-        nearbyEntitiesOrigin = portalPosition.getWorld()
-                    .getNearbyEntities(portalPosition, pl.config.maxXZ, pl.config.maxY, pl.config.maxXZ);
-        nearbyEntitiesDestination = destinationPosition.getWorld()
-                    .getNearbyEntities(destinationPosition, pl.config.maxXZ, pl.config.maxY, pl.config.maxXZ);
+        nearbyEntitiesOrigin = originPos.getWorld()
+                    .getNearbyEntities(originPos, pl.config.maxXZ, pl.config.maxY, pl.config.maxXZ);
+        nearbyEntitiesDestination = destPos.getWorld()
+                    .getNearbyEntities(destPos, pl.config.maxXZ, pl.config.maxY, pl.config.maxXZ);
     }
 
     public boolean checkOriginAndDestination()  {
-        Portal destination = pl.rayCastingSystem.portals.get(destinationPosition);
+        Portal destination = pl.rayCastingSystem.portals.get(destPos);
         // Remove the portal if either the origin or destination is broken
         if(destination != null && !(checkIfStillActive() && destination.checkIfStillActive())) {
             remove();
@@ -175,19 +175,19 @@ public class Portal {
         }
 
         // Get the offset from the portals absolute center to the top left and bottom right corners of the portal blocks
-        Vector subAmount = portalDirection.swapVector(portalSize.clone().multiply(0.5).add(new Vector(0.0, 0.0, 0.5)));
-        WorldBorder border = portalPosition.getWorld().getWorldBorder();
+        Vector subAmount = originDir.swapVector(portalSize.clone().multiply(0.5).add(new Vector(0.0, 0.0, 0.5)));
+        WorldBorder border = originPos.getWorld().getWorldBorder();
 
         // Check if the block at the centre of the portal is a portal block
-        return portalPosition.getBlock().getType() == ReflectUtils.portalMaterial &&
+        return originPos.getBlock().getType() == ReflectUtils.portalMaterial &&
                 // Check that the bottom left and top right of the portal are both inside the worldborder,
                 // since portals outside the worldborder should be broken
-                border.isInside(portalPosition.clone().subtract(subAmount)) &&
-                border.isInside(portalPosition.clone().add(subAmount));
+                border.isInside(originPos.clone().subtract(subAmount)) &&
+                border.isInside(originPos.clone().add(subAmount));
     }
 
     public Location moveOriginToDestination(Location loc)   {
-        return originToDestination.transform(loc.toVector()).toLocation(destinationPosition.getWorld());
+        return originToDestination.transform(loc.toVector()).toLocation(destPos.getWorld());
     }
 
     public Vector moveOriginToDestination(Vector vec)   {
@@ -195,7 +195,7 @@ public class Portal {
     }
 
     public Location moveDestinationToOrigin(Location loc)   {
-        return destinationToOrigin.transform(loc.toVector()).toLocation(portalPosition.getWorld());
+        return destinationToOrigin.transform(loc.toVector()).toLocation(originPos.getWorld());
     }
 
     public Vector moveDestinationToOrigin(Vector vec)   {
@@ -214,12 +214,12 @@ public class Portal {
     public void remove()    {
         // Remove both from the map
         Map<Location, Portal> map = pl.rayCastingSystem.portals;
-        map.remove(portalPosition);
-        map.remove(destinationPosition);
+        map.remove(originPos);
+        map.remove(destPos);
 
         // Remove the portal blocks
-        portalPosition.getBlock().setType(Material.AIR);
-        destinationPosition.getBlock().setType(Material.AIR);
+        originPos.getBlock().setType(Material.AIR);
+        destPos.getBlock().setType(Material.AIR);
     }
 
     public void removePortalBlocks(Player player)    {
@@ -234,15 +234,15 @@ public class Portal {
     private void setPortalBlocks(Player player, boolean reset)  {
         MultiBlockChangeManager manager = MultiBlockChangeManager.createInstance(player);
 
-        Vector actualSize = portalDirection.swapVector(portalSize);
-        Vector blockBL = portalPosition.toVector().subtract(actualSize.multiply(0.5));
+        Vector actualSize = originDir.swapVector(portalSize);
+        Vector blockBL = originPos.toVector().subtract(actualSize.multiply(0.5));
 
         // Loop through each block of the portal, and set them to either air or back to portal
         Object nmsAirData = BlockRaycastData.getNMSData(Material.AIR);
         for(int x = 0; x < portalSize.getX(); x++)  {
             for(int y = 0; y < portalSize.getY(); y++)  {
-                Vector offset = portalDirection.swapVector(new Vector(x, y, 0.0));
-                Location position = blockBL.toLocation(portalPosition.getWorld()).add(offset);
+                Vector offset = originDir.swapVector(new Vector(x, y, 0.0));
+                Location position = blockBL.toLocation(originPos.getWorld()).add(offset);
                 
                 // Add the changes to our manager
                 if(reset)   {
@@ -259,11 +259,11 @@ public class Portal {
     // Checks if the location is on the plane made by the portal window
     // This is used because entities in line with the portal should not be rendered
     public boolean positionInlineWithOrigin(Location loc)  {
-        return portalDirection.swapLocation(loc).getZ() == portalDirection.swapLocation(portalPosition).getZ();
+        return originDir.swapLocation(loc).getZ() == originDir.swapLocation(originPos).getZ();
     }
 
     public boolean positionInlineWithDestination(Location loc)  {
-        return destinationDirection.swapLocation(loc).getZ() == destinationDirection.swapLocation(destinationPosition).getZ();
+        return destDir.swapLocation(loc).getZ() == destDir.swapLocation(destPos).getZ();
     }
 
     // Loops through the blocks at the destination position, and finds the ones that aren't obscured by other solid blocks
@@ -277,7 +277,7 @@ public class Portal {
         for(double z = config.minXZ; z <= config.maxXZ; z++) {
             for(double y = config.minY; y <= config.maxY; y++) {
                 for(double x = config.minXZ; x <= config.maxXZ; x++) {
-                    Location originLoc = portalPosition.clone().add(x, y, z);
+                    Location originLoc = originPos.clone().add(x, y, z);
                     Location position = moveOriginToDestination(originLoc);
                     occlusionArray[config.calculateBlockArrayIndex(x, y, z)] = position.getBlock().getType().isOccluding();
                 }
@@ -290,7 +290,7 @@ public class Portal {
                 for(double x = config.minXZ; x <= config.maxXZ; x++) {
                     int arrayIndex = config.calculateBlockArrayIndex(x, y, z);
 
-                    Location originLoc = portalPosition.clone().add(x, y, z);
+                    Location originLoc = originPos.clone().add(x, y, z);
                     Location destLoc = moveOriginToDestination(originLoc);
                     // Skip blocks directly in line with the portal
                     if(positionInlineWithOrigin(originLoc)) {continue;}

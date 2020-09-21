@@ -56,12 +56,12 @@ public class PlayerRayCast implements Runnable {
         Iterator<Portal> iter = portals.values().iterator();
         while(iter.hasNext())   {
             Portal portal = iter.next();
-            if(portal.portalPosition.getWorld() != player.getWorld())  {
+            if(portal.originPos.getWorld() != player.getWorld())  {
                 continue;
             }
 
             // Check if the portal is closer that any portal so far
-            double distance = portal.portalPosition.distance(player.getLocation());
+            double distance = portal.originPos.distance(player.getLocation());
             if(distance < closestDistance) {
                 closestPortal = portal;
                 closestDistance = distance;
@@ -110,7 +110,7 @@ public class PlayerRayCast implements Runnable {
             Set<Entity> replicatedEntities = new HashSet<>();
             for(Entity entity : portal.nearbyEntitiesDestination)   {
                 // If the entity is in a different world, or is on the same line as the portal destination, skip it
-                if(entity.getWorld() != portal.destinationPosition.getWorld() || portal.positionInlineWithDestination(entity.getLocation())) {
+                if(entity.getWorld() != portal.destPos.getWorld() || portal.positionInlineWithDestination(entity.getLocation())) {
                     continue;
                 }
 
@@ -125,7 +125,7 @@ public class PlayerRayCast implements Runnable {
             for(Entity entity : portal.nearbyEntitiesOrigin)   {
                 // If the entity isn't in the same world, we skip it
                 // We also skip entities directly in line with the portal window, since they generally get hidden and reshown glitchily
-                if(entity.getWorld() != portal.portalPosition.getWorld() || portal.positionInlineWithOrigin(entity.getLocation())) {
+                if(entity.getWorld() != portal.originPos.getWorld() || portal.positionInlineWithOrigin(entity.getLocation())) {
                     continue;
                 }
 
@@ -166,7 +166,7 @@ public class PlayerRayCast implements Runnable {
             // where they shouldn't be
             Portal lastPortal = playerData.lastActivePortal;
             if(lastPortal != portal)    {
-                boolean changedWorlds = lastPortal == null || lastPortal.portalPosition.getWorld() != player.getWorld();
+                boolean changedWorlds = lastPortal == null || lastPortal.originPos.getWorld() != player.getWorld();
                 playerData.resetSurroundingBlockStates(!changedWorlds);
 
                 if(pl.config.hidePortalBlocks)  {
