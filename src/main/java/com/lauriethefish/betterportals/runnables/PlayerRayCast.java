@@ -11,7 +11,7 @@ import com.lauriethefish.betterportals.PlayerData;
 import com.lauriethefish.betterportals.ReflectUtils;
 import com.lauriethefish.betterportals.math.PlaneIntersectionChecker;
 import com.lauriethefish.betterportals.multiblockchange.ChunkCoordIntPair;
-import com.lauriethefish.betterportals.portal.PortalPos;
+import com.lauriethefish.betterportals.portal.Portal;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -26,12 +26,12 @@ public class PlayerRayCast implements Runnable {
 
     private BetterPortals pl;
     // Store a map of all of the currently active portals
-    public Map<Location, PortalPos> portals;
+    public Map<Location, Portal> portals;
 
     public Set<ChunkCoordIntPair> newForceLoadedChunks = new HashSet<>();
 
     private BlockProcessor blockRenderer;
-    public PlayerRayCast(BetterPortals pl, Map<Location, PortalPos> portals) {
+    public PlayerRayCast(BetterPortals pl, Map<Location, Portal> portals) {
         blockRenderer = new BlockProcessor(pl);
         this.pl = pl;
         this.config = pl.config;
@@ -44,18 +44,18 @@ public class PlayerRayCast implements Runnable {
     // Finds the closest portal to the given player,
     // this also deletes portals if they have been broken amongst other things
     // Will return null if not portals can be found within the portal activation distance
-    private PortalPos findClosestPortal(Player player)   {
+    private Portal findClosestPortal(Player player)   {
         // Loop through all active portals and find the closest one to activate
         // This is for performance - only one portal can be active at a time
-        PortalPos closestPortal = null;
+        Portal closestPortal = null;
 
         // Set the current closest distance to the portalActivationDistance so that no portals
         // further than it will be activated
         double closestDistance = config.portalActivationDistance;
 
-        Iterator<PortalPos> iter = portals.values().iterator();
+        Iterator<Portal> iter = portals.values().iterator();
         while(iter.hasNext())   {
-            PortalPos portal = iter.next();
+            Portal portal = iter.next();
             if(portal.portalPosition.getWorld() != player.getWorld())  {
                 continue;
             }
@@ -78,7 +78,7 @@ public class PlayerRayCast implements Runnable {
     }
 
     // Teleports the player using the given portal if the player is within the portal
-    public boolean performPlayerTeleport(PlayerData playerData, PortalPos portal, PlaneIntersectionChecker checker)  {
+    public boolean performPlayerTeleport(PlayerData playerData, Portal portal, PlaneIntersectionChecker checker)  {
         Player player = playerData.player;
         
         // If the player's position the previous tick was on the other side of the portal window, then we should teleport the player, otherwise return
@@ -103,7 +103,7 @@ public class PlayerRayCast implements Runnable {
     
     // This function is responsible for iterating over all of the blocks surrounding the portal,
     // and performing a raycast on each of them to check if they should be visible
-    public void updatePortal(PlayerData playerData, PortalPos portal, PlaneIntersectionChecker checker) {        
+    public void updatePortal(PlayerData playerData, Portal portal, PlaneIntersectionChecker checker) {        
         // We need to update the fake entities every tick, regardless of if the player moved
         if(pl.config.enableEntitySupport)   {
             playerData.entityManipulator.updateFakeEntities();
@@ -159,12 +159,12 @@ public class PlayerRayCast implements Runnable {
             }
 
             // Find the closest portal to the player
-            PortalPos portal = findClosestPortal(player);
+            Portal portal = findClosestPortal(player);
 
             // If the portal that is currently active is different to the one that was active before,
             // We reset the surrounding blocks from the previous portal so that the player does not see blocks
             // where they shouldn't be
-            PortalPos lastPortal = playerData.lastActivePortal;
+            Portal lastPortal = playerData.lastActivePortal;
             if(lastPortal != portal)    {
                 boolean changedWorlds = lastPortal == null || lastPortal.portalPosition.getWorld() != player.getWorld();
                 playerData.resetSurroundingBlockStates(!changedWorlds);

@@ -13,7 +13,7 @@ import java.util.Set;
 import com.lauriethefish.betterportals.BetterPortals;
 import com.lauriethefish.betterportals.PlayerData;
 import com.lauriethefish.betterportals.ReflectUtils;
-import com.lauriethefish.betterportals.portal.PortalPos;
+import com.lauriethefish.betterportals.portal.Portal;
 
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -105,7 +105,7 @@ public class PlayerEntityManipulator    {
     }
 
     // Swaps the list of fake entities with the new one, adding or removing any new entities
-    public void swapReplicatedEntities(Set<Entity> newReplicatedEntities, PortalPos portal)  {
+    public void swapReplicatedEntities(Set<Entity> newReplicatedEntities, Portal portal)  {
         // Loop through all of the existing fake entities and remove any that will no longer be visible to the player
         Iterator<PlayerViewableEntity> removingIterator = replicatedEntites.values().iterator();
         while(removingIterator.hasNext())   {

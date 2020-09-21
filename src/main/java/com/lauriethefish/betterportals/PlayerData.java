@@ -5,7 +5,7 @@ import java.util.Map;
 
 import com.lauriethefish.betterportals.entitymanipulation.PlayerEntityManipulator;
 import com.lauriethefish.betterportals.multiblockchange.MultiBlockChangeManager;
-import com.lauriethefish.betterportals.portal.PortalPos;
+import com.lauriethefish.betterportals.portal.Portal;
 
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -19,7 +19,7 @@ public class PlayerData {
 
     // The last portal that had the portal effect active.
     // If this changes, then the ghost blocks sent to the player are reset to avoid phantom blocks breaking the illusion
-    public PortalPos lastActivePortal = null;
+    public Portal lastActivePortal = null;
     // Store the surrouding blocks that have been sent to the player
     public Map<Vector, Object> surroundingPortalBlockStates = new HashMap<>();
 

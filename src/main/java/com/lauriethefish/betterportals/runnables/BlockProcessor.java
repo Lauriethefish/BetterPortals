@@ -9,7 +9,7 @@ import com.lauriethefish.betterportals.BlockRaycastData;
 import com.lauriethefish.betterportals.PlayerData;
 import com.lauriethefish.betterportals.math.PlaneIntersectionChecker;
 import com.lauriethefish.betterportals.multiblockchange.MultiBlockChangeManager;
-import com.lauriethefish.betterportals.portal.PortalPos;
+import com.lauriethefish.betterportals.portal.Portal;
 
 import org.bukkit.entity.Player;
 
@@ -18,8 +18,8 @@ public class BlockProcessor implements Runnable {
     private class UpdateData {
         public PlayerData playerData;
         public PlaneIntersectionChecker checker;
-        public PortalPos portal;
-        public UpdateData(PlayerData playerData, PlaneIntersectionChecker checker, PortalPos portal)   {
+        public Portal portal;
+        public UpdateData(PlayerData playerData, PlaneIntersectionChecker checker, Portal portal)   {
             this.playerData = playerData; this.portal = portal; this.checker = checker;
         }
     }
@@ -30,7 +30,7 @@ public class BlockProcessor implements Runnable {
     }
 
     // Adds a new update to the queue to be processed asyncronously
-    public void queueUpdate(PlayerData playerData, PlaneIntersectionChecker checker, PortalPos portal)  {
+    public void queueUpdate(PlayerData playerData, PlaneIntersectionChecker checker, Portal portal)  {
         updateQueue.add(new UpdateData(playerData, checker, portal));
     }
 

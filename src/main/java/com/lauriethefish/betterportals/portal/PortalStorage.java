@@ -92,13 +92,13 @@ public class PortalStorage {
 
     // Saves the given portals to disk in portals.yml,
     // May throw an IOException if something goes wrong reading the file
-    public void savePortals(Map<Location, PortalPos> portals) throws IOException {
+    public void savePortals(Map<Location, Portal> portals) throws IOException {
         // Get the default portal list
         FileConfiguration newPortals = new YamlConfiguration();
         ConfigurationSection portalsSection = newPortals.createSection("portals");
 
         int i = 0;
-        for(PortalPos portal : portals.values())    {
+        for(Portal portal : portals.values())    {
             // Create a section of the list for this portal
             ConfigurationSection portalSection = portalsSection.createSection(String.valueOf(i));
             portal.save(this, portalSection);
@@ -113,8 +113,8 @@ public class PortalStorage {
     // Loads all of the portals from portals.yml and puts them in the given list
     // If no portals were saved it should return an empty list
     // This function will through exceptions if parsing the YAML failed
-    public Map<Location, PortalPos> loadPortals() {
-        Map<Location, PortalPos> portals = new HashMap<>();
+    public Map<Location, Portal> loadPortals() {
+        Map<Location, Portal> portals = new HashMap<>();
         
         // Load the portals.yml file as YAML
         FileConfiguration currentStorage = YamlConfiguration.loadConfiguration(storageFile);
@@ -133,7 +133,7 @@ public class PortalStorage {
             ConfigurationSection nextPortalSection = portalsSection.getConfigurationSection(portalItems.next());
 
             // Add a new portal to the map, using the loading constructor
-            PortalPos newPortal = new PortalPos(pl, this, nextPortalSection);
+            Portal newPortal = new Portal(pl, this, nextPortalSection);
             portals.put(newPortal.portalPosition, newPortal);
         }
 

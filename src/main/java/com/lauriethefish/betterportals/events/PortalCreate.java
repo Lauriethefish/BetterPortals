@@ -6,7 +6,7 @@ import com.lauriethefish.betterportals.BetterPortals;
 import com.lauriethefish.betterportals.ReflectUtils;
 import com.lauriethefish.betterportals.math.MathUtils;
 import com.lauriethefish.betterportals.portal.PortalDirection;
-import com.lauriethefish.betterportals.portal.PortalPos;
+import com.lauriethefish.betterportals.portal.Portal;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -113,11 +113,11 @@ public class PortalCreate implements Listener {
 
         // Add the two new ends of the portal to the rayCastingSystem,
         // so that the portal effect can be active!
-        pl.rayCastingSystem.portals.put(location, new PortalPos(pl,
+        pl.rayCastingSystem.portals.put(location, new Portal(pl,
             location, direction,
             spawnLocation, direction, portalSize, false
         ));
-        pl.rayCastingSystem.portals.put(spawnLocation, new PortalPos(pl,
+        pl.rayCastingSystem.portals.put(spawnLocation, new Portal(pl,
             spawnLocation, direction,
             location, direction, portalSize, false
         ));

@@ -4,7 +4,7 @@ import java.util.Random;
 
 import com.lauriethefish.betterportals.ReflectUtils;
 import com.lauriethefish.betterportals.math.MathUtils;
-import com.lauriethefish.betterportals.portal.PortalPos;
+import com.lauriethefish.betterportals.portal.Portal;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -18,7 +18,7 @@ public class PlayerViewableEntity {
     public Object nmsEntity;
     public int entityId;
     
-    public PortalPos portal; // Used to find where to entity should appear on this side of the portal
+    public Portal portal; // Used to find where to entity should appear on this side of the portal
     public EntityEquipmentState equipment; // The equipment that the player current sees on the entity
 
     // The rotation and location could just be stored together, however this would be annoying when checking for equality
@@ -31,7 +31,7 @@ public class PlayerViewableEntity {
     public Vector oldLocation;
     public boolean sleepingLastTick = false;
 
-    public PlayerViewableEntity(Entity entity, PortalPos portal, Random random)   {
+    public PlayerViewableEntity(Entity entity, Portal portal, Random random)   {
         this.entity = entity;
         this.portal = portal;
         // Find the nms entity and its id here to avoid doing it multiple times

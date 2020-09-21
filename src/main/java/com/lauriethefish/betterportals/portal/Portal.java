@@ -25,7 +25,7 @@ import org.bukkit.util.Vector;
 
 // Stores all of the attributes required for one direction of a portal
 // Two of these should be created per portal, one for the effect on each side
-public class PortalPos {
+public class Portal {
     private BetterPortals pl;
 
     // The origin position and orientation of the portal
@@ -61,7 +61,7 @@ public class PortalPos {
 
     // Constructor to generate the collision box for a given portal
     // NOTE: The portalPosition must be the EXACT center of the portal on the x, y and z
-    public PortalPos(BetterPortals pl, Location portalPosition, PortalDirection portalDirection, 
+    public Portal(BetterPortals pl, Location portalPosition, PortalDirection portalDirection, 
                     Location destinationPosition, PortalDirection destinationDirection, Vector portalSize, boolean anchored) {
         this.pl = pl;
         this.portalPosition = portalPosition;
@@ -95,7 +95,7 @@ public class PortalPos {
     }
 
     // Loads all of the values for this portal from the data file
-    public PortalPos(BetterPortals pl, PortalStorage storage, ConfigurationSection sect)  {
+    public Portal(BetterPortals pl, PortalStorage storage, ConfigurationSection sect)  {
         this(pl, 
             storage.loadLocation(sect.getConfigurationSection("portalPosition")),
             PortalDirection.fromStorage(sect.getString("portalDirection")),
@@ -157,7 +157,7 @@ public class PortalPos {
     }
 
     public boolean checkOriginAndDestination()  {
-        PortalPos destination = pl.rayCastingSystem.portals.get(destinationPosition);
+        Portal destination = pl.rayCastingSystem.portals.get(destinationPosition);
         // Remove the portal if either the origin or destination is broken
         if(destination != null && !(checkIfStillActive() && destination.checkIfStillActive())) {
             remove();
@@ -213,7 +213,7 @@ public class PortalPos {
     // Removes this portal, and its destination portal, from the map in PlayerRayCast
     public void remove()    {
         // Remove both from the map
-        Map<Location, PortalPos> map = pl.rayCastingSystem.portals;
+        Map<Location, Portal> map = pl.rayCastingSystem.portals;
         map.remove(portalPosition);
         map.remove(destinationPosition);
 

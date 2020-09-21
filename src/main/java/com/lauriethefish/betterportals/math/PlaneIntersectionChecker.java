@@ -1,6 +1,6 @@
 package com.lauriethefish.betterportals.math;
 
-import com.lauriethefish.betterportals.portal.PortalPos;
+import com.lauriethefish.betterportals.portal.Portal;
 
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -15,7 +15,7 @@ public class PlaneIntersectionChecker {
 
     private Vector rayOrigin;
 
-    public PlaneIntersectionChecker(Player player, PortalPos portal)    {
+    public PlaneIntersectionChecker(Player player, Portal portal)    {
         this.planeCenter = portal.portalPosition.toVector();
         this.planeNormal = portal.portalDirection.toVector();
         this.maxDev = portal.planeRadius;    
