@@ -9,6 +9,7 @@ import com.lauriethefish.betterportals.portal.Portal;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Hanging;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
 
@@ -96,7 +97,7 @@ public class PlayerViewableEntity {
         if(!(entity instanceof LivingEntity)) {return;}
 
         LivingEntity livingEntity = (LivingEntity) entity;
-        // TODO, remove EntityEquipmentState, overcomplicates things
+
         EntityEquipmentState oldEquipment = equipment;
         equipment = new EntityEquipmentState(livingEntity.getEquipment());
         // If the equipment changed, send packets to show it to the player
@@ -116,6 +117,21 @@ public class PlayerViewableEntity {
         // Send packets to update the entity's head rotation if we need to
         updateHeadRotation();
 
+        if(entity instanceof HumanEntity) {
+            boolean sleeping = ((HumanEntity) entity).isSleeping();
+
+            // If we are now sleeping, and weren't last tick, send the PacketPlayOutBed
+            // NOTE: This packet isn't required on some versions
+            if(sleeping && !sleepingLastTick && ReflectUtils.sendBedPackets)   {
+                manipulator.sendSleepPacket(nmsEntity, entityId);
+            }   else if(!sleeping && sleepingLastTick)  {
+                // If we are no longer sleeping, then send the animation for exiting a bed
+                manipulator.sendAnimationPacket(this, 2);
+            }
+
+            sleepingLastTick = sleeping;
+        }
+
         boolean rotChanged = calculateRotation();
         Vector posOffset = calculateLocation();
         if(posOffset != null)  {
@@ -134,7 +150,7 @@ public class PlayerViewableEntity {
             }
         }   else if(rotChanged) {
             // If only the rotation changed and nothing else, send a PacketPlayOutEntityLook
-            manipulator.sendLookPacket(entityId, byteYaw, byteYaw);
+            manipulator.sendLookPacket(entityId, byteYaw, bytePitch);
         }
     }
 }
