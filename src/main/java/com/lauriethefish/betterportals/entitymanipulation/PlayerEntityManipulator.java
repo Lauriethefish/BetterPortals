@@ -126,9 +126,8 @@ public class PlayerEntityManipulator    {
             // If the current entity does not exist in the list
             if(!replicatedEntites.containsKey(entity))   {
                 // Make a new PlayerViewableEntity instance from the entity, then send the packets to show it
-                PlayerViewableEntity newEntity = new PlayerViewableEntity(entity, portal, random);
+                PlayerViewableEntity newEntity = new PlayerViewableEntity(this, entity, portal, random);
                 showEntity(entity, newEntity.getLocation(), newEntity.getRotation(), newEntity.getEntityId());
-                sendHeadRotationPacket(newEntity);
                 replicatedEntites.put(entity, newEntity); // Add the entity to the list
             }
         }
@@ -222,7 +221,7 @@ public class PlayerEntityManipulator    {
         sendPacket(spawnPacket);
 
         // Force the entity to update its data, since it just spawned
-        updateEntityData(nmsEntity, entityId);
+        sendMetadataPacket(nmsEntity, entityId);
 
         // If the entity is living, we have to set its armor and hand/offhand
         if(entity instanceof LivingEntity)   {
@@ -231,7 +230,7 @@ public class PlayerEntityManipulator    {
     }
 
     // Sends a PacketPlayOutEntityMetadata to update the entities data, if necessary
-    private void updateEntityData(Object nmsEntity, int entityId) {
+    public void sendMetadataPacket(Object nmsEntity, int entityId) {
         // The NMS DataWatcher deals with checking an entity for data changes, we use it to send the metadata packet
         Object dataWatcher = ReflectUtils.getField(nmsEntity, "datawatcher");
         Object dataPacket = ReflectUtils.newInstance("PacketPlayOutEntityMetadata", new Class[]{int.class, dataWatcher.getClass(), boolean.class},
@@ -240,95 +239,82 @@ public class PlayerEntityManipulator    {
         
     }
 
-    // Sends either a move or teleport packet, depending on the distance
-    private void sendMovePacket(PlayerViewableEntity entity)    {
-        Vector offset = entity.getLocation().clone().subtract(entity.getOldLocation()); // Find the difference we need to move
+    public void sendMovePacket(int entityId, Vector offset)    {
+        short x = (short) (offset.getX() * 4096);
+        short y = (short) (offset.getY() * 4096);
+        short z = (short) (offset.getZ() * 4096);
 
-        // If the distance is short enough for a relative move packet
-        if(offset.getX() < 8 && offset.getY() < 8 && offset.getZ() < 8) {
-            short x = (short) (offset.getX() * 4096);
-            short y = (short) (offset.getY() * 4096);
-            short z = (short) (offset.getZ() * 4096);
-
-            // In newer versions, a short is used for relative move packets, but in 1.13 and under, a long is used
-            if(ReflectUtils.useNewEntitySpawnAndMoveImpl)   {
-                sendPacket(ReflectUtils.newInstance("PacketPlayOutEntity$PacketPlayOutRelEntityMove", 
-                            new Class[]{int.class, short.class, short.class, short.class, boolean.class},
-                            new Object[]{entity.getEntityId(), x, y, z, true}));
-            }   else    {
-                sendPacket(ReflectUtils.newInstance("PacketPlayOutEntity$PacketPlayOutRelEntityMove", 
-                            new Class[]{int.class, long.class, long.class, long.class, boolean.class},
-                            new Object[]{entity.getEntityId(), (long) x, (long) y, (long) z, true}));
-                }
+        // In newer versions, a short is used for relative move packets, but in 1.13 and under, a long is used
+        if(ReflectUtils.useNewEntitySpawnAndMoveImpl)   {
+            sendPacket(ReflectUtils.newInstance("PacketPlayOutEntity$PacketPlayOutRelEntityMove", 
+                        new Class[]{int.class, short.class, short.class, short.class, boolean.class},
+                        new Object[]{entityId, x, y, z, true}));
         }   else    {
-            // Otherwise, just send a teleport packet, since this works for any distance
-            sendTeleportPacket(entity);
+            sendPacket(ReflectUtils.newInstance("PacketPlayOutEntity$PacketPlayOutRelEntityMove", 
+                        new Class[]{int.class, long.class, long.class, long.class, boolean.class},
+                        new Object[]{entityId, (long) x, (long) y, (long) z, true}));
         }
     }
 
-    // Sends a PacketPlayOutRelEntityMoveLook packet to the player, or a PacketPlayOutEntityTeleport and PacketPlayOutEntityLook if the distance is too long
-    private void sendMoveLookPacket(PlayerViewableEntity entity)    {
-        Vector offset = entity.getLocation().clone().subtract(entity.getOldLocation()); // Find the difference we need to move
+    // Returns true if the offset is small enough for relative move packets
+    public boolean isSafeForMovePacket(Vector offset)   {
+        return offset.getX() < 8.0 && offset.getY() < 8.0 && offset.getZ() < 8.0;
+    }
 
-        // If the distance is short enough for a relative move and look packet
-        if(offset.getX() < 8 && offset.getY() < 8 && offset.getZ() < 8) {
-            short x = (short) (offset.getX() * 4096);
-            short y = (short) (offset.getY() * 4096);
-            short z = (short) (offset.getZ() * 4096);
+    // Sends a PacketPlayOutRelEntityMoveLook packet to the player
+    public void sendMoveLookPacket(int entityId, Vector offset, byte yaw, byte pitch)    {
+        short x = (short) (offset.getX() * 4096);
+        short y = (short) (offset.getY() * 4096);
+        short z = (short) (offset.getZ() * 4096);
 
-            // In newer versions, a short is used for relative move packets, but in 1.13 and under, a long is used
-            if(ReflectUtils.useNewEntitySpawnAndMoveImpl)   {
-                sendPacket(ReflectUtils.newInstance("PacketPlayOutEntity$PacketPlayOutRelEntityMoveLook", 
-                            new Class[]{int.class, short.class, short.class, short.class, byte.class, byte.class, boolean.class},
-                            new Object[]{entity.getEntityId(), x, y, z, entity.getByteYaw(), entity.getBytePitch(), true}));
-            }   else    {
-                sendPacket(ReflectUtils.newInstance("PacketPlayOutEntity$PacketPlayOutRelEntityMoveLook", 
-                            new Class[]{int.class, long.class, long.class, long.class, byte.class, byte.class, boolean.class},
-                            new Object[]{entity.getEntityId(), (long) x, (long) y, (long) z, entity.getByteYaw(), entity.getBytePitch(), true}));
-            }
+        // In newer versions, a short is used for relative move packets, but in 1.13 and under, a long is used
+        if(ReflectUtils.useNewEntitySpawnAndMoveImpl)   {
+            sendPacket(ReflectUtils.newInstance("PacketPlayOutEntity$PacketPlayOutRelEntityMoveLook", 
+                        new Class[]{int.class, short.class, short.class, short.class, byte.class, byte.class, boolean.class},
+                        new Object[]{entityId, x, y, z, yaw, pitch, true}));
         }   else    {
-            // Otherwise, just send a teleport packet and a look packet
-            sendTeleportPacket(entity);
-            sendLookPacket(entity);
+            sendPacket(ReflectUtils.newInstance("PacketPlayOutEntity$PacketPlayOutRelEntityMoveLook", 
+                        new Class[]{int.class, long.class, long.class, long.class, byte.class, byte.class, boolean.class},
+                        new Object[]{entityId, (long) x, (long) y, (long) z, yaw, pitch, true}));
         }
     }
 
-    private void sendTeleportPacket(PlayerViewableEntity entity)    {
+    public void sendTeleportPacket(int entityId, Vector destination, byte yaw, byte pitch)    {
         // Make a teleport packet
-        Object packet = ReflectUtils.newInstance("PacketPlayOutEntityTeleport", new Class[]{ReflectUtils.getMcClass("Entity")},
-            new Object[]{entity.getNmsEntity()});
-        ReflectUtils.setField(packet, "a", entity.getEntityId());
+        Object packet = ReflectUtils.newInstance("PacketPlayOutEntityTeleport");
+        ReflectUtils.setField(packet, "a", entityId);
 
-        Vector location = entity.getLocation();
         // Set the teleport location to the position of the entity on the player's side of the portal
-        ReflectUtils.setField(packet, "b", location.getX());
-        ReflectUtils.setField(packet, "c", location.getY());
-        ReflectUtils.setField(packet, "d", location.getZ());
+        ReflectUtils.setField(packet, "b", destination.getX());
+        ReflectUtils.setField(packet, "c", destination.getY());
+        ReflectUtils.setField(packet, "d", destination.getZ());
+        ReflectUtils.setField(packet, "e", yaw);
+        ReflectUtils.setField(packet, "f", pitch);
 
         sendPacket(packet);
     }
 
-    private void sendHeadRotationPacket(PlayerViewableEntity entity)    {
+    public void sendHeadRotationPacket(int entityId, byte headRotation)    {
         Object packet = ReflectUtils.newInstance("PacketPlayOutEntityHeadRotation");
-        ReflectUtils.setField(packet, "a", entity.getEntityId()); // Set the overridden entityId
-        ReflectUtils.setField(packet, "b", entity.getByteHeadRotation()); // Use the randomized entity ID of fake entities
+        ReflectUtils.setField(packet, "a", entityId); // Set the overridden entityId
+        ReflectUtils.setField(packet, "b", headRotation); // Use the randomized entity ID of fake entities
 
         sendPacket(packet);
     }
 
     // Sends the two packets that rotate an entities head
-    private void sendLookPacket(PlayerViewableEntity entity)   {
+    public void sendLookPacket(int entityId, byte yaw, byte pitch)   {
         // Send both the head rotation and look packets
         sendPacket(ReflectUtils.newInstance("PacketPlayOutEntity$PacketPlayOutEntityLook", 
                                             new Class[]{int.class, byte.class, byte.class, boolean.class},
-                                            new Object[]{entity.getEntityId(), entity.getByteYaw(), entity.getBytePitch(), true}));                                  
+                                            new Object[]{entityId, yaw, pitch, true}));                                  
     }
 
-    private void sendSleepPacket(PlayerViewableEntity entity)   {
+    public void sendSleepPacket(Object nmsEntity, int entityId)   {
         Object packet = ReflectUtils.newInstance("PacketPlayOutBed");
-        Object blockPosition = ReflectUtils.getField(entity.getNmsEntity(), "bedPosition");
+        Object blockPosition = ReflectUtils.getField(nmsEntity, "bedPosition");
 
-        ReflectUtils.setField(packet, "a", entity.getEntityId());
+        ReflectUtils.setField(packet, "a", entityId);
         ReflectUtils.setField(packet, "b", blockPosition);
         sendPacket(packet);
     }
@@ -343,52 +329,7 @@ public class PlayerEntityManipulator    {
     // Loops through all the fake entities and updates their position and equipment
     public void updateFakeEntities()   {      
         for(PlayerViewableEntity playerEntity : replicatedEntites.values()) {
-            Entity entity = playerEntity.getEntity();
-
-            boolean updateLocation = playerEntity.calculateLocation();
-            boolean updateRotation = playerEntity.calculateRotation();
-            
-            // Don't send the rotation of hanging entities, since it causes glitches
-            boolean lookNeeded = !(entity instanceof Hanging);
-
-            // If we are updating both the entities position and rotation, use a MoveLook packet (not doing this causes glitches)
-            if(updateLocation && updateRotation && lookNeeded)    {
-                sendMoveLookPacket(playerEntity);
-                sendHeadRotationPacket(playerEntity);
-            }   else if(updateLocation) {
-                sendMovePacket(playerEntity);
-            }   else if(updateRotation && lookNeeded)   {
-                sendLookPacket(playerEntity);
-                sendHeadRotationPacket(playerEntity);
-            }
-
-            // Send a metadata packet if we need to
-            updateEntityData(playerEntity.getNmsEntity(), playerEntity.getEntityId());
-
-            // TODO
-            // Update the entity equipment, then send EntityEquipment packets to the player if required
-            EntityEquipmentState oldEntityEquipment = playerEntity.getEquipment();
-            playerEntity.updateEntityEquipment();
-            if(oldEntityEquipment != null && !oldEntityEquipment.equals(playerEntity.getEquipment()))  {
-                sendEntityEquipmentPackets((LivingEntity) entity, playerEntity.getEntityId());
-            }
-
-            // Only human entities can sleep in beds
-            if(entity instanceof HumanEntity && ReflectUtils.sendBedPackets)  {
-                HumanEntity humanEntity = (HumanEntity) entity;
-                if(humanEntity.isSleeping())    {
-                    // If the entity is sleeping, and they weren't last tick, send the packet to put them in a bed
-                    if(!playerEntity.isSleepingLastTick())  {
-                        sendSleepPacket(playerEntity);
-                    }
-                    playerEntity.setSleepingLastTick();
-                }   else    {
-                    // If we were sleeping last tick, and aren't anymore, send the leave bed animation packet
-                    if(playerEntity.getIfSleepingLastTick())   {
-                        sendAnimationPacket(playerEntity, 2);
-                    }
-                }
-            }
+            playerEntity.update();
         }
     }
 
@@ -434,7 +375,7 @@ public class PlayerEntityManipulator    {
 
     // Sends the 6 entity equipment packets required to change the items in the
     // entities armor slots and hands
-    private void sendEntityEquipmentPackets(LivingEntity entity, int entityId)    {
+    public void sendEntityEquipmentPackets(LivingEntity entity, int entityId)    {
         EntityEquipment equipment = entity.getEquipment(); // Get all of the equipment slots from the entity
         if(equipment == null)   { // Null check for the equipment, since not all living entities can equip armor
             return;

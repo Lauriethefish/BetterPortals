@@ -32,6 +32,8 @@ public class EntityEquipmentState {
 
     // Compares each item of the equipment with another, checks for null values
     public boolean equals(EntityEquipmentState other)    {
+        if(other == null)   {return false;}
+        
         return compareItemStacks(other.mainHand, mainHand) &&
         compareItemStacks(other.offHand, offHand) &&
         compareItemStacks(other.helmet, helmet) &&

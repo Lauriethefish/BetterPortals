@@ -17,6 +17,8 @@ import lombok.Getter;
 // Stores the current state of a fake entity
 @Getter
 public class PlayerViewableEntity {
+    private PlayerEntityManipulator manipulator;
+
     private Entity entity; // The entity that this fake entity replicates
     private Object nmsEntity;
     private int entityId;
@@ -34,7 +36,8 @@ public class PlayerViewableEntity {
     private Vector oldLocation;
     private boolean sleepingLastTick = false;
 
-    public PlayerViewableEntity(Entity entity, Portal portal, Random random)   {
+    public PlayerViewableEntity(PlayerEntityManipulator manipulator, Entity entity, Portal portal, Random random)   {
+        this.manipulator = manipulator;
         this.entity = entity;
         this.portal = portal;
         this.nmsEntity = ReflectUtils.runMethod(entity, "getHandle");
@@ -46,7 +49,8 @@ public class PlayerViewableEntity {
         updateEntityEquipment();
     }
 
-    public boolean calculateLocation() {
+    // Returns the change in location if the location changed, otherwise null is returned
+    public Vector calculateLocation() {
         oldLocation = location;
         
         location = portal.moveDestinationToOrigin(PlayerEntityManipulator.getEntityPosition(entity, nmsEntity));
@@ -54,11 +58,11 @@ public class PlayerViewableEntity {
             location = MathUtils.round(location);
         }
 
-        return !location.equals(oldLocation);
+        return location.equals(oldLocation) || oldLocation == null ? null : location.clone().subtract(oldLocation);
     }
 
-    public boolean calculateRotation() {
-        byte oldHeadRotation = byteHeadRotation;
+    // Returns true if the rotation changed
+    private boolean calculateRotation() {
         Vector oldRotation = rotation;
         rotation = portal.rotateToOrigin(entity.getLocation().getDirection());
 
@@ -68,31 +72,69 @@ public class PlayerViewableEntity {
         byteYaw = (byte) (loc.getYaw() * 256 / 360);
         bytePitch = (byte) (loc.getPitch() * 256 / 360);
 
-        // Find the headRotation as well
+        return !rotation.equals(oldRotation);
+    }
+
+    // Sends a PacketPlayOutEntityHeadRotation if the entity's head rotation changed
+    private void updateHeadRotation() {
+        byte oldHeadRotation = byteHeadRotation;
+        // Use the methods in Location to easily convert the yaw to a vector and back again
+        Location loc = entity.getLocation();
         float headRotation = (float) ReflectUtils.runMethod(nmsEntity, "getHeadRotation");
         loc.setYaw(headRotation);
         loc = loc.setDirection(portal.rotateToOrigin(loc.getDirection()));
         byteHeadRotation = (byte) (loc.getYaw() * 256 / 360);
-
-        return !rotation.equals(oldRotation) || byteHeadRotation != oldHeadRotation;
-    }
-
-    public void updateEntityEquipment()    {
-        if(entity instanceof LivingEntity)  {
-            equipment = new EntityEquipmentState(((LivingEntity) entity).getEquipment());
+        
+        if(byteHeadRotation != oldHeadRotation) {
+            manipulator.sendHeadRotationPacket(entityId, byteHeadRotation);
         }
     }
 
-    // Gets if the entity was sleeping last tick.
-    public boolean getIfSleepingLastTick() {
-        if(sleepingLastTick)    {
-            sleepingLastTick = false;
-            return true;
+    // Deals with sending a PacketPlayOutEntityEquipment if the equipment changed
+    private void updateEntityEquipment()    {
+        // Only LivingEntities have equipment
+        if(!(entity instanceof LivingEntity)) {return;}
+
+        LivingEntity livingEntity = (LivingEntity) entity;
+        // TODO, remove EntityEquipmentState, overcomplicates things
+        EntityEquipmentState oldEquipment = equipment;
+        equipment = new EntityEquipmentState(livingEntity.getEquipment());
+        // If the equipment changed, send packets to show it to the player
+        if(!equipment.equals(oldEquipment)) {
+            manipulator.sendEntityEquipmentPackets(livingEntity, entityId);
         }
-        return false;
     }
 
-    public void setSleepingLastTick()   {
-        sleepingLastTick = true;
+    // Called by EntityManipulator, this function should send all the packets necessary to keep the entity replicated
+    void update()   {
+        // PacketPlayOutEntityMetadata carries the vast majority of entity data
+        manipulator.sendMetadataPacket(nmsEntity, entityId);
+
+        // Send PacketPlayOutEntityEquipment if we need to
+        updateEntityEquipment();
+
+        // Send packets to update the entity's head rotation if we need to
+        updateHeadRotation();
+
+        boolean rotChanged = calculateRotation();
+        Vector posOffset = calculateLocation();
+        if(posOffset != null)  {
+            // If our position changed, and the distance was short enough for relative move packets
+            if(manipulator.isSafeForMovePacket(posOffset)) {
+                // If our rotation changed as well, send a PacketPlayOutRelEntityMoveLook
+                if(rotChanged)  {
+                    manipulator.sendMoveLookPacket(entityId, posOffset, byteYaw, bytePitch);
+                }   else    {
+                    // Otherwise, just send PacketPlayOutRelEntityMove
+                    manipulator.sendMovePacket(entityId, posOffset);
+                }
+            }   else    {
+                // Send a teleport packet if the distance was too great. In general this shouldn't happen, but it may
+                manipulator.sendTeleportPacket(entityId, location, byteYaw, bytePitch);
+            }
+        }   else if(rotChanged) {
+            // If only the rotation changed and nothing else, send a PacketPlayOutEntityLook
+            manipulator.sendLookPacket(entityId, byteYaw, byteYaw);
+        }
     }
 }
