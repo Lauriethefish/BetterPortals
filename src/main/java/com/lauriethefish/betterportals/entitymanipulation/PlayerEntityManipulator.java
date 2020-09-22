@@ -51,9 +51,9 @@ public class PlayerEntityManipulator    {
     // Sends a PacketPlayOutCollect to play the animation of entity picking up item
     public void sendPickupItemPacket(PlayerViewableEntity entity, PlayerViewableEntity item)  {
         Object packet = ReflectUtils.newInstance("PacketPlayOutCollect");
-        ReflectUtils.setField(packet, "a", item.entityId);
-        ReflectUtils.setField(packet, "b", entity.entityId);
-        ReflectUtils.setField(packet, "c", ((Item) item.entity).getItemStack().getAmount());
+        ReflectUtils.setField(packet, "a", item.getEntityId());
+        ReflectUtils.setField(packet, "b", entity.getEntityId());
+        ReflectUtils.setField(packet, "c", ((Item) item.getEntity()).getItemStack().getAmount());
         sendPacket(packet);
     }
 
@@ -98,7 +98,7 @@ public class PlayerEntityManipulator    {
     // Sends a PacketPlayOutAnimation to the player for the given entity
     public void sendAnimationPacket(PlayerViewableEntity entity, int animationType) {
         Object packet = ReflectUtils.newInstance("PacketPlayOutAnimation");
-        ReflectUtils.setField(packet, "a", entity.entityId);
+        ReflectUtils.setField(packet, "a", entity.getEntityId());
         ReflectUtils.setField(packet, "b", animationType);
         sendPacket(packet);
     }
@@ -114,9 +114,9 @@ public class PlayerEntityManipulator    {
         while(removingIterator.hasNext())   {
             // Get the next entity, check if it is still visible in the new entities
             PlayerViewableEntity entity = removingIterator.next();
-            if(!newReplicatedEntities.contains(entity.entity))    {
+            if(!newReplicatedEntities.contains(entity.getEntity()))   {
                 // If not, send an entity destroy packet, then remove the entity
-                hideEntity(entity.entityId);
+                hideEntity(entity.getEntityId());
                 removingIterator.remove();
             }
         }
@@ -127,7 +127,7 @@ public class PlayerEntityManipulator    {
             if(!replicatedEntites.containsKey(entity))   {
                 // Make a new PlayerViewableEntity instance from the entity, then send the packets to show it
                 PlayerViewableEntity newEntity = new PlayerViewableEntity(entity, portal, random);
-                showEntity(entity, newEntity.location, newEntity.rotation, newEntity.entityId);
+                showEntity(entity, newEntity.getLocation(), newEntity.getRotation(), newEntity.getEntityId());
                 sendHeadRotationPacket(newEntity);
                 replicatedEntites.put(entity, newEntity); // Add the entity to the list
             }
@@ -242,7 +242,7 @@ public class PlayerEntityManipulator    {
 
     // Sends either a move or teleport packet, depending on the distance
     private void sendMovePacket(PlayerViewableEntity entity)    {
-        Vector offset = entity.location.clone().subtract(entity.oldLocation); // Find the difference we need to move
+        Vector offset = entity.getLocation().clone().subtract(entity.getOldLocation()); // Find the difference we need to move
 
         // If the distance is short enough for a relative move packet
         if(offset.getX() < 8 && offset.getY() < 8 && offset.getZ() < 8) {
@@ -254,11 +254,11 @@ public class PlayerEntityManipulator    {
             if(ReflectUtils.useNewEntitySpawnAndMoveImpl)   {
                 sendPacket(ReflectUtils.newInstance("PacketPlayOutEntity$PacketPlayOutRelEntityMove", 
                             new Class[]{int.class, short.class, short.class, short.class, boolean.class},
-                            new Object[]{entity.entityId, x, y, z, true}));
+                            new Object[]{entity.getEntityId(), x, y, z, true}));
             }   else    {
                 sendPacket(ReflectUtils.newInstance("PacketPlayOutEntity$PacketPlayOutRelEntityMove", 
                             new Class[]{int.class, long.class, long.class, long.class, boolean.class},
-                            new Object[]{entity.entityId, (long) x, (long) y, (long) z, true}));
+                            new Object[]{entity.getEntityId(), (long) x, (long) y, (long) z, true}));
                 }
         }   else    {
             // Otherwise, just send a teleport packet, since this works for any distance
@@ -268,7 +268,7 @@ public class PlayerEntityManipulator    {
 
     // Sends a PacketPlayOutRelEntityMoveLook packet to the player, or a PacketPlayOutEntityTeleport and PacketPlayOutEntityLook if the distance is too long
     private void sendMoveLookPacket(PlayerViewableEntity entity)    {
-        Vector offset = entity.location.clone().subtract(entity.oldLocation); // Find the difference we need to move
+        Vector offset = entity.getLocation().clone().subtract(entity.getOldLocation()); // Find the difference we need to move
 
         // If the distance is short enough for a relative move and look packet
         if(offset.getX() < 8 && offset.getY() < 8 && offset.getZ() < 8) {
@@ -280,11 +280,11 @@ public class PlayerEntityManipulator    {
             if(ReflectUtils.useNewEntitySpawnAndMoveImpl)   {
                 sendPacket(ReflectUtils.newInstance("PacketPlayOutEntity$PacketPlayOutRelEntityMoveLook", 
                             new Class[]{int.class, short.class, short.class, short.class, byte.class, byte.class, boolean.class},
-                            new Object[]{entity.entityId, x, y, z, entity.byteYaw, entity.bytePitch, true}));
+                            new Object[]{entity.getEntityId(), x, y, z, entity.getByteYaw(), entity.getBytePitch(), true}));
             }   else    {
                 sendPacket(ReflectUtils.newInstance("PacketPlayOutEntity$PacketPlayOutRelEntityMoveLook", 
                             new Class[]{int.class, long.class, long.class, long.class, byte.class, byte.class, boolean.class},
-                            new Object[]{entity.entityId, (long) x, (long) y, (long) z, entity.byteYaw, entity.bytePitch, true}));
+                            new Object[]{entity.getEntityId(), (long) x, (long) y, (long) z, entity.getByteYaw(), entity.getBytePitch(), true}));
             }
         }   else    {
             // Otherwise, just send a teleport packet and a look packet
@@ -296,10 +296,10 @@ public class PlayerEntityManipulator    {
     private void sendTeleportPacket(PlayerViewableEntity entity)    {
         // Make a teleport packet
         Object packet = ReflectUtils.newInstance("PacketPlayOutEntityTeleport", new Class[]{ReflectUtils.getMcClass("Entity")},
-            new Object[]{entity.nmsEntity});
-        ReflectUtils.setField(packet, "a", entity.entityId);
+            new Object[]{entity.getNmsEntity()});
+        ReflectUtils.setField(packet, "a", entity.getEntityId());
 
-        Vector location = entity.location;
+        Vector location = entity.getLocation();
         // Set the teleport location to the position of the entity on the player's side of the portal
         ReflectUtils.setField(packet, "b", location.getX());
         ReflectUtils.setField(packet, "c", location.getY());
@@ -310,8 +310,8 @@ public class PlayerEntityManipulator    {
 
     private void sendHeadRotationPacket(PlayerViewableEntity entity)    {
         Object packet = ReflectUtils.newInstance("PacketPlayOutEntityHeadRotation");
-        ReflectUtils.setField(packet, "a", entity.entityId); // Set the overridden entityId
-        ReflectUtils.setField(packet, "b", entity.byteHeadRotation); // Use the randomized entity ID of fake entities
+        ReflectUtils.setField(packet, "a", entity.getEntityId()); // Set the overridden entityId
+        ReflectUtils.setField(packet, "b", entity.getByteHeadRotation()); // Use the randomized entity ID of fake entities
 
         sendPacket(packet);
     }
@@ -321,14 +321,14 @@ public class PlayerEntityManipulator    {
         // Send both the head rotation and look packets
         sendPacket(ReflectUtils.newInstance("PacketPlayOutEntity$PacketPlayOutEntityLook", 
                                             new Class[]{int.class, byte.class, byte.class, boolean.class},
-                                            new Object[]{entity.entityId, entity.byteYaw, entity.bytePitch, true}));                                  
+                                            new Object[]{entity.getEntityId(), entity.getByteYaw(), entity.getBytePitch(), true}));                                  
     }
 
     private void sendSleepPacket(PlayerViewableEntity entity)   {
         Object packet = ReflectUtils.newInstance("PacketPlayOutBed");
-        Object blockPosition = ReflectUtils.getField(entity.nmsEntity, "bedPosition");
+        Object blockPosition = ReflectUtils.getField(entity.getNmsEntity(), "bedPosition");
 
-        ReflectUtils.setField(packet, "a", entity.entityId);
+        ReflectUtils.setField(packet, "a", entity.getEntityId());
         ReflectUtils.setField(packet, "b", blockPosition);
         sendPacket(packet);
     }
@@ -336,20 +336,20 @@ public class PlayerEntityManipulator    {
     public void sendBlockBreakPacket(PlayerViewableEntity entity, Block block)  {
         Object packet = ReflectUtils.newInstance("PacketPlayOutBlockBreakAnimation", 
                                                 new Class[]{int.class, ReflectUtils.getMcClass("BlockPosition"), int.class},
-                                                new Object[]{entity.entityId, ReflectUtils.createBlockPosition(block.getLocation()), 0});
+                                                new Object[]{entity.getEntityId(), ReflectUtils.createBlockPosition(block.getLocation()), 0});
         sendPacket(packet);
     }
 
     // Loops through all the fake entities and updates their position and equipment
     public void updateFakeEntities()   {      
         for(PlayerViewableEntity playerEntity : replicatedEntites.values()) {
-            Entity entity = playerEntity.entity;
+            Entity entity = playerEntity.getEntity();
 
             boolean updateLocation = playerEntity.calculateLocation();
             boolean updateRotation = playerEntity.calculateRotation();
             
             // Don't send the rotation of hanging entities, since it causes glitches
-            boolean lookNeeded = !(playerEntity.entity instanceof Hanging);
+            boolean lookNeeded = !(entity instanceof Hanging);
 
             // If we are updating both the entities position and rotation, use a MoveLook packet (not doing this causes glitches)
             if(updateLocation && updateRotation && lookNeeded)    {
@@ -363,13 +363,14 @@ public class PlayerEntityManipulator    {
             }
 
             // Send a metadata packet if we need to
-            updateEntityData(playerEntity.nmsEntity, playerEntity.entityId);
+            updateEntityData(playerEntity.getNmsEntity(), playerEntity.getEntityId());
 
+            // TODO
             // Update the entity equipment, then send EntityEquipment packets to the player if required
-            EntityEquipmentState oldEntityEquipment = playerEntity.equipment;
+            EntityEquipmentState oldEntityEquipment = playerEntity.getEquipment();
             playerEntity.updateEntityEquipment();
-            if(oldEntityEquipment != null && !oldEntityEquipment.equals(playerEntity.equipment))  {
-                sendEntityEquipmentPackets((LivingEntity) entity, playerEntity.entityId);
+            if(oldEntityEquipment != null && !oldEntityEquipment.equals(playerEntity.getEquipment()))  {
+                sendEntityEquipmentPackets((LivingEntity) entity, playerEntity.getEntityId());
             }
 
             // Only human entities can sleep in beds
@@ -377,15 +378,14 @@ public class PlayerEntityManipulator    {
                 HumanEntity humanEntity = (HumanEntity) entity;
                 if(humanEntity.isSleeping())    {
                     // If the entity is sleeping, and they weren't last tick, send the packet to put them in a bed
-                    if(!playerEntity.sleepingLastTick)  {
+                    if(!playerEntity.isSleepingLastTick())  {
                         sendSleepPacket(playerEntity);
-                        playerEntity.sleepingLastTick = true;
                     }
+                    playerEntity.setSleepingLastTick();
                 }   else    {
                     // If we were sleeping last tick, and aren't anymore, send the leave bed animation packet
-                    if(playerEntity.sleepingLastTick)   {
+                    if(playerEntity.getIfSleepingLastTick())   {
                         sendAnimationPacket(playerEntity, 2);
-                        playerEntity.sleepingLastTick = false;
                     }
                 }
             }

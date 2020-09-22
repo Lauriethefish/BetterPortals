@@ -12,29 +12,31 @@ import org.bukkit.entity.Hanging;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
 
+import lombok.Getter;
+
 // Stores the current state of a fake entity
+@Getter
 public class PlayerViewableEntity {
-    public Entity entity; // The entity that this fake entity replicates
-    public Object nmsEntity;
-    public int entityId;
+    private Entity entity; // The entity that this fake entity replicates
+    private Object nmsEntity;
+    private int entityId;
     
-    public Portal portal; // Used to find where to entity should appear on this side of the portal
-    public EntityEquipmentState equipment; // The equipment that the player current sees on the entity
+    private Portal portal; // Used to find where to entity should appear on this side of the portal
+    private EntityEquipmentState equipment; // The equipment that the player current sees on the entity
 
     // The rotation and location could just be stored together, however this would be annoying when checking for equality
-    public Vector location;
-    public Vector rotation; // Rotation of the entity in the last tick, used to find if we need to resend the entity look packet
-    public byte byteYaw;
-    public byte bytePitch;
-    public byte byteHeadRotation;
+    private Vector location;
+    private Vector rotation; // Rotation of the entity in the last tick, used to find if we need to resend the entity look packet
+    private byte byteYaw;
+    private byte bytePitch;
+    private byte byteHeadRotation;
     // Store the location in the previous tick, as this is needed to send relative move packets
-    public Vector oldLocation;
-    public boolean sleepingLastTick = false;
+    private Vector oldLocation;
+    private boolean sleepingLastTick = false;
 
     public PlayerViewableEntity(Entity entity, Portal portal, Random random)   {
         this.entity = entity;
         this.portal = portal;
-        // Find the nms entity and its id here to avoid doing it multiple times
         this.nmsEntity = ReflectUtils.runMethod(entity, "getHandle");
         // Generate a random entityId, since otherwise, the real entity with the same ID may be moved instead of the fake one
         this.entityId = random.nextInt(Integer.MAX_VALUE);
@@ -79,5 +81,18 @@ public class PlayerViewableEntity {
         if(entity instanceof LivingEntity)  {
             equipment = new EntityEquipmentState(((LivingEntity) entity).getEquipment());
         }
+    }
+
+    // Gets if the entity was sleeping last tick.
+    public boolean getIfSleepingLastTick() {
+        if(sleepingLastTick)    {
+            sleepingLastTick = false;
+            return true;
+        }
+        return false;
+    }
+
+    public void setSleepingLastTick()   {
+        sleepingLastTick = true;
     }
 }

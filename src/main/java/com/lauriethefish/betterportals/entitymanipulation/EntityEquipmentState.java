@@ -6,13 +6,13 @@ import org.bukkit.inventory.ItemStack;
 // Stores the current configuration of an entities equipment
 // We cannot store bukkit's EntityEquipment, since there is no clone method
 public class EntityEquipmentState {
-    public ItemStack mainHand;
-    public ItemStack offHand;
+    private ItemStack mainHand;
+    private ItemStack offHand;
 
-    public ItemStack helmet;
-    public ItemStack chestplate;
-    public ItemStack leggings;
-    public ItemStack boots;
+    private ItemStack helmet;
+    private ItemStack chestplate;
+    private ItemStack leggings;
+    private ItemStack boots;
 
     // Copies the items in the EntityEquipment into this class
     public EntityEquipmentState(EntityEquipment equipment)   {
@@ -20,7 +20,7 @@ public class EntityEquipmentState {
         if(equipment == null)   {
             return;
         }
-
+        
         // Load all the values from the entity equipment
         this.mainHand = equipment.getItemInMainHand();
         this.offHand = equipment.getItemInOffHand();
@@ -36,6 +36,7 @@ public class EntityEquipmentState {
         compareItemStacks(other.offHand, offHand) &&
         compareItemStacks(other.helmet, helmet) &&
         compareItemStacks(other.chestplate, chestplate) &&
+        compareItemStacks(other.leggings, leggings) &&
         compareItemStacks(other.boots, boots);
     }
 
