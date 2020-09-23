@@ -15,15 +15,15 @@ import lombok.Setter;
 
 // This class stores information about the player, required by the plugin
 public class PlayerData {
+    private BetterPortals pl;
     @Getter private Player player;
     
     // Used to disable sending entity packets after a world load
-    // TODO: reimplement stuff using these in this class
     private boolean loadedWorldLastTick = true;
 
     // The last portal that had the portal effect active.
     // If this changes, then the ghost blocks sent to the player are reset to avoid phantom blocks breaking the illusion
-    @Getter @Setter private Portal lastActivePortal = null;
+    private Portal lastActivePortal = null;
     // Store the surrouding blocks that have been sent to the player
     @Getter private Map<Vector, Object> surroundingPortalBlockStates = new HashMap<>();
 
@@ -34,6 +34,7 @@ public class PlayerData {
     @Getter @Setter private Vector lastPosition = null;
 
     public PlayerData(BetterPortals pl, Player player) {
+        this.pl = pl;
         this.player = player;
         entityManipulator = new PlayerEntityManipulator(pl, this);
     }
@@ -41,6 +42,32 @@ public class PlayerData {
     public boolean getIfLoadedWorldLastTick()   {return loadedWorldLastTick;}
     public void setLoadedWorldLastTick()   {loadedWorldLastTick = true;}
     public void unsetLoadedWorldLastTick()   {loadedWorldLastTick = false;}
+
+    // Called every tick while the player is focused on a particular portal
+    // If newPortal is null, that means that there is no longer an active portal
+    public void setPortal(Portal newPortal)    {
+        // Return if the portal stayed the same
+        if(newPortal == lastActivePortal)   {return;}
+
+        // No need to send packets to reset block states if changing worlds
+        boolean changedWorlds = lastActivePortal == null || lastActivePortal.getOriginPos().getWorld() != player.getWorld();
+        resetSurroundingBlockStates(!changedWorlds);
+
+        if(pl.config.hidePortalBlocks)  {
+            // If we're not in the same world as our last portal, there's no point recreating the portal blocks
+            if(!changedWorlds)   {
+                lastActivePortal.recreatePortalBlocks(player);
+            }
+            if(newPortal != null)  {
+                newPortal.removePortalBlocks(player);
+            }
+        }
+
+        // Destroy any fake entities and recreate any hidden ones
+        entityManipulator.resetAll(!changedWorlds);
+        lastActivePortal = newPortal;
+        lastPosition = null;
+    }
 
     // Resets all of the ghost block updates that have been set to the player
     // This also has the effect of changing surroundingPortalBlockStates to be all null

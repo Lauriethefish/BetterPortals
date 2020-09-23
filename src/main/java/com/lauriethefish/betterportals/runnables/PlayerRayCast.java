@@ -163,30 +163,7 @@ public class PlayerRayCast implements Runnable {
             // Find the closest portal to the player
             Portal portal = findClosestPortal(player);
 
-            // If the portal that is currently active is different to the one that was active before,
-            // We reset the surrounding blocks from the previous portal so that the player does not see blocks
-            // where they shouldn't be
-            Portal lastPortal = playerData.getLastActivePortal();
-            if(lastPortal != portal)    {
-                boolean changedWorlds = lastPortal == null || lastPortal.getOriginPos().getWorld() != player.getWorld();
-                playerData.resetSurroundingBlockStates(!changedWorlds);
-
-                if(pl.config.hidePortalBlocks)  {
-                    // If we're not in the same world as our last portal, there's no point recreating the portal blocks
-                    if(!changedWorlds)   {
-                        lastPortal.recreatePortalBlocks(player);
-                    }
-                    if(portal != null)  {
-                        portal.removePortalBlocks(player);
-                    }
-                }
-
-                // Destroy any fake entities and recreate any hidden ones
-                playerData.getEntityManipulator().resetAll(!changedWorlds);
-                playerData.setLastActivePortal(portal);
-                playerData.setLastPosition(null);
-            }
-
+            playerData.setPortal(portal);
             // If no portals were found, don't update anything
             if(portal == null) {continue;}
 

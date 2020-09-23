@@ -136,7 +136,6 @@ public class Portal {
         }
         lastActive = currentTick;
 
-        // TODO
         // Since this portal is active, add it to the new force loaded chunks
         pl.rayCastingSystem.keepChunksForceLoaded(destinationChunks);
 
