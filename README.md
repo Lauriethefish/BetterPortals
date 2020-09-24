@@ -5,6 +5,8 @@ It is intended to provide an experience similar to the BetterPortals mod, but as
 
 This plugin is quite configurable, if you wish to change the size and nature of the portal effect you can
 
+[Spigot Page](https://www.spigotmc.org/resources/betterportals.75409/)
+
 ## Benefits
 * Since this is a plugin, players don't need to install a mod on the client side
 * While it does still cause *some* lag, it is overall much faster than the BetterPortals mod
