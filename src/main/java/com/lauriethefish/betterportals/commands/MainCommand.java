@@ -32,6 +32,7 @@ public class MainCommand implements CommandExecutor {
         }
 
         if(subcommand.equals("reload")) {
+            pl.reloadConfig(); // First reload the config file, since reloading the plugin doesn't do this apparently
             PluginManager pm = pl.getServer().getPluginManager();
             pm.disablePlugin(pl);
             pm.enablePlugin(pl);
