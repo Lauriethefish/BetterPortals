@@ -61,17 +61,18 @@ public class BlockProcessor implements Runnable {
         MultiBlockChangeManager changeManager = MultiBlockChangeManager.createInstance(player);
         Map<Vector, Object> blockStates = data.playerData.getSurroundingPortalBlockStates();
 
-        for(BlockRaycastData raycastData : currentBlocks)    {                    
+        for(BlockRaycastData raycastData : currentBlocks)    {
+            Vector originPos = raycastData.getOriginVec();              
             // Check if the block is visible
-            boolean visible = data.checker.checkIfVisibleThroughPortal(raycastData.originVec);
+            boolean visible = data.checker.checkIfVisibleThroughPortal(originPos);
 
-            Object oldState = blockStates.get(raycastData.originVec); // Find if it was visible last tick
-            Object newState = visible ? raycastData.destData : raycastData.originData;
+            Object oldState = blockStates.get(originPos); // Find if it was visible last tick
+            Object newState = visible ? raycastData.getDestData() : raycastData.getOriginData();
 
             // If we are overwriting the block, change it in the player's block array and send them a block update
             if(!newState.equals(oldState)) {
-                blockStates.put(raycastData.originVec, newState);
-                changeManager.addChange(raycastData.originVec, newState);
+                blockStates.put(originPos, newState);
+                changeManager.addChange(originPos, newState);
             }
         }
 

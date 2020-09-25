@@ -9,9 +9,11 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
 
+import lombok.Getter;
+
 // Stores data about a block surrounding the portal that is in the HashMap of viewable blocks
 public class BlockRaycastData {
-    public static Object edgeData = makeEdgeData();
+    private static Object edgeData = makeEdgeData();
     private static Object makeEdgeData()    {
         // Different colours of concrete depend on version
         if(ReflectUtils.isLegacy)  {
@@ -21,9 +23,9 @@ public class BlockRaycastData {
         }
     }
 
-    public Vector originVec;
-    public Object originData;
-    public Object destData;
+    @Getter private Vector originVec;
+    @Getter private Object originData;
+    @Getter private Object destData;
     public BlockRaycastData(Location originLoc, Location destLoc, boolean edge)   {
         this.originVec = MathUtils.moveVectorToCenterOfBlock(originLoc.toVector());
         this.originData = getNMSData(originLoc.getBlock());

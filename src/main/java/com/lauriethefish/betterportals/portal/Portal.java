@@ -44,12 +44,12 @@ public class Portal {
     private Matrix rotateToOrigin;
 
     // Size of the plane the makes up the portal radius from the centerpoint of the portal
-    public Vector planeRadius;
+    @Getter private Vector planeRadius;
 
     // The size of the portal's gateway on the X and Y
-    public Vector portalSize;
+    private Vector portalSize;
 
-    public int lastActive = -2;
+    private int lastActive = -2;
     private int ticksSinceActivation = 0;
 
     @Getter List<BlockRaycastData> currentBlocks;
