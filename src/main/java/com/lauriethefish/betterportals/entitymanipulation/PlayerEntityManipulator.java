@@ -103,6 +103,14 @@ public class PlayerEntityManipulator    {
         sendPacket(packet);
     }
 
+    // Sends a PacketPlayOutMount to show to the player that the entities in mountedIds are riding the entity entityId
+    public void sendMountPacket(int entityId, int[] mountedIds)  {
+        Object packet = ReflectUtils.newInstance("PacketPlayOutMount");
+        ReflectUtils.setField(packet, "a", entityId);
+        ReflectUtils.setField(packet, "b", mountedIds);
+        sendPacket(packet);
+    }
+
     public PlayerViewableEntity getViewedEntity(Entity entity)  {
         return replicatedEntites.get(entity);
     }

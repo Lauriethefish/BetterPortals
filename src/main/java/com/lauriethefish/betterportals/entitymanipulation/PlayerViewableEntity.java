@@ -1,5 +1,7 @@
 package com.lauriethefish.betterportals.entitymanipulation;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import com.lauriethefish.betterportals.ReflectUtils;
@@ -36,6 +38,7 @@ public class PlayerViewableEntity {
     // Store the location in the previous tick, as this is needed to send relative move packets
     private Vector oldLocation;
     private boolean sleepingLastTick = false;
+    private List<Entity> oldPassengers;
 
     public PlayerViewableEntity(PlayerEntityManipulator manipulator, Entity entity, Portal portal, Random random)   {
         this.manipulator = manipulator;
@@ -106,6 +109,28 @@ public class PlayerViewableEntity {
         }
     }
 
+    private void updateMountedEntities()    {
+        // If our passengers have not changed, then return
+        List<Entity> passengers = entity.getPassengers();
+        if(passengers.equals(oldPassengers))  {return;}
+
+        // Otherwise, loop through each passenger, and check if it is visible to the player through the portal
+        ArrayList<Integer> visiblePassengers = new ArrayList<>();
+        for(Entity entity : passengers) {
+            PlayerViewableEntity viewed = manipulator.getViewedEntity(entity);
+            if(viewed != null)  {
+                visiblePassengers.add(viewed.getEntityId());
+            }
+        }
+        // Send a PacketPlayOutMount for the entities that are actually visible
+        int[] mountedIds = visiblePassengers.stream().mapToInt(i -> i).toArray();
+        if(mountedIds.length > 0)   {
+            manipulator.sendMountPacket(entityId, mountedIds);
+        }
+
+        oldPassengers = passengers;
+    }
+
     // Called by EntityManipulator, this function should send all the packets necessary to keep the entity replicated
     void update()   {
         // PacketPlayOutEntityMetadata carries the vast majority of entity data
@@ -116,6 +141,9 @@ public class PlayerViewableEntity {
 
         // Send packets to update the entity's head rotation if we need to
         updateHeadRotation();
+
+        // Send packets to control which entities are riding this entity
+        updateMountedEntities();
 
         if(entity instanceof HumanEntity) {
             boolean sleeping = ((HumanEntity) entity).isSleeping();
