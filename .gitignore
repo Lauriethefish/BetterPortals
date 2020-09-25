@@ -2,4 +2,7 @@ dependencies/
 target/
 .settings/
 .VSCodeCounter/
+bin/
 dependency-reduced-pom.xml
+.classpath
+.factorypath
