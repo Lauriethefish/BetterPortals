@@ -40,11 +40,6 @@
         <scope>provided</scope>
       </dependency>
       <dependency>
-        <groupId>io.netty</groupId>
-        <artifactId>netty-codec-http</artifactId>
-        <version>4.0.33.Final</version>
-      </dependency>
-      <dependency>
         <groupId>org.bstats</groupId>
         <artifactId>bstats-bukkit</artifactId>
         <version>1.7</version>
