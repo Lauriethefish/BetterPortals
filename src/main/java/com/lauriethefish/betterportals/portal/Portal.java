@@ -8,6 +8,7 @@ import java.util.Set;
 
 import com.lauriethefish.betterportals.BetterPortals;
 import com.lauriethefish.betterportals.BlockRaycastData;
+import com.lauriethefish.betterportals.BlockRotator;
 import com.lauriethefish.betterportals.Config;
 import com.lauriethefish.betterportals.ReflectUtils;
 import com.lauriethefish.betterportals.math.Matrix;
@@ -35,13 +36,16 @@ public class Portal {
 
     // The destination position and orientation of the portal
     @Getter private Location destPos;
-    private PortalDirection destDir;
+    @Getter private PortalDirection destDir;
 
     private Matrix originToDestination;
     private Matrix rotateToDestination;
 
     private Matrix destinationToOrigin;
     private Matrix rotateToOrigin;
+
+    // Used to rotate blocks on the other side of the portal to this direction
+    private BlockRotator blockRotator;
 
     // Size of the plane the makes up the portal radius from the centerpoint of the portal
     @Getter private Vector planeRadius;
@@ -93,6 +97,7 @@ public class Portal {
         // Divide the size by 2 so it is the correct amount to subtract from the center to reach each corner
         // Then orient it so that is on the z if the portal is north/south
         this.planeRadius = portalDirection.swapVector(portalSize.clone().multiply(0.5).add(pl.config.portalCollisionBox));
+        this.blockRotator = BlockRotator.newInstance(this);
     }
 
     // Loads all of the values for this portal from the data file
@@ -246,7 +251,7 @@ public class Portal {
                 
                 // Add the changes to our manager
                 if(reset)   {
-                    manager.addChange(position, BlockRaycastData.getNMSData(position.getBlock()));
+                    manager.addChange(position, BlockRaycastData.getNMSData(position.getBlock().getState()));
                 }   else    {
                     manager.addChange(position, nmsAirData);
                 }
@@ -312,7 +317,7 @@ public class Portal {
                     // If the block is bordered by at least one transparent block, add it to the list
                     if(transparentBlock)    {
                         boolean edge = x == config.maxXZ || x == config.minXZ || z == config.maxXZ || z == config.minXZ || y == config.maxY || y == config.minY;
-                        newBlocks.add(new BlockRaycastData(originLoc, destLoc, edge));
+                        newBlocks.add(new BlockRaycastData(blockRotator, originLoc, destLoc, edge));
                     }
                 }
             }
