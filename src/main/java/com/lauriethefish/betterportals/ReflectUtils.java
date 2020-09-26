@@ -13,6 +13,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.util.Vector;
@@ -320,5 +321,25 @@ public class ReflectUtils {
     public static Object createBlockPosition(Vector vec)    {
         return newInstance("BlockPosition", new Class[]{int.class, int.class, int.class},
                                             new Object[]{vec.getBlockX(), vec.getBlockY(), vec.getBlockZ()});
+    }
+
+    private static Map<Vector, BlockFace> vectorToBlockFace = getBlockFaces();
+    private static Map<Vector, BlockFace> getBlockFaces()   {
+        // Loop through each variant of BlockFace, and add it to the map
+        Map<Vector, BlockFace> map = new HashMap<>();
+        for(Object variant : ReflectUtils.getClass("org.bukkit.block.BlockFace").getEnumConstants())    {
+            BlockFace face = (BlockFace) variant;
+            map.put(getDirection(face), face);
+        }
+        return map;
+    }
+
+    // There is no getDirection method on BlockFace in version 1.12.2, so we use this instead
+    public static Vector getDirection(BlockFace face)  {
+        return new Vector(face.getModX(), face.getModY(), face.getModZ()).normalize();
+    }
+
+    public static BlockFace getBlockFace(Vector direction)  {
+        return vectorToBlockFace.get(direction);
     }
 }
