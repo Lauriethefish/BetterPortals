@@ -152,6 +152,7 @@ public class ReflectUtils {
                     }
                 }
             }
+            field.setAccessible(true);
             fieldCache.put(fullName, field); // Add it to the cache
         }
         return field;
@@ -177,6 +178,7 @@ public class ReflectUtils {
                     }
                 }
             }
+            method.setAccessible(true);
             methodCache.put(fullName, method); // Add it to the cache
         }
         return method;
@@ -223,7 +225,6 @@ public class ReflectUtils {
     public static void setField(Object obj, Class<?> cla, String name, Object value)    {
         try {
             Field field = findField(obj, name, cla);
-            field.setAccessible(true);
             field.set(obj, value);
         }   catch(IllegalAccessException ex) {
             ex.printStackTrace();
@@ -234,7 +235,6 @@ public class ReflectUtils {
     public static Object getField(Object obj, Class<?> cla, String name)   {
         try {
             Field field = findField(obj, name, cla);
-            field.setAccessible(true);
             return field.get(obj);
         }   catch(IllegalAccessException | ClassCastException ex) {
             ex.printStackTrace();
@@ -250,7 +250,6 @@ public class ReflectUtils {
     public static Object runMethod(Object obj, Class<?> cla, String name, Class<?>[] params, Object[] args)    {
         try {
             Method method = findMethod(cla, name, params);
-            method.setAccessible(true);
             Object result = method.invoke(obj, args);
             return result;
         }   catch(InvocationTargetException | IllegalAccessException ex)   {
