@@ -5,8 +5,8 @@ import java.util.Map;
 
 import com.lauriethefish.betterportals.BetterPortals;
 import com.lauriethefish.betterportals.PlayerData;
-import com.lauriethefish.betterportals.entitymanipulation.PlayerEntityManipulator;
-import com.lauriethefish.betterportals.entitymanipulation.PlayerViewableEntity;
+import com.lauriethefish.betterportals.entitymanipulation.EntityManipulator;
+import com.lauriethefish.betterportals.entitymanipulation.ViewableEntity;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -28,13 +28,13 @@ public class EntityReplicationEvents implements Listener    {
     }
 
     // Finds which players have the given entity currently visible through a portal
-    private Map<PlayerViewableEntity, PlayerEntityManipulator> findViewingPlayers(Entity entity) {
-        Map<PlayerViewableEntity, PlayerEntityManipulator> result = new HashMap<>();
+    private Map<ViewableEntity, EntityManipulator> findViewingPlayers(Entity entity) {
+        Map<ViewableEntity, EntityManipulator> result = new HashMap<>();
 
         for(PlayerData player : pl.players.values()) {
-            PlayerEntityManipulator manipulator = player.getEntityManipulator();
+            EntityManipulator manipulator = player.getEntityManipulator();
             // If this entity is in the replicated entities, add it to the map
-            PlayerViewableEntity playerEntity = manipulator.getViewedEntity(entity);
+            ViewableEntity playerEntity = manipulator.getViewedEntity(entity);
             if(playerEntity != null)    {
                 result.put(playerEntity, manipulator);
             }
@@ -51,7 +51,7 @@ public class EntityReplicationEvents implements Listener    {
 
         EquipmentSlot handUsed = lastHandUsed.get(player);
         int animationType = handUsed == EquipmentSlot.HAND ? 0 : 3;
-        for(Map.Entry<PlayerViewableEntity, PlayerEntityManipulator> entry : findViewingPlayers(player).entrySet())  {
+        for(Map.Entry<ViewableEntity, EntityManipulator> entry : findViewingPlayers(player).entrySet())  {
             entry.getValue().sendAnimationPacket(entry.getKey(), animationType);
         }
     }
@@ -68,17 +68,17 @@ public class EntityReplicationEvents implements Listener    {
     // Sends a packet to make replicated entities flash red when damaged
     @EventHandler
     public void onEntityDamage(EntityDamageEvent event) {
-        for(Map.Entry<PlayerViewableEntity, PlayerEntityManipulator> entry : findViewingPlayers(event.getEntity()).entrySet())  {
+        for(Map.Entry<ViewableEntity, EntityManipulator> entry : findViewingPlayers(event.getEntity()).entrySet())  {
             entry.getValue().sendAnimationPacket(entry.getKey(), 1);
         }
     }
 
     @EventHandler
     public void onEntityPickupItem(EntityPickupItemEvent event) {
-        for(Map.Entry<PlayerViewableEntity, PlayerEntityManipulator> entry : findViewingPlayers(event.getEntity()).entrySet())  {
+        for(Map.Entry<ViewableEntity, EntityManipulator> entry : findViewingPlayers(event.getEntity()).entrySet())  {
             // Find if the item is also visible through the portal
-            PlayerEntityManipulator manipulator = entry.getValue();
-            PlayerViewableEntity item = manipulator.getViewedEntity(event.getItem());
+            EntityManipulator manipulator = entry.getValue();
+            ViewableEntity item = manipulator.getViewedEntity(event.getItem());
             if(item == null) {continue;}
             // Send a packet that displays the animation of the entity picking up the item
             manipulator.sendPickupItemPacket(entry.getKey(), item);

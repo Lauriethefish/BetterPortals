@@ -28,7 +28,7 @@ import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
-public class PlayerEntityManipulator    {
+public class EntityManipulator    {
     private Random random;
     private Object playerConnection; // Store the NMS connection update to increase speed of sending packets
 
@@ -37,9 +37,9 @@ public class PlayerEntityManipulator    {
     private Set<Entity> hiddenEntities = new HashSet<Entity>();
 
     // All of the fake entities that the player can currently see
-    private Map<Entity, PlayerViewableEntity> replicatedEntites = new HashMap<Entity, PlayerViewableEntity>();
+    private Map<Entity, ViewableEntity> replicatedEntites = new HashMap<Entity, ViewableEntity>();
 
-    public PlayerEntityManipulator(BetterPortals pl, PlayerData playerData)    {
+    public EntityManipulator(BetterPortals pl, PlayerData playerData)    {
         Player player = playerData.getPlayer();
 
         random = new Random(player.getEntityId());
@@ -49,7 +49,7 @@ public class PlayerEntityManipulator    {
     }
 
     // Sends a PacketPlayOutCollect to play the animation of entity picking up item
-    public void sendPickupItemPacket(PlayerViewableEntity entity, PlayerViewableEntity item)  {
+    public void sendPickupItemPacket(ViewableEntity entity, ViewableEntity item)  {
         Object packet = ReflectUtils.newInstance("PacketPlayOutCollect");
         ReflectUtils.setField(packet, "a", item.getEntityId());
         ReflectUtils.setField(packet, "b", entity.getEntityId());
@@ -96,7 +96,7 @@ public class PlayerEntityManipulator    {
     }
 
     // Sends a PacketPlayOutAnimation to the player for the given entity
-    public void sendAnimationPacket(PlayerViewableEntity entity, int animationType) {
+    public void sendAnimationPacket(ViewableEntity entity, int animationType) {
         Object packet = ReflectUtils.newInstance("PacketPlayOutAnimation");
         ReflectUtils.setField(packet, "a", entity.getEntityId());
         ReflectUtils.setField(packet, "b", animationType);
@@ -111,17 +111,17 @@ public class PlayerEntityManipulator    {
         sendPacket(packet);
     }
 
-    public PlayerViewableEntity getViewedEntity(Entity entity)  {
+    public ViewableEntity getViewedEntity(Entity entity)  {
         return replicatedEntites.get(entity);
     }
 
     // Swaps the list of fake entities with the new one, adding or removing any new entities
     public void swapReplicatedEntities(Set<Entity> newReplicatedEntities, Portal portal)  {
         // Loop through all of the existing fake entities and remove any that will no longer be visible to the player
-        Iterator<PlayerViewableEntity> removingIterator = replicatedEntites.values().iterator();
+        Iterator<ViewableEntity> removingIterator = replicatedEntites.values().iterator();
         while(removingIterator.hasNext())   {
             // Get the next entity, check if it is still visible in the new entities
-            PlayerViewableEntity entity = removingIterator.next();
+            ViewableEntity entity = removingIterator.next();
             if(!newReplicatedEntities.contains(entity.getEntity()))   {
                 // If not, send an entity destroy packet, then remove the entity
                 hideEntity(entity.getEntityId());
@@ -134,7 +134,7 @@ public class PlayerEntityManipulator    {
             // If the current entity does not exist in the list
             if(!replicatedEntites.containsKey(entity))   {
                 // Make a new PlayerViewableEntity instance from the entity, then send the packets to show it
-                PlayerViewableEntity newEntity = new PlayerViewableEntity(this, entity, portal, random);
+                ViewableEntity newEntity = new ViewableEntity(this, entity, portal, random);
                 showEntity(entity, newEntity.getLocation(), newEntity.getRotation(), newEntity.getEntityId());
                 replicatedEntites.put(entity, newEntity); // Add the entity to the list
             }
@@ -327,7 +327,7 @@ public class PlayerEntityManipulator    {
         sendPacket(packet);
     }
 
-    public void sendBlockBreakPacket(PlayerViewableEntity entity, Block block)  {
+    public void sendBlockBreakPacket(ViewableEntity entity, Block block)  {
         Object packet = ReflectUtils.newInstance("PacketPlayOutBlockBreakAnimation", 
                                                 new Class[]{int.class, ReflectUtils.getMcClass("BlockPosition"), int.class},
                                                 new Object[]{entity.getEntityId(), ReflectUtils.createBlockPosition(block.getLocation()), 0});
@@ -336,7 +336,7 @@ public class PlayerEntityManipulator    {
 
     // Loops through all the fake entities and updates their position and equipment
     public void updateFakeEntities()   {      
-        for(PlayerViewableEntity playerEntity : replicatedEntites.values()) {
+        for(ViewableEntity playerEntity : replicatedEntites.values()) {
             playerEntity.update();
         }
     }

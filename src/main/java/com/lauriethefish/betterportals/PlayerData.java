@@ -3,7 +3,7 @@ package com.lauriethefish.betterportals;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.lauriethefish.betterportals.entitymanipulation.PlayerEntityManipulator;
+import com.lauriethefish.betterportals.entitymanipulation.EntityManipulator;
 import com.lauriethefish.betterportals.multiblockchange.MultiBlockChangeManager;
 import com.lauriethefish.betterportals.portal.Portal;
 
@@ -28,7 +28,7 @@ public class PlayerData {
     @Getter private Map<Vector, Object> surroundingPortalBlockStates = new HashMap<>();
 
     // Deals with hiding and showing entities
-    @Getter private PlayerEntityManipulator entityManipulator;
+    @Getter private EntityManipulator entityManipulator;
 
     // Last position of the player recorded by PlayerRayCast, used to decide whether or not to re-render to portal view
     @Getter @Setter private Vector lastPosition = null;
@@ -36,7 +36,7 @@ public class PlayerData {
     public PlayerData(BetterPortals pl, Player player) {
         this.pl = pl;
         this.player = player;
-        entityManipulator = new PlayerEntityManipulator(pl, this);
+        entityManipulator = new EntityManipulator(pl, this);
     }
 
     public boolean getIfLoadedWorldLastTick()   {return loadedWorldLastTick;}

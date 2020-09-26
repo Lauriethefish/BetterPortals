@@ -97,9 +97,11 @@ public class PortalSpawnSystem {
 
                     // Check if the distance is less than the closest distance first, for performance
                     double distance = prefferedLocation.distance(newLoc);
+                    boolean isCloser = distance < closestSuitableDistance;
+
                     PortalSuitability suitability = checkSuitableSpawnLocation(newLoc.clone(), direction, portalSize);
                     // If the current closest portal is less suitable that this portal, or is equally as suitable AND is closer, then overrite the closest portal
-                    if(suitability.val > currentSuitability.val || (suitability.val == currentSuitability.val && distance < closestSuitableDistance))  {
+                    if(suitability.val > currentSuitability.val || (suitability.val == currentSuitability.val && isCloser))  {
                         closestSuitableLocation = newLoc;
                         closestSuitableDistance = distance;
                         currentSuitability = suitability;

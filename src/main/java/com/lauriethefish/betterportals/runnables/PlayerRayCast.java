@@ -7,7 +7,7 @@ import com.lauriethefish.betterportals.BetterPortals;
 import com.lauriethefish.betterportals.Config;
 import com.lauriethefish.betterportals.PlayerData;
 import com.lauriethefish.betterportals.ReflectUtils;
-import com.lauriethefish.betterportals.entitymanipulation.PlayerEntityManipulator;
+import com.lauriethefish.betterportals.entitymanipulation.EntityManipulator;
 import com.lauriethefish.betterportals.math.PlaneIntersectionChecker;
 import com.lauriethefish.betterportals.multiblockchange.ChunkCoordIntPair;
 import com.lauriethefish.betterportals.portal.Portal;
@@ -106,7 +106,7 @@ public class PlayerRayCast implements Runnable {
     public void updatePortal(PlayerData playerData, Portal portal, PlaneIntersectionChecker checker) {        
         // We need to update the fake entities every tick, regardless of if the player moved
         if(pl.config.enableEntitySupport)   {
-            PlayerEntityManipulator manipulator = playerData.getEntityManipulator();
+            EntityManipulator manipulator = playerData.getEntityManipulator();
             manipulator.updateFakeEntities();
 
             Set<Entity> replicatedEntities = new HashSet<>();

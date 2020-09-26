@@ -19,8 +19,8 @@ import lombok.Getter;
 
 // Stores the current state of a fake entity
 @Getter
-public class PlayerViewableEntity {
-    private PlayerEntityManipulator manipulator;
+public class ViewableEntity {
+    private EntityManipulator manipulator;
 
     private Entity entity; // The entity that this fake entity replicates
     private Object nmsEntity;
@@ -40,7 +40,7 @@ public class PlayerViewableEntity {
     private boolean sleepingLastTick = false;
     private List<Entity> oldPassengers;
 
-    public PlayerViewableEntity(PlayerEntityManipulator manipulator, Entity entity, Portal portal, Random random)   {
+    public ViewableEntity(EntityManipulator manipulator, Entity entity, Portal portal, Random random)   {
         this.manipulator = manipulator;
         this.entity = entity;
         this.portal = portal;
@@ -57,7 +57,7 @@ public class PlayerViewableEntity {
     public Vector calculateLocation() {
         oldLocation = location;
         
-        location = portal.moveDestinationToOrigin(PlayerEntityManipulator.getEntityPosition(entity, nmsEntity));
+        location = portal.moveDestinationToOrigin(EntityManipulator.getEntityPosition(entity, nmsEntity));
         if(entity instanceof Hanging)   {
             location = MathUtils.round(location);
         }
@@ -117,7 +117,7 @@ public class PlayerViewableEntity {
         // Otherwise, loop through each passenger, and check if it is visible to the player through the portal
         ArrayList<Integer> visiblePassengers = new ArrayList<>();
         for(Entity entity : passengers) {
-            PlayerViewableEntity viewed = manipulator.getViewedEntity(entity);
+            ViewableEntity viewed = manipulator.getViewedEntity(entity);
             if(viewed != null)  {
                 visiblePassengers.add(viewed.getEntityId());
             }
