@@ -53,7 +53,7 @@ public class BlockRaycastData {
         if(ReflectUtils.isLegacy)   {
             return ReflectUtils.findMethod(ReflectUtils.getMcClass("Block"), "getByCombinedId", new Class[]{int.class});
         }   else    {
-            return ReflectUtils.findMethod(ReflectUtils.getBukkitClass("block.BlockState"), "getHandle", new Class[]{});
+            return ReflectUtils.findMethod(ReflectUtils.getBukkitClass("block.CraftBlockState"), "getHandle", new Class[]{});
         }
     }
 
