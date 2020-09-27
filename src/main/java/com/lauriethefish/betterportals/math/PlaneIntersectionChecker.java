@@ -6,9 +6,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 public class PlaneIntersectionChecker {
-    // This value is arbitrarily small
-    public static double EPSILON = 0.000001;
-
     private Vector planeCenter;
     private Vector planeNormal;
     private Vector maxDev;
@@ -38,7 +35,7 @@ public class PlaneIntersectionChecker {
 
         // Find if we intersect the plane, and where
         double denominator = planeNormal.dot(direction);
-        if(Math.abs(denominator) > EPSILON) {
+        if(Math.abs(denominator) > MathUtils.EPSILON) {
             Vector difference = planeCenter.clone().subtract(rayOrigin);
             double t = difference.dot(planeNormal) / denominator;
             // If the block was before the portal, return false
@@ -46,7 +43,7 @@ public class PlaneIntersectionChecker {
                 return false;
             }    
 
-            if(t > EPSILON) {
+            if(t > MathUtils.EPSILON) {
                 Vector portalIntersectPoint = rayOrigin.clone().add(direction.multiply(t));
                 Vector distCenter = portalIntersectPoint.subtract(planeCenter);
 

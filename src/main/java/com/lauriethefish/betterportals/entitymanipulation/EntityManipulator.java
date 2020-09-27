@@ -13,6 +13,7 @@ import java.util.Set;
 import com.lauriethefish.betterportals.BetterPortals;
 import com.lauriethefish.betterportals.PlayerData;
 import com.lauriethefish.betterportals.ReflectUtils;
+import com.lauriethefish.betterportals.math.MathUtils;
 import com.lauriethefish.betterportals.portal.Portal;
 
 import org.bukkit.block.Block;
@@ -179,7 +180,7 @@ public class EntityManipulator    {
         // This is because the normal entity coordinates are not accurate for spawn packets
         if(entity instanceof Hanging)   {
             Object blockPosition = ReflectUtils.getField(nmsEntity, "blockPosition");
-            return ReflectUtils.blockPositionToVector(blockPosition);
+            return MathUtils.moveToCenterOfBlock(ReflectUtils.blockPositionToVector(blockPosition));
         }   else    {
             return entity.getLocation().toVector();
         }
@@ -198,6 +199,7 @@ public class EntityManipulator    {
         Object spawnPacket;
         if(entity instanceof Painting)  {
             spawnPacket = ReflectUtils.newInstance("PacketPlayOutSpawnEntityPainting", new Class[]{ReflectUtils.getMcClass("EntityPainting")}, new Object[]{nmsEntity});
+            
             // Painting spawn packets are slightly different, as they use a BlockPosition and EnumDirection
             Object blockPosition = ReflectUtils.newInstance("BlockPosition", new Class[]{int.class, int.class, int.class},
                                                             new Object[]{location.getBlockX(), location.getBlockY(), location.getBlockZ()});

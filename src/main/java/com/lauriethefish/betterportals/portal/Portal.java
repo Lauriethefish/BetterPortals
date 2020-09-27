@@ -11,6 +11,7 @@ import com.lauriethefish.betterportals.BlockRaycastData;
 import com.lauriethefish.betterportals.BlockRotator;
 import com.lauriethefish.betterportals.Config;
 import com.lauriethefish.betterportals.ReflectUtils;
+import com.lauriethefish.betterportals.math.MathUtils;
 import com.lauriethefish.betterportals.math.Matrix;
 import com.lauriethefish.betterportals.multiblockchange.ChunkCoordIntPair;
 import com.lauriethefish.betterportals.multiblockchange.MultiBlockChangeManager;
@@ -264,7 +265,7 @@ public class Portal {
     // Checks if the location is on the plane made by the portal window
     // This is used because entities in line with the portal should not be rendered
     public boolean positionInlineWithOrigin(Location loc)  {
-        return originDir.swapLocation(loc).getZ() == originDir.swapLocation(originPos).getZ();
+        return originDir.swapLocation(loc).getBlockZ() == originDir.swapLocation(originPos).getBlockZ();
     }
 
     public boolean positionInlineWithDestination(Location loc)  {
@@ -282,7 +283,7 @@ public class Portal {
         for(double z = config.minXZ; z <= config.maxXZ; z++) {
             for(double y = config.minY; y <= config.maxY; y++) {
                 for(double x = config.minXZ; x <= config.maxXZ; x++) {
-                    Location originLoc = originPos.clone().add(x, y, z);
+                    Location originLoc = MathUtils.moveToCenterOfBlock(originPos.clone().add(x, y, z));
                     Location position = moveOriginToDestination(originLoc);
                     occlusionArray[config.calculateBlockArrayIndex(x, y, z)] = position.getBlock().getType().isOccluding();
                 }
@@ -295,7 +296,7 @@ public class Portal {
                 for(double x = config.minXZ; x <= config.maxXZ; x++) {
                     int arrayIndex = config.calculateBlockArrayIndex(x, y, z);
 
-                    Location originLoc = originPos.clone().add(x, y, z);
+                    Location originLoc = MathUtils.moveToCenterOfBlock(originPos.clone().add(x, y, z));
                     Location destLoc = moveOriginToDestination(originLoc);
                     // Skip blocks directly in line with the portal
                     if(positionInlineWithOrigin(originLoc)) {continue;}

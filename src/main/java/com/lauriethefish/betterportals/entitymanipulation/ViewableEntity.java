@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Random;
 
 import com.lauriethefish.betterportals.ReflectUtils;
-import com.lauriethefish.betterportals.math.MathUtils;
 import com.lauriethefish.betterportals.portal.Portal;
 
 import org.bukkit.Location;
@@ -58,9 +57,6 @@ public class ViewableEntity {
         oldLocation = location;
         
         location = portal.moveDestinationToOrigin(EntityManipulator.getEntityPosition(entity, nmsEntity));
-        if(entity instanceof Hanging)   {
-            location = MathUtils.round(location);
-        }
 
         return location.equals(oldLocation) || oldLocation == null ? null : location.clone().subtract(oldLocation);
     }
@@ -159,6 +155,9 @@ public class ViewableEntity {
 
             sleepingLastTick = sleeping;
         }
+
+        // Don't send movement packets for hanging entities
+        if(entity instanceof Hanging)   {return;}
 
         boolean rotChanged = calculateRotation();
         Vector posOffset = calculateLocation();

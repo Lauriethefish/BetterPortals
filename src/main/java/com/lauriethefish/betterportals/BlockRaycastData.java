@@ -28,7 +28,7 @@ public class BlockRaycastData {
     @Getter private Object destData;
     public BlockRaycastData(BlockRotator rotator, Location originLoc, Location destLoc, boolean edge)   {
         // Find the location at the exact center of the origin block, used for portal intersection checking
-        this.originVec = MathUtils.moveVectorToCenterOfBlock(originLoc.toVector());
+        this.originVec = MathUtils.moveToCenterOfBlock(originLoc.toVector());
         this.originData = getNMSData(originLoc.getBlock().getState()); // Find the IBlockData in the origin block
 
         // Rotate the block at the other side if we need to, so it is at the origin
