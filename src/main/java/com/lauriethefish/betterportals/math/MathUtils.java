@@ -15,6 +15,14 @@ public class MathUtils {
         return new Vector(Math.abs(vec.getX()), Math.abs(vec.getY()), Math.abs(vec.getZ()));
     }
 
+    public static Vector floor(Vector vec)  {
+        return new Vector(Math.floor(vec.getX()), Math.floor(vec.getY()), Math.floor(vec.getZ()));
+    }
+
+    public static Vector ceil(Vector vec)  {
+        return new Vector(Math.ceil(vec.getX()), Math.ceil(vec.getY()), Math.ceil(vec.getZ()));
+    }
+
     public static boolean greaterThanEq(Vector a, Vector b)   {
         return a.getX() >= b.getX() && a.getY() >= b.getY() && a.getZ() >= b.getZ();
     }
@@ -29,5 +37,13 @@ public class MathUtils {
 
     public static Location moveToCenterOfBlock(Location loc)  {
         return new Location(loc.getWorld(), Math.floor(loc.getX()) + 0.5, Math.floor(loc.getY()) + 0.5, Math.floor(loc.getZ()) + 0.5);
+    }
+
+    public static Vector min(Vector a, Vector b)    {
+        return new Vector(Math.min(a.getX(), b.getX()), Math.min(a.getY(), b.getY()), Math.min(a.getZ(), b.getZ()));
+    }
+
+    public static Vector max(Vector a, Vector b)    {
+        return new Vector(Math.max(a.getX(), b.getX()), Math.max(a.getY(), b.getY()), Math.max(a.getZ(), b.getZ()));
     }
 }
