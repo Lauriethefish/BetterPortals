@@ -81,9 +81,6 @@ public class BetterPortals extends JavaPlugin {
         registerCommands();
         registerEvents();
 
-        // Add the PlayerData for every online player in order to support /reload
-        addAllPlayerData();
-
         // Load all of the portals in portals.yml, then start the update loop
         try {
             portals = storage.loadPortals();
@@ -92,6 +89,11 @@ public class BetterPortals extends JavaPlugin {
             getLogger().warning(ChatColor.RED + "Error parsing portal data file, this is likely because it is invalid yaml");
             e.printStackTrace();
             disablePlugin(); return;
+        }
+
+        // Add all the currently online players
+        for(Player player : getServer().getOnlinePlayers()) {
+            addPlayer(player);
         }
 
         initialiseStatistics();
@@ -239,15 +241,6 @@ public class BetterPortals extends JavaPlugin {
         getCommand("betterportals").setExecutor(new MainCommand(this));
     }
 
-    // Adds the PlayerData for every player online, in order to support /reload
-    private void addAllPlayerData() {
-        // For each online player
-        for(Player player : getServer().getOnlinePlayers()) {
-            // Add a new player data with the player's UUID
-            players.put(player.getUniqueId(), new PlayerData(this, player));
-        }
-    }
-
     public boolean loadConfig()   {
         try {
             saveDefaultConfig(); // Make a new config file with the default settings if one does not exist
@@ -260,7 +253,6 @@ public class BetterPortals extends JavaPlugin {
         }
     }
 
-    // Registers all of the events with spigot, so that they are fired correctly
     private void registerEvents() {
         PluginManager pm = getServer().getPluginManager();
         // If we are catching the ChunkUnloadEvent to forceload chunks, then register it
