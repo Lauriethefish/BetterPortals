@@ -18,7 +18,7 @@ import com.lauriethefish.betterportals.multiblockchange.ChunkCoordIntPair;
 import com.lauriethefish.betterportals.portal.Portal;
 import com.lauriethefish.betterportals.portal.PortalSpawnSystem;
 import com.lauriethefish.betterportals.portal.PortalStorage;
-import com.lauriethefish.betterportals.runnables.PlayerRayCast;
+import com.lauriethefish.betterportals.runnables.MainUpdate;
 import com.lauriethefish.betterportals.selection.WandInteract;
 
 import org.bstats.bukkit.Metrics;
@@ -47,7 +47,7 @@ public class BetterPortals extends JavaPlugin {
     private Map<Location, Portal> portals;
 
     public PortalSpawnSystem spawningSystem = new PortalSpawnSystem(this);
-    public PlayerRayCast rayCastingSystem;
+    @Getter private MainUpdate portalUpdator;
     public Config config;
     private PortalStorage storage;
 
@@ -85,7 +85,7 @@ public class BetterPortals extends JavaPlugin {
         // Load all of the portals in portals.yml, then start the update loop
         try {
             portals = storage.loadPortals();
-            rayCastingSystem = new PlayerRayCast(this);
+            portalUpdator = new MainUpdate(this);
         }   catch(Exception e)  {
             getLogger().warning(ChatColor.RED + "Error parsing portal data file, this is likely because it is invalid yaml");
             e.printStackTrace();

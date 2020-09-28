@@ -19,7 +19,7 @@ import org.bukkit.util.Vector;
 
 // Casts a ray from each player every tick
 // If it passes through the portal, set the end of it to a redstone block
-public class PlayerRayCast implements Runnable {
+public class MainUpdate implements Runnable {
     private BetterPortals pl;
 
     private int currentTick = 0;
@@ -28,7 +28,7 @@ public class PlayerRayCast implements Runnable {
     private Set<ChunkCoordIntPair> newForceLoadedChunks = new HashSet<>();
 
     private BlockProcessor blockRenderer;
-    public PlayerRayCast(BetterPortals pl) {
+    public MainUpdate(BetterPortals pl) {
         blockRenderer = new BlockProcessor(pl);
         this.pl = pl;
         this.config = pl.config;

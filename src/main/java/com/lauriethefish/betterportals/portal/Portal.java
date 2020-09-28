@@ -151,7 +151,7 @@ public class Portal {
         lastActive = currentTick;
 
         // Since this portal is active, add it to the new force loaded chunks
-        pl.rayCastingSystem.keepChunksForceLoaded(destinationChunks);
+        pl.getPortalUpdator().keepChunksForceLoaded(destinationChunks);
 
         // Update the entities and blocks if we need to
         if(ticksSinceActivation % pl.config.entityCheckInterval == 0)   {
