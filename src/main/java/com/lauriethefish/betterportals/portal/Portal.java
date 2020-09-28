@@ -285,6 +285,10 @@ public class Portal {
         return destDir.swapLocation(loc).getZ() == destDir.swapLocation(destPos).getZ();
     }
 
+    public boolean isCustom()   {
+        return anchored;
+    }
+
     // Loops through the blocks at the destination position, and finds the ones that aren't obscured by other solid blocks
     public void findCurrentBlocks()  {
         Config config = pl.config;

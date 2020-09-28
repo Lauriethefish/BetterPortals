@@ -61,7 +61,8 @@ public class PlayerData {
         boolean changedWorlds = lastActivePortal == null || lastActivePortal.getOriginPos().getWorld() != player.getWorld();
         resetSurroundingBlockStates(!changedWorlds);
 
-        if(pl.config.hidePortalBlocks)  {
+        // Don't hide or recreate portal blocks for custom portals
+        if(pl.config.hidePortalBlocks && !newPortal.isCustom())  {
             // If we're not in the same world as our last portal, there's no point recreating the portal blocks
             if(!changedWorlds)   {
                 lastActivePortal.recreatePortalBlocks(player);
