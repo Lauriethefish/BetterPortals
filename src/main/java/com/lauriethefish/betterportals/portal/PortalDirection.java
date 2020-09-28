@@ -64,4 +64,23 @@ public enum PortalDirection {
     public Location swapLocation(Location loc)  {
         return swapVector(loc.toVector()).toLocation(loc.getWorld());
     }
+
+    // Returns the PortalDirection pointing the opposite way to this one
+    public PortalDirection getOpposite()    {
+        switch(this) {
+            case UP:
+                return DOWN;
+            case DOWN:
+                return UP;
+            case NORTH:
+                return SOUTH;
+            case SOUTH:
+                return NORTH;
+            case EAST:
+                return WEST;
+            case WEST:
+                return EAST;
+        }
+        return null;
+    }
 }
