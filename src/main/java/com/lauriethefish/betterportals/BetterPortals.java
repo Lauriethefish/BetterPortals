@@ -19,22 +19,31 @@ import com.lauriethefish.betterportals.portal.Portal;
 import com.lauriethefish.betterportals.portal.PortalSpawnSystem;
 import com.lauriethefish.betterportals.portal.PortalStorage;
 import com.lauriethefish.betterportals.runnables.PlayerRayCast;
+import com.lauriethefish.betterportals.selection.WandInteract;
 
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import lombok.Getter;
 import net.md_5.bungee.api.ChatColor;
 
 // Main class for the plugin
 public class BetterPortals extends JavaPlugin {
+    @Getter private final String chatPrefix = ChatColor.GRAY + "[" + ChatColor.GREEN + "BetterPortals" + ChatColor.GRAY + "]"
+    + ChatColor.GREEN + " ";
+
     // Plugin ID for bStats
     private static final int pluginId = 8669;
     public Metrics metrics;
 
     // All PlayerData is stored in this map
+    // TODO: make private
     public Map<UUID, PlayerData> players = new HashMap<UUID, PlayerData>();
     private Map<Location, Portal> portals;
 
@@ -42,6 +51,9 @@ public class BetterPortals extends JavaPlugin {
     public PlayerRayCast rayCastingSystem;
     public Config config;
     private PortalStorage storage;
+
+    // Item given to the player to select portals
+    @Getter private ItemStack portalWand;
 
     // Used if on a version where you can cancel ChunkUnloadEvent
     public Set<ChunkCoordIntPair> forceLoadedChunks = new HashSet<>();
@@ -64,6 +76,7 @@ public class BetterPortals extends JavaPlugin {
             disablePlugin(); return; // If loading failed, disable the plugin
         }
 
+        createPortalWand();
         registerCommands();
         registerEvents();
 
@@ -81,6 +94,23 @@ public class BetterPortals extends JavaPlugin {
         }
 
         initialiseStatistics();
+    }
+
+    private void createPortalWand() {
+        // Make the portal wand item
+        portalWand = new ItemStack(Material.BLAZE_ROD);
+
+        // Set the name
+        ItemMeta meta = portalWand.getItemMeta();
+        meta.setDisplayName(ChatColor.GREEN + "Portal Wand");
+        portalWand.setItemMeta(meta);
+        // Add an NBT tag to help us identify the wand later
+        portalWand = ReflectUtils.addItemNBTTag(portalWand, "betterportals_wand", "true");
+    }
+
+    // Finds if the given item is usable as the portal wand
+    public boolean isPortalWand(ItemStack item) {
+        return "true".equals(ReflectUtils.getItemNbtTag(item, "betterportals_wand"));
     }
 
     // Adds a new portal
@@ -103,6 +133,31 @@ public class BetterPortals extends JavaPlugin {
 
     public Portal getPortal(Location originPos) {
         return portals.get(originPos);
+    }
+
+    // Finds the closest portal to the given location that is closer than minimumDistance
+    // If no portals exist in that area, null is returned
+    public Portal findClosestPortal(Location loc, double minimumDistance)    {
+        double closestDistance = minimumDistance;
+        Portal closestPortal = null;
+        // Loop through each portal
+        for(Portal portal : getPortals())   {
+            Location portalLoc = portal.getOriginPos();
+            // Only check portals in the correct world
+            if(portalLoc.getWorld() != loc.getWorld())  {continue;}
+
+            // Set the portal if it is closer than the current one
+            double distance = portalLoc.distance(loc);
+            if(distance < closestDistance)  {
+                closestDistance = distance;
+                closestPortal = portal;
+            }
+        }
+        return closestPortal;
+    }
+
+    public Portal findClosestPortal(Location loc)   {
+        return findClosestPortal(loc, Double.POSITIVE_INFINITY);
     }
 
     public void disablePlugin() {
@@ -195,5 +250,6 @@ public class BetterPortals extends JavaPlugin {
         pm.registerEvents(new JoinLeave(this), this);
         pm.registerEvents(new PortalCreate(this), this);
         pm.registerEvents(new PlayerPortal(), this);
+        pm.registerEvents(new WandInteract(this), this);
     }
 }
