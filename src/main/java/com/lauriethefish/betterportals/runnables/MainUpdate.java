@@ -170,14 +170,14 @@ public class MainUpdate implements Runnable {
 
         // If we are using the force loading method, unforceload any chunks that are no longer loaded by portals
         if(ReflectUtils.useNewChunkLoadingImpl) {
-            for(ChunkCoordIntPair chunk : pl.forceLoadedChunks) {
+            for(ChunkCoordIntPair chunk : pl.getForceLoadedChunks()) {
                 if(!newForceLoadedChunks.contains(chunk))   {
                     chunk.getChunk().setForceLoaded(false);
                 }
             }
         }
 
-        pl.forceLoadedChunks = newForceLoadedChunks;
+        pl.setForceLoadedChunks(newForceLoadedChunks);
         newForceLoadedChunks = new HashSet<>();
     }
 }

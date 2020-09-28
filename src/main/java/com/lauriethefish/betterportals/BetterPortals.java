@@ -22,6 +22,7 @@ import com.lauriethefish.betterportals.runnables.MainUpdate;
 import com.lauriethefish.betterportals.selection.WandInteract;
 
 import org.bstats.bukkit.Metrics;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -31,6 +32,7 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import lombok.Getter;
+import lombok.Setter;
 import net.md_5.bungee.api.ChatColor;
 
 // Main class for the plugin
@@ -55,7 +57,7 @@ public class BetterPortals extends JavaPlugin {
     @Getter private ItemStack portalWand;
 
     // Used if on a version where you can cancel ChunkUnloadEvent
-    public Set<ChunkCoordIntPair> forceLoadedChunks = new HashSet<>();
+    @Getter @Setter private Set<ChunkCoordIntPair> forceLoadedChunks = new HashSet<>();
 
     // This method is called once when our plugin is enabled
     @Override
@@ -140,6 +142,10 @@ public class BetterPortals extends JavaPlugin {
 
     public Collection<PlayerData> getPlayers()  {
         return players.values();
+    }
+
+    public boolean isChunkForceLoaded(Chunk chunk)  {
+        return forceLoadedChunks.contains(new ChunkCoordIntPair(chunk));
     }
 
     public void addPlayer(Player player)  {
