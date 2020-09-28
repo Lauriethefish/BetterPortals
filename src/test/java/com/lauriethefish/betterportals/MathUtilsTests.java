@@ -26,6 +26,22 @@ public class MathUtilsTests {
     }
 
     @Test
+    void floorTest()    {
+        Vector input = new Vector(2.5, 1.5, -1.1);
+        Vector floored = MathUtils.floor(input);
+
+        assertEquals(floored, new Vector(2.0, 1.0, -2.0));
+    }
+
+    @Test
+    void ceilTest() {
+        Vector input = new Vector(2.5, 1.5, -1.1);
+        Vector ceil = MathUtils.ceil(input);
+
+        assertEquals(ceil, new Vector(3.0, 2.0, -1.0));
+    }
+
+    @Test
     void greaterThanEqTest()    {
         assertTrue(MathUtils.greaterThanEq(new Vector(3.1, 5.1, 2.0), new Vector(3.0, 5.0, 2.0)));
         assertFalse(MathUtils.greaterThanEq(new Vector(3.0, 5.0, 2.0), new Vector(3.1, 5.1, 2.0)));
