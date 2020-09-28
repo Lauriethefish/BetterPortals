@@ -6,6 +6,7 @@ import com.lauriethefish.betterportals.BetterPortals;
 import com.lauriethefish.betterportals.ReflectUtils;
 import com.lauriethefish.betterportals.math.MathUtils;
 import com.lauriethefish.betterportals.portal.PortalDirection;
+import com.lauriethefish.betterportals.portal.PortalSpawnSystem;
 import com.lauriethefish.betterportals.portal.Portal;
 
 import org.bukkit.Location;
@@ -87,8 +88,9 @@ public class PortalCreate implements Listener {
         // This changes to z and y if the portal is oriented north/south
         location.subtract(direction.swapVector(new Vector(1.0, 1.0, 0.0)));
 
+        PortalSpawnSystem spawnSystem = pl.getPortalSpawnSystem();
         // Find a suitable location for spawning the portal
-        Location spawnLocation = pl.spawningSystem.findSuitablePortalLocation(location, direction, portalSize);
+        Location spawnLocation = spawnSystem.findSuitablePortalLocation(location, direction, portalSize);
         
         // If no location found - due to no link existing with this world,
         // cancel the event and return
@@ -98,11 +100,11 @@ public class PortalCreate implements Listener {
         }
 
         // Spawn a portal in the opposite world and the right location
-        pl.spawningSystem.spawnPortal(spawnLocation, direction, portalSize);
+        spawnSystem.spawnPortal(spawnLocation, direction, portalSize);
 
         // Fill in any missing corners of the current portal with stone,
         // because lack of corners can break the illusion
-        pl.spawningSystem.fixPortalCorners(location.clone(), direction, portalSize);
+        spawnSystem.fixPortalCorners(location.clone(), direction, portalSize);
 
         // Add to the portals position, as the PlayerRayCast requires coordinates to be at
         // the absolute center of the portal
