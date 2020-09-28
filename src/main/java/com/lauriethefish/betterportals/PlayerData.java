@@ -6,8 +6,12 @@ import java.util.Map;
 import com.lauriethefish.betterportals.entitymanipulation.EntityManipulator;
 import com.lauriethefish.betterportals.multiblockchange.MultiBlockChangeManager;
 import com.lauriethefish.betterportals.portal.Portal;
+import com.lauriethefish.betterportals.selection.PortalSelection;
 
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.Action;
 import org.bukkit.util.Vector;
 
 import lombok.Getter;
@@ -32,6 +36,10 @@ public class PlayerData {
 
     // Last position of the player recorded by PlayerRayCast, used to decide whether or not to re-render to portal view
     @Getter @Setter private Vector lastPosition = null;
+
+    @Getter @Setter private PortalSelection selection;
+    @Getter @Setter private PortalSelection originSelection;
+    @Getter @Setter private PortalSelection destinationSelection;
 
     public PlayerData(BetterPortals pl, Player player) {
         this.pl = pl;
@@ -83,5 +91,22 @@ public class PlayerData {
             changeManager.sendChanges();
         }
         surroundingPortalBlockStates = new HashMap<>();
+    }
+
+    public void makeSelection(Location location, Action hand)  {
+        World world = location.getWorld();
+        // Make a new selection if switching worlds
+        if(selection == null || selection.getWorld() != world)  {
+            selection = new PortalSelection(world);
+        }
+
+        // Set either position A or B
+        if(hand == Action.LEFT_CLICK_BLOCK)  {
+            selection.setPositionA(location.toVector());
+            player.sendMessage(pl.getChatPrefix() + "Set position A");
+        }   else    {
+            selection.setPositionB(location.toVector());
+            player.sendMessage(pl.getChatPrefix() + "Set position B");
+        }
     }
 }

@@ -15,6 +15,7 @@ import com.lauriethefish.betterportals.math.MathUtils;
 import com.lauriethefish.betterportals.math.Matrix;
 import com.lauriethefish.betterportals.multiblockchange.ChunkCoordIntPair;
 import com.lauriethefish.betterportals.multiblockchange.MultiBlockChangeManager;
+import com.lauriethefish.betterportals.selection.PortalSelection;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -99,6 +100,13 @@ public class Portal {
         // Then orient it so that is on the z if the portal is north/south
         this.planeRadius = portalDirection.swapVector(portalSize.clone().multiply(0.5).add(pl.config.portalCollisionBox));
         this.blockRotator = BlockRotator.newInstance(this);
+    }
+
+    // Constructor to make a portal link between two selections
+    public Portal(BetterPortals pl, PortalSelection origin, PortalSelection destination)  {
+        this(pl, origin.getPortalPosition(), origin.getPortalDirection(),
+                 destination.getPortalPosition(), destination.getPortalDirection(), 
+                 origin.getPortalSize(), true);
     }
 
     // Loads all of the values for this portal from the data file
@@ -217,15 +225,20 @@ public class Portal {
         return rotateToDestination.transform(dir);
     }
 
-    // Removes this portal, and its destination portal, from the map in PlayerRayCast
     public void remove()    {
-        // Remove both from the map
-        pl.unregisterPortal(this);
-        pl.unregisterPortal(destPos);
+        remove(true);
+    }
 
-        // Remove the portal blocks
+    // Removes this portal, and its destination portal (if set), from the map
+    public void remove(boolean removeDestination)    {
+        // Remove the portals from the map, and remove any leftover portal blocks
+        pl.unregisterPortal(this);
         originPos.getBlock().setType(Material.AIR);
-        destPos.getBlock().setType(Material.AIR);
+
+        if(removeDestination)   {
+            pl.unregisterPortal(destPos);
+            destPos.getBlock().setType(Material.AIR);
+        }
     }
 
     public void removePortalBlocks(Player player)    {
