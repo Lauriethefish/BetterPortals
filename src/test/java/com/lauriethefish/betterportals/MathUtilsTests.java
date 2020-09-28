@@ -14,7 +14,7 @@ public class MathUtilsTests {
         Vector input = new Vector(1.5, 2.6, 1.1);
         Vector rounded = MathUtils.round(input);
 
-        assertEquals(rounded, new Vector(2.0, 3.0, 1.0));
+        assertEquals(new Vector(2.0, 3.0, 1.0), rounded);
     }
 
     @Test
@@ -22,7 +22,7 @@ public class MathUtilsTests {
         Vector input = new Vector(-1.5, 2.6, -1.1);
         Vector absolute = MathUtils.abs(input);
 
-        assertEquals(absolute, new Vector(1.5, 2.6, 1.1));
+        assertEquals(new Vector(1.5, 2.6, 1.1), absolute);
     }
 
     @Test
@@ -30,7 +30,7 @@ public class MathUtilsTests {
         Vector input = new Vector(2.5, 1.5, -1.1);
         Vector floored = MathUtils.floor(input);
 
-        assertEquals(floored, new Vector(2.0, 1.0, -2.0));
+        assertEquals(new Vector(2.0, 1.0, -2.0), floored);
     }
 
     @Test
@@ -38,7 +38,7 @@ public class MathUtilsTests {
         Vector input = new Vector(2.5, 1.5, -1.1);
         Vector ceil = MathUtils.ceil(input);
 
-        assertEquals(ceil, new Vector(3.0, 2.0, -1.0));
+        assertEquals(new Vector(3.0, 2.0, -1.0), ceil);
     }
 
     @Test
