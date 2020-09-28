@@ -43,8 +43,7 @@ public class BetterPortals extends JavaPlugin {
     public Metrics metrics;
 
     // All PlayerData is stored in this map
-    // TODO: make private
-    public Map<UUID, PlayerData> players = new HashMap<UUID, PlayerData>();
+    private Map<UUID, PlayerData> players = new HashMap<UUID, PlayerData>();
     private Map<Location, Portal> portals;
 
     public PortalSpawnSystem spawningSystem = new PortalSpawnSystem(this);
@@ -133,6 +132,22 @@ public class BetterPortals extends JavaPlugin {
 
     public Portal getPortal(Location originPos) {
         return portals.get(originPos);
+    }
+
+    public PlayerData getPlayerData(Player player)  {
+        return players.get(player.getUniqueId());
+    }
+
+    public Collection<PlayerData> getPlayers()  {
+        return players.values();
+    }
+
+    public void addPlayer(Player player)  {
+        players.put(player.getUniqueId(), new PlayerData(this, player));
+    }
+
+    public void removePlayer(Player player)  {
+        players.remove(player.getUniqueId());
     }
 
     // Finds the closest portal to the given location that is closer than minimumDistance

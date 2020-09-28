@@ -1,9 +1,7 @@
 package com.lauriethefish.betterportals.events;
 
 import com.lauriethefish.betterportals.BetterPortals;
-import com.lauriethefish.betterportals.PlayerData;
 
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -19,13 +17,12 @@ public class JoinLeave implements Listener {
     // Add a new PlayerData for joining players
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        pl.players.put(player.getUniqueId(), new PlayerData(pl, player));
+        pl.addPlayer(event.getPlayer());
     }
 
     // Remove any players leaving the game
     @EventHandler
     public void onPlayerLeave(PlayerQuitEvent event)    {
-        pl.players.remove(event.getPlayer().getUniqueId());
+        pl.removePlayer(event.getPlayer());
     }
 }

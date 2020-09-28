@@ -56,7 +56,7 @@ public class MainCommand implements CommandExecutor {
             return false;
         }
         Player player = (Player) sender;
-        PlayerData playerData = pl.players.get(player.getUniqueId());
+        PlayerData playerData = pl.getPlayerData(player);
 
         // Add the wand to the player's inventory if they ran the wand command
         if(subcommand.equals("wand"))   {

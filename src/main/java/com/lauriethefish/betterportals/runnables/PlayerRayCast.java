@@ -48,24 +48,7 @@ public class PlayerRayCast implements Runnable {
     private Portal findClosestPortal(Player player)   {
         // Loop through all active portals and find the closest one to activate
         // This is for performance - only one portal can be active at a time
-        Portal closestPortal = null;
-
-        // Set the current closest distance to the portalActivationDistance so that no portals
-        // further than it will be activated
-        double closestDistance = config.portalActivationDistance;
-
-        for(Portal portal : pl.getPortals())    {
-            if(portal.getOriginPos().getWorld() != player.getWorld())  {
-                continue;
-            }
-
-            // Check if the portal is closer that any portal so far
-            double distance = portal.getOriginPos().distance(player.getLocation());
-            if(distance < closestDistance) {
-                closestPortal = portal;
-                closestDistance = distance;
-            }
-        }
+        Portal closestPortal = pl.findClosestPortal(player.getLocation(), config.portalActivationDistance);
 
         // Check if the portal or it's detination has any missing blocks
         if(closestPortal != null && !closestPortal.checkOriginAndDestination())    {
@@ -152,7 +135,7 @@ public class PlayerRayCast implements Runnable {
     public void run() {
         // Loop through every online player
         for (Player player : pl.getServer().getOnlinePlayers()) {
-            PlayerData playerData = pl.players.get(player.getUniqueId());
+            PlayerData playerData = pl.getPlayerData(player);
 
             // If we changed worlds in the last tick, we wait to avoid chunks not being loaded while sending updates
             if(playerData.getIfLoadedWorldLastTick())  {

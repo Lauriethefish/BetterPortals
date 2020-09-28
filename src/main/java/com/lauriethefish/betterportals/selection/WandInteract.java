@@ -33,7 +33,7 @@ public class WandInteract implements Listener   {
 
         // Cancel the event if we clicked with the portal wand
         event.setCancelled(true);
-        PlayerData playerData = pl.players.get(player.getUniqueId());
+        PlayerData playerData = pl.getPlayerData(player);
 
         // Call the method in the player for selecting a block
         playerData.makeSelection(event.getClickedBlock().getLocation(), action);

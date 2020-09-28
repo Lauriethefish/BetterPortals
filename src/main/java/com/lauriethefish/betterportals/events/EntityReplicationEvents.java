@@ -31,7 +31,7 @@ public class EntityReplicationEvents implements Listener    {
     private Map<ViewableEntity, EntityManipulator> findViewingPlayers(Entity entity) {
         Map<ViewableEntity, EntityManipulator> result = new HashMap<>();
 
-        for(PlayerData player : pl.players.values()) {
+        for(PlayerData player : pl.getPlayers()) {
             EntityManipulator manipulator = player.getEntityManipulator();
             // If this entity is in the replicated entities, add it to the map
             ViewableEntity playerEntity = manipulator.getViewedEntity(entity);
