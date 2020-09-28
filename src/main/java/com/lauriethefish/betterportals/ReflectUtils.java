@@ -16,6 +16,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.world.ChunkUnloadEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 public class ReflectUtils {
@@ -341,4 +342,32 @@ public class ReflectUtils {
     public static BlockFace getBlockFace(Vector direction)  {
         return vectorToBlockFace.get(direction);
     }
+
+    public static ItemStack addItemNBTTag(ItemStack item, String key, String value) {
+        Class<?> craftItemStack = ReflectUtils.getBukkitClass("inventory.CraftItemStack");
+        // Get the native minecraft version of the item stack
+		Object nmsItem = ReflectUtils.runMethod(null, craftItemStack, "asNMSCopy", new Class[]{ItemStack.class}, new Object[]{item});
+
+		// Get the NBT tag, or create one if the item doesn't have one
+		Object itemTag = ((boolean) ReflectUtils.runMethod(nmsItem, "hasTag")) ? ReflectUtils.runMethod(nmsItem, "getTag") : ReflectUtils.newInstance("NBTTagCompound");
+        
+        Object stringTag = ReflectUtils.newInstance("NBTTagString", new Class[]{String.class}, new Object[]{value});
+        ReflectUtils.runMethod(itemTag, "set", new Class[]{String.class, ReflectUtils.getMcClass("NBTBase")}, new Object[]{key, stringTag}); // Set the value
+
+        // Return the bukkit version of the itemstack
+		return (ItemStack) ReflectUtils.runMethod(null, craftItemStack, "asBukkitCopy", new Class[]{ReflectUtils.getMcClass("ItemStack")}, new Object[]{nmsItem});
+    }
+
+    // Gets the value of a String NBT tag from the item
+	// Returns null if it doesn't exist
+	public static String getItemNbtTag(ItemStack item, String key)	{
+        Class<?> craftItemStack = ReflectUtils.getBukkitClass("inventory.CraftItemStack");
+		// Get the NMS itemstack
+		Object nmsItem = ReflectUtils.runMethod(null, craftItemStack, "asNMSCopy", new Class[]{ItemStack.class}, new Object[]{item});
+
+		if(!(boolean) ReflectUtils.runMethod(nmsItem, "hasTag")) {return null;} // Return null if it has no NBT data
+		Object itemTag = ReflectUtils.runMethod(nmsItem, "getTag"); // Otherwise, get the item's NBT tag
+
+		return (String) ReflectUtils.runMethod(itemTag, "getString", new Class[]{String.class}, new Object[]{key}); // Return the value of the key
+	}
 }
