@@ -10,3 +10,20 @@ commands:
     description: Main plugin command
     aliases:
       - bp
+
+permissions:
+  betterportals.reload:
+    description: Allows you to use /bp reload
+    default: op
+  betterportals.wand:
+    description: Allows you to get the portal wand with /bp wand
+    default: op
+  betterportals.select:
+    description: Allows you to use /bp origin and /bp destination
+    default: op
+  betterportals.link:
+    description: Allows you to create portals with /bp link
+    default: op
+  betterportals.remove:
+    description: Allows you to remove portals with /bp remove
+    default: op
