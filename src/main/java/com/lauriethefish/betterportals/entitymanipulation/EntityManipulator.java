@@ -27,6 +27,7 @@ import org.bukkit.entity.Painting;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.metadata.MetadataValue;
 import org.bukkit.util.Vector;
 
 public class EntityManipulator    {
@@ -122,16 +123,24 @@ public class EntityManipulator    {
         Iterator<ViewableEntity> removingIterator = replicatedEntites.values().iterator();
         while(removingIterator.hasNext())   {
             // Get the next entity, check if it is still visible in the new entities
-            ViewableEntity entity = removingIterator.next();
-            if(!newReplicatedEntities.contains(entity.getEntity()))   {
+            ViewableEntity playerEntity = removingIterator.next();
+            Entity entity = playerEntity.getEntity();
+
+            // If an entity is now vanished, or is no longer shown, hide it
+            if(!newReplicatedEntities.contains(entity) || isVanished(entity))   {
                 // If not, send an entity destroy packet, then remove the entity
-                hideEntity(entity.getEntityId());
+                hideEntity(playerEntity.getEntityId());
                 removingIterator.remove();
             }
         }
 
         // Loop through all the new entities
         for(Entity entity : newReplicatedEntities)  {
+            // Skip vanished players
+            if(isVanished(entity)) {
+                continue;
+            }
+
             // If the current entity does not exist in the list
             if(!replicatedEntites.containsKey(entity))   {
                 // Make a new PlayerViewableEntity instance from the entity, then send the packets to show it
@@ -140,6 +149,17 @@ public class EntityManipulator    {
                 replicatedEntites.put(entity, newEntity); // Add the entity to the list
             }
         }
+    }
+
+    // Checks if an entity is vanished, this code works with most vanish plugins
+    private boolean isVanished(Entity entity)   {
+        // Only players can be vanished
+        if(!(entity instanceof Player)) {return false;}
+
+        for(MetadataValue value : entity.getMetadata("vanished"))   {
+            if(value.asBoolean()) {return true;}
+        }
+        return false;
     }
 
     // Hides the given entity, adding it to the set
