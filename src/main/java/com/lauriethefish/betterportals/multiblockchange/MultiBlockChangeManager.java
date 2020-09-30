@@ -8,13 +8,10 @@ import org.bukkit.util.Vector;
 
 // Interface to represent both implementations of MultiblockChangeManager
 public interface MultiBlockChangeManager {
-    // Instatiates the correct implementation depending on the version
+    // Instatiates the correct implementation of MultiBlockChangeManager depending on the underlying server
     public static MultiBlockChangeManager createInstance(Player player)  {
-        if(ReflectUtils.useNewMultiBlockChangeImpl) {
-            return new MultiBlockChangeManager_1_16_2(player);
-        }   else    {
-            return new MultiBlockChangeManager_Old(player);
-        }
+        return (MultiBlockChangeManager) ReflectUtils.newInstance(ReflectUtils.multiBlockChangeImpl,
+                                                new Class[]{Player.class}, new Object[]{player});
     }
 
     public void addChange(Vector location, Object newType);

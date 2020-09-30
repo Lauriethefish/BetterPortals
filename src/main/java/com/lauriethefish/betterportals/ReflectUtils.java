@@ -5,9 +5,13 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.lauriethefish.betterportals.math.MathUtils;
+import com.lauriethefish.betterportals.multiblockchange.MultiBlockChangeManager_1_16_2;
+import com.lauriethefish.betterportals.multiblockchange.MultiBlockChangeManager_Old;
+import com.lauriethefish.betterportals.multiblockchange.MultiBlockChangeManager_Tuinity;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -41,11 +45,19 @@ public class ReflectUtils {
         }
     }
 
-    // We need to use a new implementation of PacketPlayOutMultiBlockChange if we
-    // want to support 1.16.2
-    // To decide if we are on 1.16.2+, we check to see if the MultiBlockChangeInfo
-    // class exists (this is not the case on the newer version)
-    public static boolean useNewMultiBlockChangeImpl = getMcClass("PacketPlayOutMultiBlockChange$MultiBlockChangeInfo", false) == null;
+    // Different server implementations and versions change PacketPlayOutMultiBlockChange
+    // Here we find the correct version of the manager class to instantiate
+    public static Class<?> multiBlockChangeImpl = findMultiBlockChangeImpl();
+    private static Class<?> findMultiBlockChangeImpl()  {
+        if(getMcClass("PacketPlayOutMultiBlockChange$MultiBlockChangeInfo", false) != null)    {
+            return MultiBlockChangeManager_Old.class;
+        }   else if(List.class.isAssignableFrom(ReflectUtils.findField(null, "b", getMcClass("PacketPlayOutMultiBlockChange"), true).getType()))    {
+            // When using Tuinity, the fields of PacketPlayOutMultiBlockChange are modified to use a List instead of just an array
+            return MultiBlockChangeManager_Tuinity.class;
+        }   else    {
+            return MultiBlockChangeManager_1_16_2.class;
+        }
+    }
 
     // Checks to see if we need to use the new PacketPlayOutEntityEquipment
     // (the new version sends multiple armor pieces in one packet)
