@@ -12,12 +12,16 @@ public class PlaneIntersectionChecker {
 
     private Vector rayOrigin;
 
-    public PlaneIntersectionChecker(Player player, Portal portal)    {
+    public PlaneIntersectionChecker(Player player, Portal portal)   {
+        this(player.getEyeLocation().toVector(), portal);
+    }
+
+    public PlaneIntersectionChecker(Vector location, Portal portal)    {
         this.planeCenter = portal.getOriginPos().toVector();
         this.planeNormal = portal.getOriginDir().toVector();
         this.maxDev = portal.getPlaneRadius();    
 
-        this.rayOrigin = player.getEyeLocation().toVector();
+        this.rayOrigin = location;
     }
 
     // Contrustor used for testing
