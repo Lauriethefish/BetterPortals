@@ -102,7 +102,6 @@ public class MainUpdate implements Runnable {
             // Teleport the entity if it walked through a portal
             PlaneIntersectionChecker teleportChecker = new PlaneIntersectionChecker(actualLocation, portal);
             if(!(entity instanceof Player) && lastKnownLocation != null && teleportChecker.checkIfVisibleThroughPortal(lastKnownLocation))  {
-                pl.getLogger().info("entity teleport");
                 portal.teleportEntity(entity);
             }
 
