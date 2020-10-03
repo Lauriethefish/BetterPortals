@@ -1,6 +1,7 @@
 package com.lauriethefish.betterportals.runnables;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import com.lauriethefish.betterportals.BetterPortals;
@@ -12,7 +13,6 @@ import com.lauriethefish.betterportals.math.PlaneIntersectionChecker;
 import com.lauriethefish.betterportals.multiblockchange.ChunkCoordIntPair;
 import com.lauriethefish.betterportals.portal.Portal;
 
-import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -64,71 +64,76 @@ public class MainUpdate implements Runnable {
         Player player = playerData.getPlayer();
         
         Vector lastPos = playerData.getLastPosition();
+
         // If the player's position the previous tick was on the other side of the portal window, then we should teleport the player, otherwise return
         if(lastPos == null || !checker.checkIfVisibleThroughPortal(lastPos))   {
             return false;
         }
         
-        // Save their velocity for later
-        Vector playerVelocity = player.getVelocity().clone();
-        // Move them to the other portal
-        Location newLoc = portal.moveOriginToDestination(player.getLocation());
-        newLoc.setDirection(portal.rotateToDestination(player.getLocation().getDirection()));
-
-        player.teleport(newLoc);
-        // Set the player's last position to null, since otherwise portals that they moved through while teleporting will move them again
-        playerData.setLastPosition(null);
-        
-        // Set their velocity back to what it was
-        player.setVelocity(playerVelocity);
+        portal.teleportEntity(player);
         return true;
     }
     
     // This function is responsible for iterating over all of the blocks surrounding the portal,
     // and performing a raycast on each of them to check if they should be visible
     public void updatePortal(PlayerData playerData, Portal portal, PlaneIntersectionChecker checker) {        
-        // We need to update the fake entities every tick, regardless of if the player moved
-        if(pl.config.enableEntitySupport)   {
-            EntityManipulator manipulator = playerData.getEntityManipulator();
-            manipulator.updateFakeEntities();
-
-            Set<Entity> replicatedEntities = new HashSet<>();
-            for(Entity entity : portal.getNearbyEntitiesDestination())   {
-                // If the entity is in a different world, or is on the same line as the portal destination, skip it
-                if(entity.getWorld() != portal.getDestPos().getWorld() || portal.positionInlineWithDestination(entity.getLocation())) {
-                    continue;
-                }
-
-                Vector originPos = portal.moveDestinationToOrigin(entity.getLocation().toVector());
-                // If an entity is visible through the portal, then we replicate it
-                if(checker.checkIfVisibleThroughPortal(originPos))  {
-                    replicatedEntities.add(entity);
-                }
-            }
-
-            Set<Entity> hiddenEntities = new HashSet<>();
-            for(Entity entity : portal.getNearbyEntitiesOrigin())   {
-                // If the entity isn't in the same world, we skip it
-                // We also skip entities directly in line with the portal window, since they generally get hidden and reshown glitchily
-                if(entity.getWorld() != portal.getOriginPos().getWorld() || portal.positionInlineWithOrigin(entity.getLocation())) {
-                    continue;
-                }
-
-                // If an entity is visible through the portal, then we hide it
-                if(checker.checkIfVisibleThroughPortal(entity.getLocation().toVector()))  {
-                    hiddenEntities.add(entity);
-                }
-            }
-
-            manipulator.swapHiddenEntities(hiddenEntities);
-            manipulator.swapReplicatedEntities(replicatedEntities, portal);
-        }
-
         // Optimisation: Check if the player has moved before re-rendering the view
         Vector currentLoc = playerData.getPlayer().getLocation().toVector();
         if(currentLoc.equals(playerData.getLastPosition()))  {return;}
         // Queue an update to happen on the async task
         blockRenderer.queueUpdate(playerData, checker, portal);
+    }
+
+    private void updateEntities(PlayerData playerData, Portal portal, PlaneIntersectionChecker checker)  {
+        EntityManipulator manipulator = playerData.getEntityManipulator();
+
+        // We need to loop through the entities at the origin regardless of if entities are enabled, since we also need to teleport those going through portals
+        Set<Entity> hiddenEntities = new HashSet<>();
+        for(Map.Entry<Entity, Vector> entry : portal.getNearbyEntitiesOrigin().entrySet())   {
+            Entity entity = entry.getKey();
+            Vector lastKnownLocation = entry.getValue();
+
+            // If the entity isn't in the same world, we skip it
+            if(entity.getWorld() != portal.getOriginPos().getWorld())   {
+                continue;
+            }
+
+            Vector actualLocation = entity.getLocation().toVector();
+            // Teleport the entity if it walked through a portal
+            PlaneIntersectionChecker teleportChecker = new PlaneIntersectionChecker(actualLocation, portal);
+            if(!(entity instanceof Player) && lastKnownLocation != null && teleportChecker.checkIfVisibleThroughPortal(lastKnownLocation))  {
+                pl.getLogger().info("entity teleport");
+                portal.teleportEntity(entity);
+            }
+
+            // Set the location back to the actual location
+            entry.setValue(actualLocation);
+
+            // If an entity is visible through the portal, then we hide it
+            if(pl.config.enableEntitySupport && checker.checkIfVisibleThroughPortal(entity.getLocation().toVector()))  {
+                hiddenEntities.add(entity);
+            }
+        }
+
+        if(!pl.config.enableEntitySupport)  {return;}
+
+        Set<Entity> replicatedEntities = new HashSet<>();
+        for(Entity entity : portal.getNearbyEntitiesDestination())   {
+            // Don't replicate entities almost exactly in line 
+            if(portal.positionInlineWithDestination(entity.getLocation())) {
+                continue;
+            }
+
+            Vector originPos = portal.moveDestinationToOrigin(entity.getLocation().toVector());
+            // If an entity is visible through the portal, then we replicate it
+            if(checker.checkIfVisibleThroughPortal(originPos))  {
+                replicatedEntities.add(entity);
+            }
+        }
+
+        manipulator.updateFakeEntities();
+        manipulator.swapHiddenEntities(hiddenEntities);
+        manipulator.swapReplicatedEntities(replicatedEntities, portal);
     }
 
     @Override
@@ -154,12 +159,13 @@ public class MainUpdate implements Runnable {
             portal.update(currentTick);
 
             PlaneIntersectionChecker intersectionChecker = new PlaneIntersectionChecker(player, portal);
+
+            updateEntities(playerData, portal, intersectionChecker);
             // Queue the update to happen on another thread
             updatePortal(playerData, portal, intersectionChecker);
 
             // Teleport the player if they cross through a portal
             if(performPlayerTeleport(playerData, portal, intersectionChecker))    {
-                playerData.setLoadedWorldLastTick();
                 continue;
             }
 
