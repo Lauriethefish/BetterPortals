@@ -10,9 +10,10 @@ import java.util.concurrent.Callable;
 
 import com.lauriethefish.betterportals.commands.MainCommand;
 import com.lauriethefish.betterportals.events.ChunkUnload;
+import com.lauriethefish.betterportals.events.EntityPortal;
 import com.lauriethefish.betterportals.events.EntityReplicationEvents;
 import com.lauriethefish.betterportals.events.JoinLeave;
-import com.lauriethefish.betterportals.events.PlayerPortal;
+import com.lauriethefish.betterportals.events.PlayerTeleport;
 import com.lauriethefish.betterportals.events.PortalCreate;
 import com.lauriethefish.betterportals.multiblockchange.ChunkCoordIntPair;
 import com.lauriethefish.betterportals.portal.Portal;
@@ -262,7 +263,8 @@ public class BetterPortals extends JavaPlugin {
         pm.registerEvents(new EntityReplicationEvents(this), this);
         pm.registerEvents(new JoinLeave(this), this);
         pm.registerEvents(new PortalCreate(this), this);
-        pm.registerEvents(new PlayerPortal(), this);
+        pm.registerEvents(new EntityPortal(this), this);
         pm.registerEvents(new WandInteract(this), this);
+        pm.registerEvents(new PlayerTeleport(this), this);
     }
 }
