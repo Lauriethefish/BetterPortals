@@ -2,8 +2,10 @@ package com.lauriethefish.betterportals.portal;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.lauriethefish.betterportals.BetterPortals;
@@ -59,7 +61,7 @@ public class Portal {
     private int ticksSinceActivation = 0;
 
     @Getter List<BlockRaycastData> currentBlocks;
-    @Getter private Collection<Entity> nearbyEntitiesOrigin = null;
+    @Getter private Map<Entity, Vector> nearbyEntitiesOrigin = null;
     @Getter private Collection<Entity> nearbyEntitiesDestination = null;
 
     private Set<ChunkCoordIntPair> destinationChunks = new HashSet<>();
@@ -165,10 +167,36 @@ public class Portal {
 
     // Updates the two lists of neaby entities
     private void updateNearbyEntities()   {
-        nearbyEntitiesOrigin = originPos.getWorld()
+        Collection<Entity> nearbyEntities = originPos.getWorld()
                     .getNearbyEntities(originPos, pl.config.maxXZ, pl.config.maxY, pl.config.maxXZ);
-        nearbyEntitiesDestination = destPos.getWorld()
-                    .getNearbyEntities(destPos, pl.config.maxXZ, pl.config.maxY, pl.config.maxXZ);
+
+        // Store the entity and last location in a hash map
+        Map<Entity, Vector> newOriginEntites = new HashMap<>();
+        for(Entity entity : nearbyEntities) {
+            // Copy existing locations to the new map
+            Vector existingLocation = nearbyEntitiesOrigin == null ? null : nearbyEntitiesOrigin.get(entity);
+            newOriginEntites.put(entity, existingLocation);
+        }
+        nearbyEntitiesOrigin = newOriginEntites;
+
+        if(pl.config.enableEntitySupport)   {
+            nearbyEntitiesDestination = destPos.getWorld()
+                        .getNearbyEntities(destPos, pl.config.maxXZ, pl.config.maxY, pl.config.maxXZ);
+        }
+    }
+
+    // Teleports an entity from the origin to the destination
+    public void teleportEntity(Entity entity)  {
+        // Save their velocity for later
+        Vector playerVelocity = entity.getVelocity().clone();
+        // Move them to the other portal
+        Location newLoc = moveOriginToDestination(entity.getLocation());
+        newLoc.setDirection(rotateToDestination(entity.getLocation().getDirection()));
+
+        entity.teleport(newLoc);
+        
+        // Set their velocity back to what it was
+        entity.setVelocity(playerVelocity);
     }
 
     public boolean checkOriginAndDestination()  {
