@@ -30,4 +30,8 @@ public class WorldLink  {
         maxSpawnY = config.getInt("maxSpawnY");
         coordinateRescalingFactor = config.getDouble("coordinateRescalingFactor");
     }
+
+    public boolean isValid()    {
+        return originWorld != null && destinationWorld != null;
+    }
 }

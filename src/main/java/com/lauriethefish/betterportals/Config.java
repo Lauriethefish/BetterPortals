@@ -13,6 +13,8 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.util.Vector;
 
+import net.md_5.bungee.api.ChatColor;
+
 // Stores all of the configuration for the BetterPortals plugin, so that it can be
 // easy sent between events
 public class Config {
@@ -137,7 +139,11 @@ public class Config {
         while(links.hasNext())  {
             // Get the configuration section of the link and retrieve all of the values for it using the constructor
             WorldLink newLink = new WorldLink(pl, worldLinksSection.getConfigurationSection(links.next()));
-            // Add it to the list
+            if(!newLink.isValid())  {
+                pl.getLogger().info(ChatColor.RED + "An invalid worldConnection was found in the config.yml, please check that your world names are correct");
+                continue;
+            }
+            
             worldLinks.add(newLink);        
         }
     }
