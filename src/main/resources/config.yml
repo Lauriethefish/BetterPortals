@@ -60,3 +60,7 @@ worldConnections:
     minSpawnY: 5
     maxSpawnY: 250
     coordinateRescalingFactor: 8.0
+
+# Worlds where the plugin will fall back to the vanilla portal logic
+disabledWorlds:
+  - 'some_world'

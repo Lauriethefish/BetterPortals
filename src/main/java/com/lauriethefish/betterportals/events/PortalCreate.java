@@ -31,7 +31,8 @@ public class PortalCreate implements Listener {
     public void onPortalCreate(PortalCreateEvent event) {
         // If the portal was created by the vanilla portal generator (due to a player manually generating one)
         // then return from this event. This should not happen, but this is here in case it does
-        if(event.getReason() != CreateReason.FIRE)   {
+        // Also don't check the portal if this world is disabled
+        if(pl.config.isWorldDisabled(event.getWorld()) || event.getReason() != CreateReason.FIRE)   {
             return;
         }
 

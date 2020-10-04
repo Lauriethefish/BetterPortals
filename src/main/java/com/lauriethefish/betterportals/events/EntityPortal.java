@@ -16,8 +16,11 @@ public class EntityPortal implements Listener   {
         this.pl = pl;
     }
 
+    // Don't cancel the events if the world is disabled
     @EventHandler
     public void onEntityPortal(EntityPortalEvent event) {
+        if(pl.config.isWorldDisabled(event.getFrom()))  {return;}
+
         // First check that the portal is a nether portal, so that end portals/gateways still work
         // Since this event has no getCause method, we just check if a portal is very close
         if(pl.findClosestPortal(event.getFrom(), 5.0) != null)  {
@@ -27,6 +30,8 @@ public class EntityPortal implements Listener   {
 
     @EventHandler
     public void onPlayerPortal(PlayerPortalEvent event) {
+        if(pl.config.isWorldDisabled(event.getFrom()))  {return;}
+
         // Check that the portal is a nether portal
         if(event.getCause() == TeleportCause.NETHER_PORTAL) {
             event.setCancelled(true);

@@ -4,10 +4,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -21,6 +24,7 @@ public class Config {
     private BetterPortals pl; // Reference to the plugin
 
     public List<WorldLink> worldLinks = new ArrayList<>();
+    private Set<World> disabledWorlds = new HashSet<>();
 
     // The min and max values for the blocks that the raycast will check
     public double minXZ;
@@ -140,11 +144,18 @@ public class Config {
             // Get the configuration section of the link and retrieve all of the values for it using the constructor
             WorldLink newLink = new WorldLink(pl, worldLinksSection.getConfigurationSection(links.next()));
             if(!newLink.isValid())  {
-                pl.getLogger().info(ChatColor.RED + "An invalid worldConnection was found in the config.yml, please check that your world names are correct");
+                pl.getLogger().info(ChatColor.RED + "An invalid worldConnection was found in config.yml, please check that your world names are correct");
                 continue;
             }
             
             worldLinks.add(newLink);        
+        }
+
+        // Add all the disabled worlds to a set
+        List<String> disabledWorldsString = file.getStringList("disabledWorlds");
+        for(String worldString : disabledWorldsString)  {
+            World world = pl.getServer().getWorld(worldString);
+            disabledWorlds.add(world);
         }
     }
 
@@ -205,5 +216,14 @@ public class Config {
     // Coordinates should be relative to the bottom left and lowest corner of the box
     public int calculateBlockArrayIndex(double x, double y, double z)  {
         return (int) (z * zMultip + y * yMultip + x) + totalArrayLength / 2;
+    }
+
+    // Convenience methods for getting if a world is disabled
+    public boolean isWorldDisabled(Location loc) {
+        return isWorldDisabled(loc.getWorld());
+    }
+
+    public boolean isWorldDisabled(World world) {
+        return disabledWorlds.contains(world);
     }
 }
