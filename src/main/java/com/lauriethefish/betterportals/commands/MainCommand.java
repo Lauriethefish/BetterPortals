@@ -47,7 +47,7 @@ public class MainCommand implements CommandExecutor {
             pm.disablePlugin(pl);
             pm.enablePlugin(pl);
 
-            sender.sendMessage(pl.getChatPrefix() + " Reloaded plugin");
+            sender.sendMessage(pl.getChatPrefix() + "Reloaded plugin");
             return true;
         }
 
