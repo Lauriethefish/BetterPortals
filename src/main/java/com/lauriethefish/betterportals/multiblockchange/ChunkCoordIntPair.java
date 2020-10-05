@@ -70,6 +70,17 @@ public class ChunkCoordIntPair {
         return ReflectUtils.newInstance("ChunkCoordIntPair", new Class[]{int.class, int.class}, new Object[]{x, z});
     }
 
+    // Finds if this chunk has been generated before. This has the side effect of loading the chunk if it exists
+    // Throws NullPointerException if world is null
+    public boolean isGenerated()    {
+        return world.loadChunk(x, z, false);
+    }
+
+    // Gets the location of the bottom left position of this chunk
+    public Location getBottomLeft() {
+        return new Location(world, x * 16, 0, z * 16);
+    }
+
     // Automatically generated
     @Override
     public boolean equals(Object o) {
