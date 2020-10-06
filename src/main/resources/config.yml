@@ -39,7 +39,7 @@ maxPortalSize:
 # The default values are tuned to work fairly well, so I don't recommend changing these
 portalCollisionBox:
   x: 0.38
-  y: 0.35
+  y: 0.38
   z: 0.25
 
 # Stores the links between worlds. By default this links the overworld and the nether with portals
