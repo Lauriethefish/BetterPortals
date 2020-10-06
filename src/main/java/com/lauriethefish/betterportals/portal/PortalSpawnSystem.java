@@ -1,8 +1,11 @@
 package com.lauriethefish.betterportals.portal;
 
+import java.util.Set;
+
 import com.lauriethefish.betterportals.BetterPortals;
 import com.lauriethefish.betterportals.ReflectUtils;
 import com.lauriethefish.betterportals.WorldLink;
+import com.lauriethefish.betterportals.multiblockchange.ChunkCoordIntPair;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -77,11 +80,28 @@ public class PortalSpawnSystem {
         // Convert the location to a block and back, this should floor the location so it is all whole numbers
         Location prefferedLocation = destinationLoc.getBlock().getLocation();
 
+        Location a = prefferedLocation.clone().subtract(128, 0, 128);
+        Location b = prefferedLocation.clone().add(128, 0, 128);
+        Set<ChunkCoordIntPair> chunks = ChunkCoordIntPair.findArea(a, b);
+
+        // Loop through each chunk around the portal to search for existing portals
+        Location closestExistingPortal = null;
+        for(ChunkCoordIntPair chunkPos : chunks)  {
+            // Only check for existing portals in chunks that have already been generated
+            if(chunkPos.isGenerated())  {
+                closestExistingPortal = checkForExistingFrameInChunk(prefferedLocation, closestExistingPortal, chunkPos, direction, portalSize);
+                chunkPos.getChunk().unload();
+            }
+        }
+
+        if(closestExistingPortal != null)   {
+            return closestExistingPortal;
+        }
+
         // Variables for storing the current closestSuitableLocation
         Location closestSuitableLocation = null;
         // Set the current closest distance to infinity so that all numbers are less than it
         double closestSuitableDistance = Double.POSITIVE_INFINITY;
-        PortalSuitability currentSuitability = PortalSuitability.UNSUITABLE;
 
         // Loop through a few areas around the portal
         for(double z = -128.0; z < 128.0; z += 1.0)  {
@@ -99,12 +119,13 @@ public class PortalSpawnSystem {
                     double distance = prefferedLocation.distance(newLoc);
                     boolean isCloser = distance < closestSuitableDistance;
 
-                    PortalSuitability suitability = checkSuitableSpawnLocation(newLoc.clone(), direction, portalSize);
                     // If the current closest portal is less suitable that this portal, or is equally as suitable AND is closer, then overrite the closest portal
-                    if(suitability.val > currentSuitability.val || (suitability.val == currentSuitability.val && isCloser))  {
-                        closestSuitableLocation = newLoc;
-                        closestSuitableDistance = distance;
-                        currentSuitability = suitability;
+                    if(isCloser)    {
+                        boolean suitable = checkSuitableSpawnLocation(newLoc.clone(), direction, portalSize);
+                        if(suitable)    {
+                            closestSuitableLocation = newLoc;
+                            closestSuitableDistance = distance;
+                        }
                     }
                 }  
             }
@@ -119,20 +140,9 @@ public class PortalSpawnSystem {
         return prefferedLocation;
     }
 
-    private enum PortalSuitability  {
-        UNSUITABLE(0),
-        SUITABLE(1),
-        PREFERRED(2);
-        public final int val;
-        private PortalSuitability(int val)  {
-            this.val = val;
-        }
-    }
-
     // Checks if the position is given is suitable for spawning a portal
     // See definition of a suitable location above
-    public PortalSuitability checkSuitableSpawnLocation(Location location, PortalDirection direction, Vector portalSize) {
-        int existingCorrectBlocks = 0;
+    public boolean checkSuitableSpawnLocation(Location location, PortalDirection direction, Vector portalSize) {
         // Loop through the two colums of portal blocks
         for(double x = 0.0; x <= portalSize.getX() + 1.0; x++)  {
             Location currentPosX = location.clone().add(direction.swapVector(new Vector(x, 0.0, 0.0)));
@@ -140,7 +150,7 @@ public class PortalSpawnSystem {
             Material groundType = currentPosX.getBlock().getType();
             // If the ground is not solid, it is not suitable 
             if(!groundType.isSolid())  {
-                return PortalSuitability.UNSUITABLE;
+                return false;
             }
 
             // If the air above the columns is solid or lava/water then it is not suitable
@@ -149,33 +159,28 @@ public class PortalSpawnSystem {
                 Block currentBlock = currentPosX.clone().add(0.0, y, 0.0).getBlock();
                 Material type = currentBlock.getType();
 
-                boolean shouldBeObsidian = (x == 0 || x == portalSize.getX() + 1.0 || y == portalSize.getY() + 1.0);
-                if((shouldBeObsidian && type == Material.OBSIDIAN) || (!shouldBeObsidian && type == ReflectUtils.portalMaterial))   {
-                    existingCorrectBlocks++;
-                    continue;
-                }
-
                 if(type.isSolid() || currentBlock.isLiquid())   {
-                    return PortalSuitability.UNSUITABLE;
+                    return false;
                 }
             }
         }
 
-        // Return unsuitable if we are too close to another portal
+        if(checkPortalProximity(location))  {return false;}
+        return true;
+    }
+
+    // Returns true if this position is too close to another portal to be used as a spawn location
+    private boolean checkPortalProximity(Location loc)  {
+        // Loop through each portal
         for(Portal portal : pl.getPortals())    {
             Location otherPos = portal.getOriginPos();
 
-            if(otherPos.getWorld() == location.getWorld() && otherPos.distance(location) < pl.config.minimumPortalSpawnDistance) {
-                return PortalSuitability.UNSUITABLE;
+            // If the portal is in the same world, and is too close, return true
+            if(otherPos.getWorld() == loc.getWorld() && otherPos.distance(loc) < pl.config.minimumPortalSpawnDistance) {
+                return true;
             }
         }
-
-        if(existingCorrectBlocks >= 8)   {
-            return PortalSuitability.PREFERRED;
-        }
-
-        // If all the checks succeeded, then this location is suitable for portal spawning
-        return PortalSuitability.SUITABLE;
+        return false;
     }
 
     // Checks all four corners of the portal given to see if they are solid blocks
@@ -202,21 +207,73 @@ public class PortalSpawnSystem {
         }
     }
 
-    public int checkForExistingObsidian(Location location, PortalDirection direction, Vector portalSize)   {
-        int blocksExisting = 0;
+    // Checks to see if there is an existing portal frame in the given location
+    // If the frame has more than 6 blocks missing, or there is a non-portal block inside the portal area, this returns false
+    public boolean checkForExistingFrame(Location location, PortalDirection direction, Vector portalSize)   {
+        int wrongBlocks = 0;
 
+        // Loop through each block of the portal
         Vector realSize = portalSize.add(new Vector(1.0, 1.0, 0.0));
         for(double y = 0.0; y <= realSize.getY(); y++)  {
             for(double x = 0.0; x <= realSize.getX(); x++)  {
-                if(!(x == 0 || x == realSize.getX() || y == 0.0 || y == realSize.getY()))  {
-                    continue;
+                // Find the position at this block, then find the block type
+                Location blockPos = location.clone().add(direction.swapVector(new Vector(x, y, 0.0)));
+                Material type = blockPos.getBlock().getType();
+
+                // Check to see if this block should be one of the obsidian blocks on the edge of the frame
+                if(x == 0 || x == realSize.getX() || y == 0.0 || y == realSize.getY())  {
+                    // If the block isn't obsidian when it should be, increment wrongBlocks
+                    if(!(type == Material.OBSIDIAN))    {
+                        wrongBlocks++;
+                    }
+                }   else    {
+                    // Otherwise, return false if there was a non air or portal block in the portal window
+                    if(!(type == Material.AIR || type == ReflectUtils.portalMaterial))    {
+                        return false;
+                    }
                 }
 
-
+                if(wrongBlocks > 6) {return false;}
             }
         }
 
-        return blocksExisting;
+        // Return true if there are no more than 6 missing obsidian blocks
+        return true;
+    }
+
+    public Location checkForExistingFrameInChunk(Location prefferedPos, Location currentClosest, ChunkCoordIntPair chunkPos, PortalDirection direction, Vector portalSize) {
+        Location chunkBottomLeft = chunkPos.getBottomLeft();
+
+        double closestDistance = currentClosest == null ? Double.POSITIVE_INFINITY : currentClosest.distance(prefferedPos);
+        // Limit our Y coordinate so that we don't check areas above Y 255
+        int maxY = 254 - portalSize.getBlockY();
+        // Loop through each block of the chunk
+        for(int x = 0; x < 16; x++) {
+            for(int z = 0; z < 16; z++)    {
+                for(int y = 0; y < maxY; y++)    {
+                    Location checkPos = chunkBottomLeft.clone().add(x, y, z);
+
+                    // Find if this location is any closer than our current closest point
+                    double distance = prefferedPos.distance(checkPos);
+                    if(currentClosest == null || distance < closestDistance)  {
+                        // Check if the block one to the right of the portal is obsidian before continuing.
+                        // This ends up being quite a large optimization, since it rules out most areas that aren't portals
+                        Location blockPos = checkPos.clone().add(direction.swapVector(new Vector(1.0, 0.0, 0.0)));
+                        if(blockPos.getBlock().getType() != Material.OBSIDIAN)  {
+                            continue;
+                        }
+
+                        // Check to see if there is an existing portal frame
+                        if(checkForExistingFrame(checkPos, direction, portalSize.clone()) && !checkPortalProximity(checkPos)) {
+                            currentClosest = checkPos;
+                            closestDistance = distance;
+                        }
+                    }
+                }
+            }
+        }
+
+        return currentClosest;
     }
 
     // Spawns a portal at the given location, with the correct orientation
