@@ -42,6 +42,15 @@ portalCollisionBox:
   y: 0.38
   z: 0.25
 
+# Worlds where the plugin will fall back to the vanilla portal logic
+disabledWorlds:
+  - 'some_world'
+
+# How long the plugin waits before rendering portals after switching worlds.
+# Useful to deal with lag that some players get just after switching worlds.
+# Set to 0 to disable
+waitTimeAfterSwitchingWorlds: 1
+
 # Stores the links between worlds. By default this links the overworld and the nether with portals
 # There are two links for the overworld and the nether - one for each way.
 # This is to allow one way links between dimensions
@@ -60,7 +69,3 @@ worldConnections:
     minSpawnY: 5
     maxSpawnY: 250
     coordinateRescalingFactor: 8.0
-
-# Worlds where the plugin will fall back to the vanilla portal logic
-disabledWorlds:
-  - 'some_world'

@@ -22,9 +22,9 @@ public class PlayerData {
     private BetterPortals pl;
     @Getter private Player player;
     
-    // Used to disable sending entity packets after a world load
-    private boolean loadedWorldLastTick = true;
-
+    // Setting this value will stop portals from being rendered for this player for the number of ticks
+    @Setter private int disableTime = 0;
+    
     // The last portal that had the portal effect active.
     // If this changes, then the ghost blocks sent to the player are reset to avoid phantom blocks breaking the illusion
     private Portal lastActivePortal = null;
@@ -46,10 +46,6 @@ public class PlayerData {
         this.player = player;
         entityManipulator = new EntityManipulator(pl, this);
     }
-
-    public boolean getIfLoadedWorldLastTick()   {return loadedWorldLastTick;}
-    public void setLoadedWorldLastTick()   {loadedWorldLastTick = true;}
-    public void unsetLoadedWorldLastTick()   {loadedWorldLastTick = false;}
 
     // Called every tick while the player is focused on a particular portal
     // If newPortal is null, that means that there is no longer an active portal
@@ -76,6 +72,16 @@ public class PlayerData {
         entityManipulator.resetAll(!changedWorlds);
         lastActivePortal = newPortal;
         lastPosition = null;
+    }
+
+    // Ticks down the disabled time if it's greater than 0, and returns true if it is greater than 0
+    public boolean checkIfDisabled()    {
+        if(disableTime > 0) {
+            disableTime--;
+            return true;
+        }   else    {
+            return false;
+        }
     }
 
     // Resets all of the ghost block updates that have been set to the player

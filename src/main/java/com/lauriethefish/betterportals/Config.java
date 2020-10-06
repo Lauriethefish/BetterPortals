@@ -69,6 +69,9 @@ public class Config {
     // How close portals will spawn to each other
     public int minimumPortalSpawnDistance;
 
+    // How long the plugin waits before rendering portals after switching worlds
+    public int worldSwitchWaitTime;
+
     // Loads the configuration from the given file, setting all the parameters of the class
     public Config(BetterPortals pl)   {
         this.pl = pl;
@@ -113,6 +116,8 @@ public class Config {
         hidePortalBlocks = file.getBoolean("hidePortalBlocks");
 
         minimumPortalSpawnDistance = file.getInt("minimumPortalSpawnDistance");
+
+        worldSwitchWaitTime = file.getInt("waitTimeAfterSwitchingWorlds");
 
         // If the maxRayCastDistance is set to -1, work it out based on the portalActivationDistance
         if(maxRayCastDistance == -1)    {

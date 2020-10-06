@@ -142,8 +142,7 @@ public class MainUpdate implements Runnable {
             PlayerData playerData = pl.getPlayerData(player);
 
             // If we changed worlds in the last tick, we wait to avoid chunks not being loaded while sending updates
-            if(playerData.getIfLoadedWorldLastTick())  {
-                playerData.unsetLoadedWorldLastTick();
+            if(playerData.checkIfDisabled())    {
                 continue;
             }
 
