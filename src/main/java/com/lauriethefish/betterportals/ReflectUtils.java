@@ -83,17 +83,6 @@ public class ReflectUtils {
         }
     }
 
-    // BaseBlockPosition uses the E field for the Z coordinate on 1.16 and up
-    public static boolean useNewBaseBlockPositionImpl = getIfNewBaseBlockPositionImpl();
-    private static boolean getIfNewBaseBlockPositionImpl()  {
-        try {
-            getMcClass("BaseBlockPosition").getDeclaredField("e");
-            return true;
-        }   catch(NoSuchFieldException ex)  {
-            return false;
-        }
-    }
-
     // If we cannot cancel ChunkUnloadEvent (this is true in newer versions), then we use a different method to forceload chunks
     public static boolean useNewChunkLoadingImpl = !Cancellable.class.isAssignableFrom(ChunkUnloadEvent.class);
     public static boolean sendBedPackets = ReflectUtils.getMcClass("PacketPlayOutBed", false) != null;
@@ -211,22 +200,12 @@ public class ReflectUtils {
     }
 
     // Converts any NMS type that extends BaseBlockPosition to a Bukkit Vector.
-    private static Class<?> blockPosClass = getMcClass("BaseBlockPosition");
     public static Vector blockPositionToVector(Object pos)  {
-        // In newer versions of the game, the E field stores the Z coordinate
-        if(useNewBaseBlockPositionImpl) {
-            return new Vector(
-                (int) ReflectUtils.getField(pos, blockPosClass, "a"),
-                (int) ReflectUtils.getField(pos, blockPosClass, "b"),
-                (int) ReflectUtils.getField(pos, blockPosClass, "e")
-            );
-        }   else    {
-            return new Vector(
-                (int) ReflectUtils.getField(pos, blockPosClass, "a"),
-                (int) ReflectUtils.getField(pos, blockPosClass, "b"),
-                (int) ReflectUtils.getField(pos, blockPosClass, "c")
-            );
-        }
+        return new Vector(
+            (int) ReflectUtils.runMethod(pos, "getX"),
+            (int) ReflectUtils.runMethod(pos, "getY"),
+            (int) ReflectUtils.runMethod(pos, "getZ")
+        );
     }
 
     // Sets a field in the given object, even if it is private (class is automatically determined)
