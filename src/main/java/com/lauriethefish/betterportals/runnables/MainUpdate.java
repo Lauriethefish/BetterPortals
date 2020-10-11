@@ -1,6 +1,7 @@
 package com.lauriethefish.betterportals.runnables;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -89,12 +90,17 @@ public class MainUpdate implements Runnable {
 
         // We need to loop through the entities at the origin regardless of if entities are enabled, since we also need to teleport those going through portals
         Set<Entity> hiddenEntities = new HashSet<>();
-        for(Map.Entry<Entity, Vector> entry : portal.getNearbyEntitiesOrigin().entrySet())   {
+
+        Iterator<Map.Entry<Entity, Vector>> iter = portal.getNearbyEntitiesOrigin().entrySet().iterator();
+        while(iter.hasNext())   {
+            Map.Entry<Entity, Vector> entry = iter.next();
+
             Entity entity = entry.getKey();
             Vector lastKnownLocation = entry.getValue();
 
             // If the entity isn't in the same world, we skip it
             if(entity.getWorld() != portal.getOriginPos().getWorld())   {
+                iter.remove();
                 continue;
             }
 
@@ -103,6 +109,8 @@ public class MainUpdate implements Runnable {
             PlaneIntersectionChecker teleportChecker = new PlaneIntersectionChecker(actualLocation, portal);
             if(!(entity instanceof Player) && lastKnownLocation != null && teleportChecker.checkIfVisibleThroughPortal(lastKnownLocation))  {
                 portal.teleportEntity(entity);
+                portal.getNearbyEntitiesDestination().add(entity);
+                iter.remove();
             }
 
             // Set the location back to the actual location

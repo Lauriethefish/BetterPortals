@@ -196,7 +196,7 @@ public class Portal {
         entity.teleport(newLoc);
         
         // Set their velocity back to what it was
-        entity.setVelocity(playerVelocity);
+        entity.setVelocity(rotateToDestination(playerVelocity));
     }
 
     public boolean checkOriginAndDestination()  {
