@@ -73,7 +73,7 @@ public class PortalSelection {
 
     // Checks if this selection is actually a valid portal
     public boolean isValid()    {
-        return MathUtils.greaterThanEq(portalSize, new Vector(1.0, 1.0, 0.0)) && portalDirection != null;
+        return portalDirection != null && MathUtils.greaterThanEq(portalSize, new Vector(1.0, 1.0, 0.0));
     }
 
     // Finds the center position of this portal
