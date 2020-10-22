@@ -75,6 +75,10 @@ public class Config {
     // Makes additional things be run on other threads that probably shouldn't be run on other threads
     public boolean unsafeMode;
 
+    // Contains all the customisable messages of the plugin
+    public ConfigurationSection messagesSection;
+    public String chatPrefix;
+
     // Loads the configuration from the given file, setting all the parameters of the class
     public Config(BetterPortals pl)   {
         this.pl = pl;
@@ -161,6 +165,9 @@ public class Config {
             World world = pl.getServer().getWorld(worldString);
             disabledWorlds.add(world);
         }
+
+        messagesSection = file.getConfigurationSection("chatMessages");
+        chatPrefix = getChatMessageRaw("prefix");
     }
 
     // Reads everything inside a resource of the JAR to a string
@@ -229,5 +236,20 @@ public class Config {
 
     public boolean isWorldDisabled(World world) {
         return disabledWorlds.contains(world);
+    }
+
+    // Gets the chat message with color codes for the key
+    public String getChatMessageRaw(String key)  {
+        return ChatColor.translateAlternateColorCodes('&', messagesSection.getString(key));
+    }
+
+    // Gets a chat message with the chat prefix before it
+    public String getChatMessage(String key)    {
+        return chatPrefix + getChatMessageRaw(key);
+    }
+
+    // Gets a chat message without the prefix, and colors it red
+    public String getErrorMessage(String key)   {
+        return ChatColor.RED + getChatMessageRaw(key);
     }
 }

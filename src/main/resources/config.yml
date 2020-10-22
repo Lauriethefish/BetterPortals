@@ -72,3 +72,24 @@ worldConnections:
     minSpawnY: 5
     maxSpawnY: 250
     coordinateRescalingFactor: 8.0
+
+chatMessages:
+  prefix: "&7[&aBetterPortals&7]&a "
+
+  notEnoughPerms: "You do not have permission to use this command!"
+  mustBePlayer: "You must be a player to use this command"
+  mustMakeSelection: "You must make a selection first"
+  invalidSelection: "Invalid selection! Portal selections must be on the two corners of a portal"
+  mustSelectBothSides: "You must select both sides of a portal first. For info, run /bp help"
+  differentSizes: "The origin and destination portal must be of the same size"
+  noPortalCloseEnough: "No portal close enough found"
+  unknownCommand: "Unknown Command. For help, run /bp help"
+
+  reload: "Reloaded plugin"
+  originPortalSet: "Origin portal set"
+  destPortalSet: "Destination portal set"
+  portalsLinked: "Portals linked successfully"
+  portalRemoved: "Portal removed"
+  
+  setPosA: "Set position A"
+  setPosB: "Set position B"

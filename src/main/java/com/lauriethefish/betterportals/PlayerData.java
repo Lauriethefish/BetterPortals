@@ -108,10 +108,10 @@ public class PlayerData {
         // Set either position A or B
         if(hand == Action.LEFT_CLICK_BLOCK)  {
             selection.setPositionA(location.toVector());
-            player.sendMessage(pl.getChatPrefix() + "Set position A");
+            player.sendMessage(pl.config.getChatMessage("setPosA"));
         }   else    {
             selection.setPositionB(location.toVector());
-            player.sendMessage(pl.getChatPrefix() + "Set position B");
+            player.sendMessage(pl.config.getChatMessage("setPosB"));
         }
     }
 }

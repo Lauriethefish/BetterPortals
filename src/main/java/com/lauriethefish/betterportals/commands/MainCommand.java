@@ -1,6 +1,7 @@
 package com.lauriethefish.betterportals.commands;
 
 import com.lauriethefish.betterportals.BetterPortals;
+import com.lauriethefish.betterportals.Config;
 import com.lauriethefish.betterportals.PlayerData;
 import com.lauriethefish.betterportals.portal.Portal;
 import com.lauriethefish.betterportals.selection.PortalSelection;
@@ -15,10 +16,11 @@ import net.md_5.bungee.api.ChatColor;
 
 public class MainCommand implements CommandExecutor {
     private BetterPortals pl;
-    private final String notEnoughPerms = ChatColor.RED + "You do not have permission to use this command!";
+    private Config config;
 
     public MainCommand(BetterPortals pl) {
         this.pl = pl;
+        this.config = pl.config;
     }
 
     @Override
@@ -37,22 +39,21 @@ public class MainCommand implements CommandExecutor {
 
         if (subcommand.equals("reload")) {
             if(!sender.hasPermission("betterportals.reload"))   {
-                sender.sendMessage(notEnoughPerms);
+                sender.sendMessage(config.getErrorMessage("notEnoughPerms"));
                 return false;
             }
 
-            pl.reloadConfig(); // First reload the config file, since reloading the plugin doesn't do this
-                               // apparently
+            pl.reloadConfig(); // First reload the config file, since reloading the plugin doesn't do this apparently
             PluginManager pm = pl.getServer().getPluginManager();
             pm.disablePlugin(pl);
             pm.enablePlugin(pl);
 
-            sender.sendMessage(pl.getChatPrefix() + "Reloaded plugin");
+            sender.sendMessage(config.getChatMessage("reload"));
             return true;
         }
 
         if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "You must be a player to use this command");
+            sender.sendMessage(config.getErrorMessage("mustBePlayer"));
             return false;
         }
         Player player = (Player) sender;
@@ -61,7 +62,7 @@ public class MainCommand implements CommandExecutor {
         // Add the wand to the player's inventory if they ran the wand command
         if(subcommand.equals("wand"))   {
             if(!sender.hasPermission("betterportals.wand"))   {
-                sender.sendMessage(notEnoughPerms);
+                sender.sendMessage(config.getErrorMessage("notEnoughPerms"));
                 return false;
             }
 
@@ -74,30 +75,30 @@ public class MainCommand implements CommandExecutor {
         boolean setDestination = subcommand.equals("destination");
         if(setOrigin || setDestination)  {
             if(!sender.hasPermission("betterportals.select"))   {
-                sender.sendMessage(notEnoughPerms);
+                sender.sendMessage(config.getErrorMessage("notEnoughPerms"));
                 return false;
             }
 
             // If no selection has been made, tell the player
             PortalSelection selection = playerData.getSelection();
             if(selection == null || !selection.hasBothPoints())   {
-                player.sendMessage(ChatColor.RED + "You must make a selection first");
+                player.sendMessage(config.getErrorMessage("mustMakeSelection"));
                 return false;
             }
 
             // Check if the selection was valid
             if(!selection.isValid())    {
-                player.sendMessage(ChatColor.RED + "Invalid selection! Portal selections must be on the two corners of a portal");
+                player.sendMessage(config.getErrorMessage("invalidSelection"));
                 return false;
             }
 
             // Set either the origin or destination selection
             if(setOrigin)   {
                 playerData.setOriginSelection(selection);
-                player.sendMessage(pl.getChatPrefix() + "Origin portal set");
+                player.sendMessage(config.getChatMessage("originPortalSet"));
             }   else    {
                 playerData.setDestinationSelection(selection);
-                player.sendMessage(pl.getChatPrefix() + "Destination portal set");
+                player.sendMessage(config.getChatMessage("destPortalSet"));
             }
             // Reset the selection to null, since it is now used as the origin/destination
             playerData.setSelection(null);
@@ -106,7 +107,7 @@ public class MainCommand implements CommandExecutor {
 
         if (subcommand.equals("link")) {
             if(!sender.hasPermission("betterportals.link"))   {
-                sender.sendMessage(notEnoughPerms);
+                sender.sendMessage(config.getErrorMessage("notEnoughPerms"));
                 return false;
             }
 
@@ -114,13 +115,13 @@ public class MainCommand implements CommandExecutor {
             PortalSelection destinationSelection = playerData.getDestinationSelection();
             // Check that both sides of the portal have been selected
             if(originSelection == null || destinationSelection == null) {
-                player.sendMessage(ChatColor.RED + "You must select both sides of a portal first. For info, run /bp help");
+                player.sendMessage(config.getErrorMessage("mustSelectBothSides"));
                 return false;
             }
 
             // If the selected origin and destination have different sizes, tell the player
             if(!originSelection.getPortalSize().equals(destinationSelection.getPortalSize()))   {
-                player.sendMessage(ChatColor.RED + "The origin and destination portal must be of the same size");
+                player.sendMessage(config.getErrorMessage("differentSizes"));
                 return false;
             }
 
@@ -145,14 +146,14 @@ public class MainCommand implements CommandExecutor {
                 pl.registerPortal(new Portal(pl, destinationSelection, originSelection));
             }
 
-            player.sendMessage(pl.getChatPrefix() + "Portals linked successfully");
+            player.sendMessage(config.getChatMessage("portalsLinked"));
             return true;
         }
 
         // Removes the closest portal to the player
         if(subcommand.equals("remove")) {
             if(!sender.hasPermission("betterportals.remove"))   {
-                sender.sendMessage(notEnoughPerms);
+                sender.sendMessage(config.getErrorMessage("notEnoughPerms"));
                 return false;
             }
 
@@ -164,17 +165,17 @@ public class MainCommand implements CommandExecutor {
             // Find the closest portal within 20 blocks
             Portal portal = pl.findClosestPortal(player.getLocation(), 20.0);
             if(portal == null)  {
-                player.sendMessage(ChatColor.RED + "No portal close enough found");
+                player.sendMessage(config.getErrorMessage("noPortalCloseEnough"));
                 return false;
             }
 
             // Remove it, and send a message to the player
             portal.remove(removeOtherSide);
-            player.sendMessage(pl.getChatPrefix() + "Portal removed");
+            player.sendMessage(config.getChatMessage("portalRemoved"));
             return true;
         }
 
-        player.sendMessage(ChatColor.RED + "Unknown Command. For help, run /bp help");
+        player.sendMessage(config.getErrorMessage("unknownCommand"));
         return false;
     }
 
