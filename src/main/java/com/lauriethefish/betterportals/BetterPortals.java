@@ -104,9 +104,10 @@ public class BetterPortals extends JavaPlugin {
         // Make the portal wand item
         portalWand = new ItemStack(Material.BLAZE_ROD);
 
-        // Set the name
+        // Set the name to the one in the config file
         ItemMeta meta = portalWand.getItemMeta();
-        meta.setDisplayName(ChatColor.GREEN + "Portal Wand");
+        meta.setDisplayName(config.portalWandName);
+
         portalWand.setItemMeta(meta);
         // Add an NBT tag to help us identify the wand later
         portalWand = ReflectUtils.addItemNBTTag(portalWand, "betterportals_wand", "true");

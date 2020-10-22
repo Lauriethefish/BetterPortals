@@ -79,6 +79,9 @@ public class Config {
     public ConfigurationSection messagesSection;
     public String chatPrefix;
 
+    // Name of all given portal wand items
+    public String portalWandName;
+
     // Loads the configuration from the given file, setting all the parameters of the class
     public Config(BetterPortals pl)   {
         this.pl = pl;
@@ -168,6 +171,7 @@ public class Config {
 
         messagesSection = file.getConfigurationSection("chatMessages");
         chatPrefix = getChatMessageRaw("prefix");
+        portalWandName = ChatColor.translateAlternateColorCodes('&', file.getString("portalWandName"));
     }
 
     // Reads everything inside a resource of the JAR to a string

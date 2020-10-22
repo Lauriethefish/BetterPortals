@@ -93,3 +93,5 @@ chatMessages:
   
   setPosA: "Set position A"
   setPosB: "Set position B"
+
+portalWandName: "&aPortal Wand"
