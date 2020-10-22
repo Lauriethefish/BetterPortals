@@ -15,6 +15,7 @@ import com.lauriethefish.betterportals.portal.Portal;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
+// An asynchronous task that handles sending block updates to the player
 public class BlockProcessor implements Runnable {
     // Stores the information required to process the portal block update on another thread
     private class UpdateData {
@@ -51,6 +52,10 @@ public class BlockProcessor implements Runnable {
 
     // Processes the given update by sending the correctly changed blocks to the player
     private void handleUpdate(UpdateData data)    {
+        if(data.portal.getQueueBlockUpdate().compareAndSet(true, false))    {
+            data.portal.findCurrentBlocks();
+        }
+
         Player player = data.playerData.getPlayer();
         // Skip this portal if the player is no longer in the right world
         if(player.getWorld() != data.portal.getOriginPos().getWorld())  {

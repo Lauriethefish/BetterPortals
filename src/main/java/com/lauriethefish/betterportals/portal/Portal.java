@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.lauriethefish.betterportals.BetterPortals;
 import com.lauriethefish.betterportals.BlockRaycastData;
@@ -67,6 +68,9 @@ public class Portal {
     private Set<ChunkCoordIntPair> destinationChunks = new HashSet<>();
 
     private boolean anchored;
+
+    // Used in unsafe mode to run block updates inside the async task
+    @Getter AtomicBoolean queueBlockUpdate = new AtomicBoolean();
 
     // Constructor to generate the collision box for a given portal
     // NOTE: The portalPosition must be the EXACT center of the portal on the x, y and z
@@ -160,7 +164,11 @@ public class Portal {
             updateNearbyEntities();
         }
         if(ticksSinceActivation % pl.config.portalBlockUpdateInterval == 0)   {
-            findCurrentBlocks();
+            if(pl.config.unsafeMode)    {
+                queueBlockUpdate.set(true);
+            }   else    {
+                findCurrentBlocks();
+            }
         }
         ticksSinceActivation++;
     }
