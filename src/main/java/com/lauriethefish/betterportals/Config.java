@@ -72,6 +72,9 @@ public class Config {
     // How long the plugin waits before rendering portals after switching worlds
     public int worldSwitchWaitTime;
 
+    // Makes additional things be run on other threads that probably shouldn't be run on other threads
+    public boolean unsafeMode;
+
     // Loads the configuration from the given file, setting all the parameters of the class
     public Config(BetterPortals pl)   {
         this.pl = pl;
@@ -106,18 +109,14 @@ public class Config {
 
         portalActivationDistance = file.getDouble("portalActivationDistance");
         portalBlockUpdateInterval = file.getInt("portalBlockUpdateInterval");
-
         rayCastIncrement = file.getDouble("rayCastIncrement");
         maxRayCastDistance = file.getDouble("maxRayCastDistance");
-
         enableEntitySupport = file.getBoolean("enableEntitySupport");
         entityCheckInterval = file.getInt("entityCheckInterval");
-
         hidePortalBlocks = file.getBoolean("hidePortalBlocks");
-
         minimumPortalSpawnDistance = file.getInt("minimumPortalSpawnDistance");
-
         worldSwitchWaitTime = file.getInt("waitTimeAfterSwitchingWorlds");
+        unsafeMode = file.getBoolean("unsafeMode");
 
         // If the maxRayCastDistance is set to -1, work it out based on the portalActivationDistance
         if(maxRayCastDistance == -1)    {
