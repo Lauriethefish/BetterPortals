@@ -118,11 +118,11 @@ public class PortalCreate implements Listener {
         // so that the portal effect can be active!
         pl.registerPortal(new Portal(pl,
             location, direction,
-            spawnLocation, direction, portalSize, false
+            spawnLocation, direction, portalSize, false, null // Set the portal owner to null, since this is a nether portal
         ));
         pl.registerPortal(new Portal(pl,
             spawnLocation, direction,
-            location, direction, portalSize, false
+            location, direction, portalSize, false, null
         ));
     }    
 }

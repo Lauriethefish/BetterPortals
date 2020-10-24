@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.UUID;
 
 import com.lauriethefish.betterportals.BetterPortals;
 
@@ -82,6 +83,11 @@ public class PortalStorage {
             section.getInt("y"),
             0.0
         );
+    }
+
+    // Loads a UUID, accounting for null
+    public UUID loadUUID(String string) {
+        return (string == null) ? null : UUID.fromString(string);
     }
 
     // Set the x and y of a portal's size. The z component is not required since portals only need a width and height

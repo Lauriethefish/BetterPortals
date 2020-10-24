@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.lauriethefish.betterportals.BetterPortals;
@@ -72,10 +73,12 @@ public class Portal {
     // Used in unsafe mode to run block updates inside the async task
     @Getter AtomicBoolean queueBlockUpdate = new AtomicBoolean();
 
+    @Getter private UUID owner; // Who created this portal. This is null for nether portals
+
     // Constructor to generate the collision box for a given portal
     // NOTE: The portalPosition must be the EXACT center of the portal on the x, y and z
     public Portal(BetterPortals pl, Location portalPosition, PortalDirection portalDirection, 
-                    Location destinationPosition, PortalDirection destinationDirection, Vector portalSize, boolean anchored) {
+                    Location destinationPosition, PortalDirection destinationDirection, Vector portalSize, boolean anchored, UUID owner) {
         this.pl = pl;
         this.originPos = portalPosition;
         this.originDir = portalDirection;
@@ -83,6 +86,7 @@ public class Portal {
         this.destDir = destinationDirection;
         this.portalSize = portalSize;
         this.anchored = anchored;
+        this.owner = owner;
 
         // Find the chunks around the destination of the portal
         Vector boxSize = new Vector(pl.config.maxXZ, pl.config.maxY, pl.config.maxXZ);
@@ -109,10 +113,10 @@ public class Portal {
     }
 
     // Constructor to make a portal link between two selections
-    public Portal(BetterPortals pl, PortalSelection origin, PortalSelection destination)  {
+    public Portal(BetterPortals pl, PortalSelection origin, PortalSelection destination, Player creator)  {
         this(pl, origin.getPortalPosition(), origin.getPortalDirection(),
                  destination.getPortalPosition(), destination.getPortalDirection(), 
-                 origin.getPortalSize(), true);
+                 origin.getPortalSize(), true, creator.getUniqueId());
     }
 
     // Loads all of the values for this portal from the data file
@@ -123,7 +127,7 @@ public class Portal {
             storage.loadLocation(sect.getConfigurationSection("destinationPosition")),
             PortalDirection.fromStorage(sect.getString("destinationDirection")),
             storage.loadPortalSize(sect.getConfigurationSection("portalSize")), 
-            sect.getBoolean("anchored"));
+            sect.getBoolean("anchored"), storage.loadUUID(sect.getString("owner")));
     }
 
     // Saves all of the values for this portal into sect
@@ -134,6 +138,8 @@ public class Portal {
         sect.set("destinationDirection", destDir.toString());
         storage.setPortalSize(sect.createSection("portalSize"), portalSize);
         sect.set("anchored", anchored);
+        // Store who created the portal
+        sect.set("owner", (owner == null) ? null : owner.toString());
     }
 
     public void update(int currentTick)    {

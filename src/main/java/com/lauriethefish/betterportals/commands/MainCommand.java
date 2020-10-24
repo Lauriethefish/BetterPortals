@@ -134,7 +134,7 @@ public class MainCommand implements CommandExecutor {
                 destinationSelection.invertDirection();
             }
             
-            pl.registerPortal(new Portal(pl, originSelection, destinationSelection));
+            pl.registerPortal(new Portal(pl, originSelection, destinationSelection, player));
             
             // Find if we also need to link the destination back to the origin
             boolean linkTwoWay = false;
@@ -143,8 +143,9 @@ public class MainCommand implements CommandExecutor {
             }
             
             if(linkTwoWay)  {
-                pl.registerPortal(new Portal(pl, destinationSelection, originSelection));
+                pl.registerPortal(new Portal(pl, destinationSelection, originSelection, player));
             }
+
 
             player.sendMessage(config.getChatMessage("portalsLinked"));
             return true;
