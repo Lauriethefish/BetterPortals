@@ -7,6 +7,7 @@ import com.lauriethefish.betterportals.ReflectUtils;
 import com.lauriethefish.betterportals.math.MathUtils;
 import com.lauriethefish.betterportals.portal.PortalDirection;
 import com.lauriethefish.betterportals.portal.PortalSpawnSystem;
+import com.lauriethefish.betterportals.portal.PortalSpawnSystem.SpawnPosition;
 import com.lauriethefish.betterportals.portal.Portal;
 
 import org.bukkit.Location;
@@ -91,7 +92,7 @@ public class PortalCreate implements Listener {
 
         PortalSpawnSystem spawnSystem = pl.getPortalSpawnSystem();
         // Find a suitable location for spawning the portal
-        Location spawnLocation = spawnSystem.findSuitablePortalLocation(location, direction, portalSize);
+        SpawnPosition spawnLocation = spawnSystem.findSuitablePortalLocation(location, direction, portalSize);
         
         // If no location found - due to no link existing with this world,
         // cancel the event and return
@@ -101,7 +102,7 @@ public class PortalCreate implements Listener {
         }
 
         // Spawn a portal in the opposite world and the right location
-        spawnSystem.spawnPortal(spawnLocation, direction, portalSize);
+        spawnSystem.spawnPortal(spawnLocation, portalSize);
 
         // Fill in any missing corners of the current portal with stone,
         // because lack of corners can break the illusion
@@ -110,18 +111,20 @@ public class PortalCreate implements Listener {
         // Add to the portals position, as the PlayerRayCast requires coordinates to be at
         // the absolute center of the portal
         // Swap around the x and z offsets if the portal is facing a different direction
-        Vector portalAddAmount = direction.swapVector(portalSize.clone().multiply(0.5).add(new Vector(1.0, 1.0, 0.5)));
-        location.add(portalAddAmount);
-        spawnLocation.add(portalAddAmount);
+        Vector portalAddAmountOrigin = direction.swapVector(portalSize.clone().multiply(0.5).add(new Vector(1.0, 1.0, 0.5)));
+        location.add(portalAddAmountOrigin);
+        
+        Vector portalAddAmountDestination = spawnLocation.getDirection().swapVector(portalSize.clone().multiply(0.5).add(new Vector(1.0, 1.0, 0.5)));
+        spawnLocation.getLocation().add(portalAddAmountDestination);
 
         // Add the two new ends of the portal to the rayCastingSystem,
         // so that the portal effect can be active!
         pl.registerPortal(new Portal(pl,
             location, direction,
-            spawnLocation, direction, portalSize, false, null // Set the portal owner to null, since this is a nether portal
+            spawnLocation.getLocation(), spawnLocation.getDirection(), portalSize, false, null // Set the portal owner to null, since this is a nether portal
         ));
         pl.registerPortal(new Portal(pl,
-            spawnLocation, direction,
+            spawnLocation.getLocation(), spawnLocation.getDirection(),
             location, direction, portalSize, false, null
         ));
     }    

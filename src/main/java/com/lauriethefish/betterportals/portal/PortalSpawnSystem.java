@@ -14,12 +14,32 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.util.Vector;
 
+import lombok.Getter;
+
 // Handles finding a suitable location for spawning a portal, can also deal with the actual building of the portal
 public class PortalSpawnSystem {
     private BetterPortals pl;
 
     public PortalSpawnSystem(BetterPortals pl)  {
         this.pl = pl;
+    }
+
+    private static PortalDirection[] checkedDirections = new PortalDirection[]{PortalDirection.NORTH, PortalDirection.EAST};
+
+    // Used to return a location and portal direction from functions
+    public static class SpawnPosition {
+        @Getter private Location location;
+        @Getter private PortalDirection direction;
+
+        private SpawnPosition(Location location, PortalDirection direction)    {
+            this.location = location;
+            this.direction = direction;
+        }
+
+        // Convenience function for finding the distance between a SpawnPosition and a Location
+        private double distance(Location other)    {
+            return other.distance(location);
+        }
     }
 
     // Limits the coordinates so that they are not outside the allowed are in the given world
@@ -49,7 +69,7 @@ public class PortalSpawnSystem {
     // This function will try to find and link to use for scaling the coordinates,
     // if no link is found it will return null
     // The portalSize should be on the x and y coordinates, even if the portal is oriented along the z, it is the size of the portal window, not including the obsidian
-    public Location findSuitablePortalLocation(Location originLocation, PortalDirection direction, Vector portalSize) {
+    public SpawnPosition findSuitablePortalLocation(Location originLocation, PortalDirection direction, Vector portalSize) {
         // Loop through all of the links between worlds, and try to find a link for this portal
         WorldLink link = null;
         for(WorldLink currentLink : pl.config.worldLinks)   {
@@ -85,11 +105,11 @@ public class PortalSpawnSystem {
         Set<ChunkCoordIntPair> chunks = ChunkCoordIntPair.findArea(a, b);
 
         // Loop through each chunk around the portal to search for existing portals
-        Location closestExistingPortal = null;
+        SpawnPosition closestExistingPortal = null;
         for(ChunkCoordIntPair chunkPos : chunks)  {
             // Only check for existing portals in chunks that have already been generated
             if(chunkPos.isGenerated())  {
-                closestExistingPortal = checkForExistingFrameInChunk(prefferedLocation, closestExistingPortal, chunkPos, direction, portalSize);
+                closestExistingPortal = checkForExistingFrameInChunk(prefferedLocation, closestExistingPortal, chunkPos, portalSize);
                 chunkPos.getChunk().unload();
             }
         }
@@ -133,11 +153,11 @@ public class PortalSpawnSystem {
 
         // If a suitable location was found, return it
         if(closestSuitableLocation != null) {
-            return closestSuitableLocation;
+            return new SpawnPosition(closestSuitableLocation, direction);
         }
         
         // Otherwise return the given location
-        return prefferedLocation;
+        return new SpawnPosition(prefferedLocation, direction);
     }
 
     // Checks if the position is given is suitable for spawning a portal
@@ -241,7 +261,7 @@ public class PortalSpawnSystem {
         return true;
     }
 
-    public Location checkForExistingFrameInChunk(Location prefferedPos, Location currentClosest, ChunkCoordIntPair chunkPos, PortalDirection direction, Vector portalSize) {
+    public SpawnPosition checkForExistingFrameInChunk(Location prefferedPos, SpawnPosition currentClosest, ChunkCoordIntPair chunkPos, Vector portalSize) {
         Location chunkBottomLeft = chunkPos.getBottomLeft();
 
         double closestDistance = currentClosest == null ? Double.POSITIVE_INFINITY : currentClosest.distance(prefferedPos);
@@ -256,17 +276,22 @@ public class PortalSpawnSystem {
                     // Find if this location is any closer than our current closest point
                     double distance = prefferedPos.distance(checkPos);
                     if(currentClosest == null || distance < closestDistance)  {
-                        // Check if the block one to the right of the portal is obsidian before continuing.
-                        // This ends up being quite a large optimization, since it rules out most areas that aren't portals
-                        Location blockPos = checkPos.clone().add(direction.swapVector(new Vector(1.0, 0.0, 0.0)));
-                        if(blockPos.getBlock().getType() != Material.OBSIDIAN)  {
-                            continue;
-                        }
+                        for(PortalDirection direction : checkedDirections)  {
+                            // Check if the block one to the right of the portal is obsidian before continuing.
+                            // This ends up being quite a large optimization, since it rules out most areas that aren't portals
+                            Location blockPos = checkPos.clone().add(direction.swapVector(new Vector(1.0, 0.0, 0.0)));
+                            if(blockPos.getBlock().getType() != Material.OBSIDIAN)  {
+                                continue;
+                            }
+                            
+                            // If this portal is too close to an existing portal, skip it
+                            if(checkPortalProximity(checkPos))  {continue;}
 
-                        // Check to see if there is an existing portal frame
-                        if(checkForExistingFrame(checkPos, direction, portalSize.clone()) && !checkPortalProximity(checkPos)) {
-                            currentClosest = checkPos;
-                            closestDistance = distance;
+                            // Check to see if there is an existing portal frame
+                            if(checkForExistingFrame(checkPos, direction, portalSize.clone())) {
+                                currentClosest = new SpawnPosition(checkPos, direction);
+                                closestDistance = distance;
+                            }
                         }
                     }
                 }
@@ -279,7 +304,10 @@ public class PortalSpawnSystem {
     // Spawns a portal at the given location, with the correct orientation
     // Also spawns four blocks at the sides of the portal to stand on if they are not solid
     @SuppressWarnings("deprecation")
-    public void spawnPortal(Location location, PortalDirection direction, Vector portalSize)  {
+    public void spawnPortal(SpawnPosition position, Vector portalSize)  {
+        Location location = position.getLocation();
+        PortalDirection direction = position.getDirection();
+
         // Loop through the x, y and z coordinates around the portal
         // Portal is only generated at z == 0,
         // The other two z coordinates are used for generating the blocks at the sides of portals
