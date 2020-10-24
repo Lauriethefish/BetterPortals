@@ -83,6 +83,7 @@ chatMessages:
   mustSelectBothSides: "You must select both sides of a portal first. For info, run /bp help"
   differentSizes: "The origin and destination portal must be of the same size"
   noPortalCloseEnough: "No portal close enough found"
+  portalNotOwnedByPlayer: "You do not have permission to remove portals created by other people"
   unknownCommand: "Unknown Command. For help, run /bp help"
 
   reload: "Reloaded plugin"

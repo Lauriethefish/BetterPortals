@@ -165,8 +165,15 @@ public class MainCommand implements CommandExecutor {
 
             // Find the closest portal within 20 blocks
             Portal portal = pl.findClosestPortal(player.getLocation(), 20.0);
+            // Send an error if there is no portal close enough
             if(portal == null)  {
                 player.sendMessage(config.getErrorMessage("noPortalCloseEnough"));
+                return false;
+            }
+
+            // If this portal isn't owned by the player, and they don't have permission to remove the portals of others, don't remove the portal
+            if(!player.getUniqueId().equals(portal.getOwner()) && !player.hasPermission("betterportals.remove.others")) {
+                player.sendMessage(config.getErrorMessage("portalNotOwnedByPlayer"));
                 return false;
             }
 
