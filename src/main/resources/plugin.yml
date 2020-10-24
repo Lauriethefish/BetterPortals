@@ -30,3 +30,6 @@ permissions:
   betterportals.remove.others:
     description: Allows you to remove nether portals, as well as other portals not created by you
     default: op
+  betterportals.see:
+    description: Allows users to see through portals
+    default: all

@@ -85,7 +85,7 @@ public class MainUpdate implements Runnable {
         blockRenderer.queueUpdate(playerData, checker, portal);
     }
 
-    private void updateEntities(PlayerData playerData, Portal portal, PlaneIntersectionChecker checker)  {
+    private void updateEntities(PlayerData playerData, Portal portal, PlaneIntersectionChecker checker, boolean viewEntitiesThroughPortals)  {
         EntityManipulator manipulator = playerData.getEntityManipulator();
 
         // We need to loop through the entities at the origin regardless of if entities are enabled, since we also need to teleport those going through portals
@@ -117,12 +117,12 @@ public class MainUpdate implements Runnable {
             entry.setValue(actualLocation);
 
             // If an entity is visible through the portal, then we hide it
-            if(pl.config.enableEntitySupport && checker.checkIfVisibleThroughPortal(entity.getLocation().toVector()))  {
+            if(viewEntitiesThroughPortals && checker.checkIfVisibleThroughPortal(entity.getLocation().toVector()))  {
                 hiddenEntities.add(entity);
             }
         }
 
-        if(!pl.config.enableEntitySupport)  {return;}
+        if(!viewEntitiesThroughPortals)  {return;}
 
         Set<Entity> replicatedEntities = new HashSet<>();
         for(Entity entity : portal.getNearbyEntitiesDestination())   {
@@ -154,6 +154,8 @@ public class MainUpdate implements Runnable {
                 continue;
             }
 
+            boolean canSeeThroughPortals = playerData.getPlayer().hasPermission("betterportals.see");
+
             // Find the closest portal to the player
             Portal portal = findClosestPortal(player);
 
@@ -166,9 +168,11 @@ public class MainUpdate implements Runnable {
 
             PlaneIntersectionChecker intersectionChecker = new PlaneIntersectionChecker(player, portal);
 
-            updateEntities(playerData, portal, intersectionChecker);
+            updateEntities(playerData, portal, intersectionChecker, canSeeThroughPortals && pl.config.enableEntitySupport);
             // Queue the update to happen on another thread
-            updatePortal(playerData, portal, intersectionChecker);
+            if(canSeeThroughPortals)    {
+                updatePortal(playerData, portal, intersectionChecker);
+            }
 
             // Teleport the player if they cross through a portal
             if(performPlayerTeleport(playerData, portal, intersectionChecker))    {
