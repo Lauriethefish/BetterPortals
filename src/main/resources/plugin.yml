@@ -32,4 +32,4 @@ permissions:
     default: op
   betterportals.see:
     description: Allows users to see through portals
-    default: all
+    default: true
