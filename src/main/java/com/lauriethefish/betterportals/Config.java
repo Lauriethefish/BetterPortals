@@ -9,14 +9,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.util.Vector;
-
-import net.md_5.bungee.api.ChatColor;
 
 // Stores all of the configuration for the BetterPortals plugin, so that it can be
 // easy sent between events

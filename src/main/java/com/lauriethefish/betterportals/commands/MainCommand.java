@@ -6,13 +6,12 @@ import com.lauriethefish.betterportals.PlayerData;
 import com.lauriethefish.betterportals.portal.Portal;
 import com.lauriethefish.betterportals.selection.PortalSelection;
 
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
-
-import net.md_5.bungee.api.ChatColor;
 
 public class MainCommand implements CommandExecutor {
     private BetterPortals pl;

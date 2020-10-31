@@ -23,6 +23,7 @@ import com.lauriethefish.betterportals.runnables.MainUpdate;
 import com.lauriethefish.betterportals.selection.WandInteract;
 
 import org.bstats.bukkit.Metrics;
+import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -34,7 +35,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import lombok.Getter;
 import lombok.Setter;
-import net.md_5.bungee.api.ChatColor;
 
 // Main class for the plugin
 public class BetterPortals extends JavaPlugin {
