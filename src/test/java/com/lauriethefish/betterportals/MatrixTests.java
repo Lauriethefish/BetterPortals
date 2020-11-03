@@ -2,7 +2,7 @@ package com.lauriethefish.betterportals;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.lauriethefish.betterportals.math.Matrix;
+import com.lauriethefish.betterportals.bukkit.math.Matrix;
 
 import org.bukkit.util.Vector;
 import org.junit.jupiter.api.Test;

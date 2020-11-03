@@ -1,4 +1,4 @@
-main: com.lauriethefish.betterportals.BetterPortals
+main: com.lauriethefish.betterportals.bukkit.BetterPortals
 name: BetterPortals
 version: 0.59
 author: lauriethefish@outlook.com
