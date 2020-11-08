@@ -55,11 +55,15 @@ public class ChunkCoordIntPair {
         ChunkCoordIntPair low = new ChunkCoordIntPair(a);
         ChunkCoordIntPair high = new ChunkCoordIntPair(b);
 
+        return findArea(low, high);
+    }
+
+    public static Set<ChunkCoordIntPair> findArea(ChunkCoordIntPair low, ChunkCoordIntPair high) {
         // Loop through all the chunks between them and add them to the set
         Set<ChunkCoordIntPair> result = new HashSet<>();
         for(int z = low.z; z <= high.z; z++)    {
             for(int x = low.x; x <= high.x; x++)    {
-                result.add(new ChunkCoordIntPair(a.getWorld(), x, z));   
+                result.add(new ChunkCoordIntPair(low.getWorld(), x, z));   
             }
         }
         return result;
