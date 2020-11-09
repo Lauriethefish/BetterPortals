@@ -1,0 +1,2 @@
+bindAddress: "0.0.0.0" # Change this to 127.0.0.1 to only allow local connections
+serverPort: 25510 # The port that the server will listen on

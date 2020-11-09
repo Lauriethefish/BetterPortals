@@ -81,6 +81,10 @@ public class Config {
     // Name of all given portal wand items
     public String portalWandName;
 
+    public boolean enableProxy; // Whether or not bungeecord support will be enabled
+    public String proxyAddress; // The address of the proxy to connect to
+    public int proxyPort; // The port on the proxy to connect to
+
     // Loads the configuration from the given file, setting all the parameters of the class
     public Config(BetterPortals pl)   {
         this.pl = pl;
@@ -171,6 +175,12 @@ public class Config {
         messagesSection = file.getConfigurationSection("chatMessages");
         chatPrefix = getChatMessageRaw("prefix");
         portalWandName = ChatColor.translateAlternateColorCodes('&', file.getString("portalWandName"));
+
+        // Load the values to do with proxy configuration
+        ConfigurationSection proxySection = file.getConfigurationSection("proxy");
+        enableProxy = proxySection.getBoolean("enableProxy");
+        proxyAddress = proxySection.getString("proxyAddress");
+        proxyPort = proxySection.getInt("proxyPort");
     }
 
     // Reads everything inside a resource of the JAR to a string

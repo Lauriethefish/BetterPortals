@@ -38,8 +38,8 @@ import lombok.Setter;
 
 // Main class for the plugin
 public class BetterPortals extends JavaPlugin {
-    @Getter private final String chatPrefix = ChatColor.GRAY + "[" + ChatColor.GREEN + "BetterPortals" + ChatColor.GRAY + "]"
-    + ChatColor.GREEN + " ";
+    // TODO: config for changing logging setting
+    private static final boolean DEBUG_LOGGING = true;
 
     // Plugin ID for bStats
     private static final int pluginId = 8669;
@@ -59,6 +59,9 @@ public class BetterPortals extends JavaPlugin {
 
     // Used if on a version where you can cancel ChunkUnloadEvent
     @Getter @Setter private Set<ChunkCoordIntPair> forceLoadedChunks = new HashSet<>();
+
+    // Used to connect to bungeecord/velocity for cross-server portals
+    @Getter private PortalClient networkClient;
 
     // This method is called once when our plugin is enabled
     @Override
@@ -98,6 +101,9 @@ public class BetterPortals extends JavaPlugin {
         }
 
         initialiseStatistics();
+        if(config.enableProxy) {
+            networkClient = new PortalClient(this); // Initialise the bungeecord connection if it's enabled
+        }
     }
 
     private void createPortalWand() {
@@ -225,6 +231,10 @@ public class BetterPortals extends JavaPlugin {
     // This method is called when the plugin is disabled
     @Override
     public void onDisable() {
+        if(config.enableProxy) { // Don't shut down the server if the proxy is disabled
+            networkClient.shutdown();
+        }
+
         for(PlayerData player : players.values())   {
             player.getEntityManipulator().resetAll(true);
             player.resetSurroundingBlockStates(true);
@@ -267,5 +277,16 @@ public class BetterPortals extends JavaPlugin {
         pm.registerEvents(new EntityPortal(this), this);
         pm.registerEvents(new WandInteract(this), this);
         pm.registerEvents(new PlayerTeleport(this), this);
+    }
+
+    // Methods for conveniently logging debug messages
+    public void logDebug(String format, Object... args) {        
+        logDebug(String.format(format, args));
+    }
+
+    public void logDebug(String message) {
+        if(DEBUG_LOGGING)   { // Make sure debug logging is enabled first
+            getLogger().info("[DEBUG] " + message);
+        }
     }
 }

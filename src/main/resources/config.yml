@@ -73,6 +73,12 @@ worldConnections:
     maxSpawnY: 250
     coordinateRescalingFactor: 8.0
 
+# Allows for setting a proxy server to allow cross-server portals
+proxy:
+  enableProxy: false
+  proxyAddress: ""
+  proxyPort: 25510
+
 chatMessages:
   prefix: "&7[&aBetterPortals&7]&a "
 
