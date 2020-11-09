@@ -26,6 +26,8 @@ hidePortalBlocks: false
 # How close portals can spawn to each other, in blocks
 minimumPortalSpawnDistance: 6
 
+enableDebugLogging: false # Setting this to true will make the plugin print much more detailed info about what is happenning. Useful for finding issues.
+
 # The maximum size of portals in blocks. The x is width and y is height
 # This should never be larger than twice the portal effect size
 # Larger portals tend to look less good, so the default values work well

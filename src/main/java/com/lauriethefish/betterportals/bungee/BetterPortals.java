@@ -13,8 +13,7 @@ import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
 
 public class BetterPortals extends Plugin {
-    // TODO: config for changing logging setting
-    private static final boolean DEBUG_LOGGING = true;
+    private boolean enableDebugLogging;
 
     @Getter private PortalServer portalServer;
     @Getter private Configuration config;
@@ -55,6 +54,7 @@ public class BetterPortals extends Plugin {
 
         // Load the config from disk
         config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(configFile);
+        enableDebugLogging = config.getBoolean("enableDebugLogging");
     }
 
     @Override
@@ -68,7 +68,7 @@ public class BetterPortals extends Plugin {
     }
 
     public void logDebug(String message) {
-        if(DEBUG_LOGGING)   { // Make sure debug logging is enabled first
+        if(enableDebugLogging)   { // Make sure debug logging is enabled first
             getLogger().info("[DEBUG] " + message);
         }
     }

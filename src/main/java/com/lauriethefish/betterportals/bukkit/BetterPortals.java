@@ -38,9 +38,6 @@ import lombok.Setter;
 
 // Main class for the plugin
 public class BetterPortals extends JavaPlugin {
-    // TODO: config for changing logging setting
-    private static final boolean DEBUG_LOGGING = true;
-
     // Plugin ID for bStats
     private static final int pluginId = 8669;
     private Metrics metrics;
@@ -285,7 +282,7 @@ public class BetterPortals extends JavaPlugin {
     }
 
     public void logDebug(String message) {
-        if(DEBUG_LOGGING)   { // Make sure debug logging is enabled first
+        if(config.enableDebugLogging)   { // Make sure debug logging is enabled first
             getLogger().info("[DEBUG] " + message);
         }
     }

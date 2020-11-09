@@ -73,6 +73,7 @@ public class Config {
 
     // Makes additional things be run on other threads that probably shouldn't be run on other threads
     public boolean unsafeMode;
+    public boolean enableDebugLogging;
 
     // Contains all the customisable messages of the plugin
     public ConfigurationSection messagesSection;
@@ -127,6 +128,7 @@ public class Config {
         minimumPortalSpawnDistance = file.getInt("minimumPortalSpawnDistance");
         worldSwitchWaitTime = file.getInt("waitTimeAfterSwitchingWorlds");
         unsafeMode = file.getBoolean("unsafeMode");
+        enableDebugLogging = file.getBoolean("enableDebugLogging");
 
         // If the maxRayCastDistance is set to -1, work it out based on the portalActivationDistance
         if(maxRayCastDistance == -1)    {
