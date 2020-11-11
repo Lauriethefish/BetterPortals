@@ -1,6 +1,7 @@
 package com.lauriethefish.betterportals.bukkit.multiblockchange;
 
-import java.util.HashSet;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 
@@ -16,6 +17,7 @@ import lombok.Setter;
 
 // A wrapper over the coordinates of a chunk that automatically converts them to the NMS version
 // This can also just be used to hold the coordinates of a chunk
+// Contains various utility functions for dealing with chunk coordinates
 @Getter 
 @Setter
 public class ChunkCoordIntPair {
@@ -50,23 +52,72 @@ public class ChunkCoordIntPair {
         return world.getChunkAt(x, z);
     }
 
-    public static Set<ChunkCoordIntPair> findArea(Location a, Location b)   {
+    public static class ChunkAreaIterator implements Iterator<ChunkCoordIntPair>, Iterable<ChunkCoordIntPair> {
+        private ChunkCoordIntPair low;
+        private ChunkCoordIntPair high;
+        private ChunkCoordIntPair currentPos;
+
+        private ChunkAreaIterator(ChunkCoordIntPair low, ChunkCoordIntPair high) {
+            this.low = low; this.high = high;
+            currentPos = low.clone();
+        }
+
+        @Override
+        public boolean hasNext() {
+            return false;
+        }
+
+        @Override
+        public ChunkCoordIntPair next() {
+            if(currentPos.x < high.x) {
+                currentPos.x++; // If we are not at the end of a row, move us 1 across
+            }   else if(currentPos.z < high.z) { // If we are at the end of a row, but there a columns left
+                // Increment the column, and set the row to the start
+                currentPos.z++;
+                currentPos.x = low.x;
+            }   else    {
+                throw new NoSuchElementException();
+            }
+
+            return currentPos.clone();
+        }
+
+        // Returns a new area iterator with the same initial parameters as this one
+        @Override
+        public ChunkAreaIterator clone() {
+            return new ChunkAreaIterator(low, high);
+        }
+
+        // Adds all of the chunks in this area to a set
+        public void addAll(Set<ChunkCoordIntPair> set) {
+            while(this.hasNext()) {
+                set.add(this.next());
+            }
+        }
+
+        // Revoves all of the chunks in this area to a set
+        public void removeAll(Set<ChunkCoordIntPair> set) {
+            while(this.hasNext()) {
+                set.remove(this.next());
+            }
+        }
+
+        @Override
+        public Iterator<ChunkCoordIntPair> iterator() {
+            return this;
+        }
+    }
+
+    public static ChunkAreaIterator areaIterator(Location a, Location b)   {
         // Find the coordinates of the two locations
         ChunkCoordIntPair low = new ChunkCoordIntPair(a);
         ChunkCoordIntPair high = new ChunkCoordIntPair(b);
 
-        return findArea(low, high);
+        return areaIterator(low, high);
     }
 
-    public static Set<ChunkCoordIntPair> findArea(ChunkCoordIntPair low, ChunkCoordIntPair high) {
-        // Loop through all the chunks between them and add them to the set
-        Set<ChunkCoordIntPair> result = new HashSet<>();
-        for(int z = low.z; z <= high.z; z++)    {
-            for(int x = low.x; x <= high.x; x++)    {
-                result.add(new ChunkCoordIntPair(low.getWorld(), x, z));   
-            }
-        }
-        return result;
+    public static ChunkAreaIterator areaIterator(ChunkCoordIntPair low, ChunkCoordIntPair high) {
+        return new ChunkAreaIterator(low, high);
     }
 
     // Makes an NMS ChunkCoordIntPair from this object
@@ -105,5 +156,10 @@ public class ChunkCoordIntPair {
     @Override
     public int hashCode() {
         return Objects.hash(x, z);
+    }
+
+    @Override
+    public ChunkCoordIntPair clone() {
+        return new ChunkCoordIntPair(world, x, z);
     }
 }
