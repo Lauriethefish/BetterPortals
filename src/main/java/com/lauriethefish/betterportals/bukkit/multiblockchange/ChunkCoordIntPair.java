@@ -131,6 +131,11 @@ public class ChunkCoordIntPair {
         return world.loadChunk(x, z, false);
     }
 
+    // Checks if the chunks at these coordinates is currently loaded
+    public boolean isLoaded() {
+        return world.isChunkLoaded(x, z);
+    }
+
     // Gets the location of the bottom left position of this chunk
     public Location getBottomLeft() {
         return new Location(world, x * 16, 0, z * 16);
