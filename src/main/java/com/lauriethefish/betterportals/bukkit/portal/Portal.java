@@ -92,7 +92,7 @@ public class Portal {
         Vector boxSize = new Vector(pl.config.maxXZ, pl.config.maxY, pl.config.maxXZ);
         Location boxBL = destinationPosition.clone().subtract(boxSize);
         Location boxTR = destinationPosition.clone().add(boxSize);
-        destinationChunks = ChunkCoordIntPair.findArea(boxBL, boxTR);
+        ChunkCoordIntPair.areaIterator(boxBL, boxTR).addAll(destinationChunks);
 
         rotateToDestination = Matrix.makeRotation(portalDirection, destinationDirection);
         rotateToOrigin = Matrix.makeRotation(destinationDirection, portalDirection);
@@ -140,6 +140,21 @@ public class Portal {
         sect.set("anchored", anchored);
         // Store who created the portal
         sect.set("owner", (owner == null) ? null : owner.toString());
+    }
+
+    // Called every tick when the portal is in a loaded chunk
+    private boolean pendingPlayerUpdate;
+    public void mainUpdate() {
+
+        pendingPlayerUpdate = true;
+    }
+
+    // Called every tick whenever a player is within the activation distance
+    public void activatedByPlayerUpdate() {
+        if(!pendingPlayerUpdate) {return;}
+        pendingPlayerUpdate = false;
+
+        
     }
 
     public void update(int currentTick)    {
