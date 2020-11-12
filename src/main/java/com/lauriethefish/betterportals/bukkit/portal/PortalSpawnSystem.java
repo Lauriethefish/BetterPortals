@@ -1,7 +1,5 @@
 package com.lauriethefish.betterportals.bukkit.portal;
 
-import java.util.Set;
-
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
 import com.lauriethefish.betterportals.bukkit.ReflectUtils;
 import com.lauriethefish.betterportals.bukkit.WorldLink;
@@ -102,11 +100,10 @@ public class PortalSpawnSystem {
 
         Location a = prefferedLocation.clone().subtract(128, 0, 128);
         Location b = prefferedLocation.clone().add(128, 0, 128);
-        Set<ChunkCoordIntPair> chunks = ChunkCoordIntPair.findArea(a, b);
 
         // Loop through each chunk around the portal to search for existing portals
         SpawnPosition closestExistingPortal = null;
-        for(ChunkCoordIntPair chunkPos : chunks)  {
+        for(ChunkCoordIntPair chunkPos : ChunkCoordIntPair.areaIterator(a, b))  {
             // Only check for existing portals in chunks that have already been generated
             if(chunkPos.isGenerated())  {
                 closestExistingPortal = checkForExistingFrameInChunk(prefferedLocation, closestExistingPortal, chunkPos, portalSize);
