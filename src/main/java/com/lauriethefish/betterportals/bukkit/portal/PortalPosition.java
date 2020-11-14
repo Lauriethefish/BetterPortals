@@ -63,6 +63,7 @@ public class PortalPosition implements Serializable, ConfigurationSerializable {
         x = (double) map.get("x");
         y = (double) map.get("y");
         z = (double) map.get("z");
+        direction = PortalDirection.valueOf((String) map.get("direction"));
 
         // Load the server name, if there is one
         Object configServerName = map.get("serverName");
@@ -97,15 +98,17 @@ public class PortalPosition implements Serializable, ConfigurationSerializable {
     }
 
     // Saves this portal position to a config section
+    @Override
     public Map<String, Object> serialize() {
         Map<String, Object> map = new HashMap<>();
         if(worldId != null) {
-            map.put("worldId", worldId);
+            map.put("worldId", worldId.toString());
         }
         map.put("worldName", worldName);
         map.put("x", x);
         map.put("y", y);
         map.put("z", z);
+        map.put("direction", direction.toString());
         if(serverName != null) {
             map.put("serverName", serverName);
         }

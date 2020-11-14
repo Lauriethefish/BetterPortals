@@ -23,16 +23,17 @@ import com.lauriethefish.betterportals.bukkit.selection.PortalSelection;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.WorldBorder;
-import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import lombok.Getter;
+import lombok.Setter;
 
 // Stores all of the attributes required for one direction of a portal
 // Two of these should be created per portal, one for the effect on each side
-public class Portal {
+public class Portal implements ConfigurationSerializable    {
     private BetterPortals pl;
 
     @Getter private PortalPosition originPos;
@@ -94,28 +95,31 @@ public class Portal {
                  origin.getPortalSize(), true, creator.getUniqueId());
     }
 
-    // Loads all of the values for this portal from the data file
-    public Portal(BetterPortals pl, PortalStorage storage, ConfigurationSection sect)  {
-        /*this(pl, 
-            storage.loadLocation(sect.getConfigurationSection("portalPosition")),
-            PortalDirection.fromStorage(sect.getString("portalDirection")),
-            storage.loadLocation(sect.getConfigurationSection("destinationPosition")),
-            PortalDirection.fromStorage(sect.getString("destinationDirection")),
-            storage.loadPortalSize(sect.getConfigurationSection("portalSize")), 
-            sect.getBoolean("anchored"), storage.loadUUID(sect.getString("owner")));*/
+    // Loads this portal from a YAML file (required for ConfigurationSerializable)
+    @Setter private static BetterPortals serializationInstance; // We need an instance of the plugin to create the portal during deserialization, this is the only reason this field exists
+    public Portal(Map<String, Object> map) {
+        this(serializationInstance,
+            (PortalPosition) map.get("originPos"),
+            (PortalPosition) map.get("destPos"),
+            (Vector) map.get("size"),
+            (boolean) map.get("anchored"),
+            ((map.get("owner") == null) ? null : UUID.fromString((String) map.get("owner")))
+        );
     }
 
-    // Saves all of the values for this portal into sect
-    public void save(PortalStorage storage, ConfigurationSection sect)   {
-        /*
-        storage.setLocation(sect.createSection("portalPosition"), originPos);
-        sect.set("portalDirection", originDir.toString());
-        storage.setLocation(sect.createSection("destinationPosition"), destPos);
-        sect.set("destinationDirection", destDir.toString());
-        storage.setPortalSize(sect.createSection("portalSize"), portalSize);
-        sect.set("anchored", anchored);
-        // Store who created the portal
-        sect.set("owner", (owner == null) ? null : owner.toString());*/
+    // Saves this portal to a YAML formatted configuration (portals.yml in this case)
+    @Override
+    public Map<String, Object> serialize() {
+        Map<String, Object> result = new HashMap<>();
+        result.put("originPos", originPos);
+        result.put("destPos", destPos);
+        result.put("size", portalSize);
+        result.put("anchored", anchored);
+        if(owner != null) {
+            result.put("owner", owner.toString());
+        }
+
+        return result;
     }
 
     // Called every tick when the portal is in a loaded chunk

@@ -28,6 +28,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -64,6 +65,8 @@ public class BetterPortals extends JavaPlugin {
     // This method is called once when our plugin is enabled
     @Override
     public void onEnable() {
+        registerSerializableTypes();
+
         // If any errors occur while loading the config/portal data, we return from this function
         // This essentially terminates the plugin as the runnable will not start
         
@@ -102,6 +105,13 @@ public class BetterPortals extends JavaPlugin {
         if(config.enableProxy) {
             networkClient = new PortalClient(this); // Initialise the bungeecord connection if it's enabled
         }
+    }
+
+    // Allows Portal and PortalPosition to be serialized and deserialized by Bukkit's API
+    private void registerSerializableTypes() {
+        ConfigurationSerialization.registerClass(Portal.class);
+        ConfigurationSerialization.registerClass(PortalPosition.class);
+        Portal.setSerializationInstance(this); // Used in the deserialize constructor, since we can't pass in the plugin directly there
     }
 
     private void createPortalWand() {

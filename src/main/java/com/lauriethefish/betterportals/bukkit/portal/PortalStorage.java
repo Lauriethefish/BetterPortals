@@ -105,10 +105,7 @@ public class PortalStorage {
 
         int i = 0;
         for(Portal portal : portals.values())    {
-            // Create a section of the list for this portal
-            ConfigurationSection portalSection = portalsSection.createSection(String.valueOf(i));
-            portal.save(this, portalSection);
-
+            portalsSection.set(String.valueOf(i), portal);
             i++;
         }
 
@@ -135,15 +132,17 @@ public class PortalStorage {
         // Iterate through all of the portals in the list
         Iterator<String> portalItems = portalsSection.getKeys(false).iterator();
         while(portalItems.hasNext())    {
-            // Get a ConfigurationSection for the next portal
-            ConfigurationSection nextPortalSection = portalsSection.getConfigurationSection(portalItems.next());
+            Portal newPortal = (Portal) portalsSection.get(portalItems.next());
 
-            // Add a new portal to the map, using the loading constructor
-            Portal newPortal = new Portal(pl, this, nextPortalSection);
+            // Check if a portal's world is no longer loaded, since this happens when a world is deleted
+            if(newPortal.getOriginPos().getWorld() == null) {
+                pl.getLogger().warning(String.format("Portal at position %s, was not loaded because the world it was in no longer exists!", newPortal.getOriginPos().getVector()));
+                continue;
+            }
+
             portals.put(newPortal.getOriginPos().getLocation(), newPortal);
         }
 
-        // Return the map of all portals
         return portals;
     }
 }
