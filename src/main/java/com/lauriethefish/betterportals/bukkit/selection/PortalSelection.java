@@ -2,6 +2,7 @@ package com.lauriethefish.betterportals.bukkit.selection;
 
 import com.lauriethefish.betterportals.bukkit.math.MathUtils;
 import com.lauriethefish.betterportals.bukkit.portal.PortalDirection;
+import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
 
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -17,8 +18,8 @@ public class PortalSelection {
     private Vector a;
     private Vector b;
 
-    @Getter private Location portalPosition;
-    @Getter private PortalDirection portalDirection;
+    private Location portalPosition;
+    private PortalDirection portalDirection;
     @Getter private Vector portalSize;
 
     public PortalSelection(World world) {
@@ -84,5 +85,9 @@ public class PortalSelection {
     // Swaps the direction of this portal
     public void invertDirection()   {
         portalDirection = portalDirection.getOpposite();
+    }
+    
+    public PortalPosition getPortalPosition() {
+        return new PortalPosition(portalPosition, portalDirection);
     }
 }

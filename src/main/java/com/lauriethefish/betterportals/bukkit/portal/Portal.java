@@ -87,14 +87,11 @@ public class Portal {
         this.planeRadius = originPos.getDirection().swapVector(portalSize.clone().multiply(0.5).add(pl.config.portalCollisionBox));
         this.blockRotator = BlockRotator.newInstance(this);
     }
-
-    // TODO: Reimplement portal loading and saving
     
     // Constructor to make a portal link between two selections
     public Portal(BetterPortals pl, PortalSelection origin, PortalSelection destination, Player creator)  {
-        /*this(pl, origin.getPortalPosition(), origin.getPortalDirection(),
-                 destination.getPortalPosition(), destination.getPortalDirection(), 
-                 origin.getPortalSize(), true, creator.getUniqueId());*/
+        this(pl, origin.getPortalPosition(), destination.getPortalPosition(), 
+                 origin.getPortalSize(), true, creator.getUniqueId());
     }
 
     // Loads all of the values for this portal from the data file
