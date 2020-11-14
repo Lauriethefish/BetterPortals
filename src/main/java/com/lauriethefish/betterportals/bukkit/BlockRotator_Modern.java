@@ -18,13 +18,13 @@ public class BlockRotator_Modern implements BlockRotator    {
     @Override
     public void rotateToOrigin(BlockState state)    {
         // Rotating blocks is not necessary if the two portals face in the same direction
-        if(portal.getOriginDir() == portal.getDestDir())    {return;}
+        if(portal.getOriginPos().getDirection() == portal.getDestPos().getDirection())    {return;}
 
         BlockData data = state.getBlockData();
         if(data instanceof Directional)   {
             Directional rotatable = (Directional) data;
             // Get the face as a vector, and rotate it with the portals matrix, then set the direction to the new one
-            Vector finalDir = MathUtils.round(portal.rotateToOrigin(rotatable.getFacing().getDirection()));
+            Vector finalDir = MathUtils.round(portal.getLocTransformer().rotateToOrigin(rotatable.getFacing().getDirection()));
             rotatable.setFacing(ReflectUtils.getBlockFace(finalDir));
             state.setBlockData(rotatable); // Set the modified block data
         }

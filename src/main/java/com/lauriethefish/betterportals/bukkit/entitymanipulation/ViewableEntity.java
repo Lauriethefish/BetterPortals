@@ -56,7 +56,7 @@ public class ViewableEntity {
     public Vector calculateLocation() {
         oldLocation = location;
         
-        location = portal.moveDestinationToOrigin(EntityManipulator.getEntityPosition(entity, nmsEntity));
+        location = portal.getLocTransformer().moveToOrigin(EntityManipulator.getEntityPosition(entity, nmsEntity));
 
         return location.equals(oldLocation) || oldLocation == null ? null : location.clone().subtract(oldLocation);
     }
@@ -64,7 +64,7 @@ public class ViewableEntity {
     // Returns true if the rotation changed
     private boolean calculateRotation() {
         Vector oldRotation = rotation;
-        rotation = portal.rotateToOrigin(entity.getLocation().getDirection());
+        rotation = portal.getLocTransformer().rotateToOrigin(entity.getLocation().getDirection());
 
         // Dummy location to get the pitch and yaw more easily
         Location loc = entity.getLocation();
@@ -82,7 +82,7 @@ public class ViewableEntity {
         Location loc = entity.getLocation();
         float headRotation = (float) ReflectUtils.runMethod(nmsEntity, "getHeadRotation");
         loc.setYaw(headRotation);
-        loc = loc.setDirection(portal.rotateToOrigin(loc.getDirection()));
+        loc = loc.setDirection(portal.getLocTransformer().rotateToOrigin(loc.getDirection()));
         byteHeadRotation = (byte) (loc.getYaw() * 256 / 360);
         
         if(byteHeadRotation != oldHeadRotation) {

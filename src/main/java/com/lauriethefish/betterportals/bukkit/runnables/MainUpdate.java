@@ -131,7 +131,7 @@ public class MainUpdate implements Runnable {
                 continue;
             }
 
-            Vector originPos = portal.moveDestinationToOrigin(entity.getLocation().toVector());
+            Vector originPos = portal.getLocTransformer().moveToOrigin(entity.getLocation().toVector());
             // If an entity is visible through the portal, then we replicate it
             if(checker.checkIfVisibleThroughPortal(originPos))  {
                 replicatedEntities.add(entity);

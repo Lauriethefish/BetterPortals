@@ -6,6 +6,7 @@ import com.lauriethefish.betterportals.bukkit.BetterPortals;
 import com.lauriethefish.betterportals.bukkit.ReflectUtils;
 import com.lauriethefish.betterportals.bukkit.math.MathUtils;
 import com.lauriethefish.betterportals.bukkit.portal.PortalDirection;
+import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
 import com.lauriethefish.betterportals.bukkit.portal.PortalSpawnSystem;
 import com.lauriethefish.betterportals.bukkit.portal.PortalSpawnSystem.SpawnPosition;
 import com.lauriethefish.betterportals.bukkit.portal.Portal;
@@ -117,15 +118,16 @@ public class PortalCreate implements Listener {
         Vector portalAddAmountDestination = spawnLocation.getDirection().swapVector(portalSize.clone().multiply(0.5).add(new Vector(1.0, 1.0, 0.5)));
         spawnLocation.getLocation().add(portalAddAmountDestination);
 
+        PortalPosition originPos = new PortalPosition(location, direction);
+        PortalPosition destPos = new PortalPosition(spawnLocation.getLocation(), spawnLocation.getDirection());
+
         // Add the two new ends of the portal to the rayCastingSystem,
         // so that the portal effect can be active!
         pl.registerPortal(new Portal(pl,
-            location, direction,
-            spawnLocation.getLocation(), spawnLocation.getDirection(), portalSize, false, null // Set the portal owner to null, since this is a nether portal
+            originPos, destPos, portalSize, false, null // Set the portal owner to null, since this is a nether portal
         ));
         pl.registerPortal(new Portal(pl,
-            spawnLocation.getLocation(), spawnLocation.getDirection(),
-            location, direction, portalSize, false, null
+            destPos, originPos, portalSize, false, null
         ));
     }    
 }

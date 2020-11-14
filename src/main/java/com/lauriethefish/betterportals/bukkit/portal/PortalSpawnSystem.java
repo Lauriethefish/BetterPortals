@@ -190,7 +190,7 @@ public class PortalSpawnSystem {
     private boolean checkPortalProximity(Location loc)  {
         // Loop through each portal
         for(Portal portal : pl.getPortals())    {
-            Location otherPos = portal.getOriginPos();
+            Location otherPos = portal.getOriginPos().getLocation();
 
             // If the portal is in the same world, and is too close, return true
             if(otherPos.getWorld() == loc.getWorld() && otherPos.distance(loc) < pl.config.minimumPortalSpawnDistance) {

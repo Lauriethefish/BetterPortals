@@ -16,7 +16,6 @@ import com.lauriethefish.betterportals.bukkit.BlockRotator;
 import com.lauriethefish.betterportals.bukkit.Config;
 import com.lauriethefish.betterportals.bukkit.ReflectUtils;
 import com.lauriethefish.betterportals.bukkit.math.MathUtils;
-import com.lauriethefish.betterportals.bukkit.math.Matrix;
 import com.lauriethefish.betterportals.bukkit.multiblockchange.ChunkCoordIntPair;
 import com.lauriethefish.betterportals.bukkit.multiblockchange.MultiBlockChangeManager;
 import com.lauriethefish.betterportals.bukkit.selection.PortalSelection;
@@ -36,19 +35,10 @@ import lombok.Getter;
 public class Portal {
     private BetterPortals pl;
 
-    // The origin position and orientation of the portal
-    @Getter private Location originPos;
-    @Getter private PortalDirection originDir;
+    @Getter private PortalPosition originPos;
+    @Getter private PortalPosition destPos;
 
-    // The destination position and orientation of the portal
-    @Getter private Location destPos;
-    @Getter private PortalDirection destDir;
-
-    private Matrix originToDestination;
-    private Matrix rotateToDestination;
-
-    private Matrix destinationToOrigin;
-    private Matrix rotateToOrigin;
+    @Getter private PortalTransformations locTransformer;
 
     // Used to rotate blocks on the other side of the portal to this direction
     private BlockRotator blockRotator;
@@ -77,61 +67,50 @@ public class Portal {
 
     // Constructor to generate the collision box for a given portal
     // NOTE: The portalPosition must be the EXACT center of the portal on the x, y and z
-    public Portal(BetterPortals pl, Location portalPosition, PortalDirection portalDirection, 
-                    Location destinationPosition, PortalDirection destinationDirection, Vector portalSize, boolean anchored, UUID owner) {
+    public Portal(BetterPortals pl, PortalPosition originPos, PortalPosition destPos, Vector portalSize, boolean anchored, UUID owner) {
         this.pl = pl;
-        this.originPos = portalPosition;
-        this.originDir = portalDirection;
-        this.destPos = destinationPosition;
-        this.destDir = destinationDirection;
+        this.originPos = originPos;
+        this.destPos = destPos;
         this.portalSize = portalSize;
         this.anchored = anchored;
         this.owner = owner;
+        locTransformer = new PortalTransformations(originPos, destPos);
 
         // Find the chunks around the destination of the portal
         Vector boxSize = new Vector(pl.config.maxXZ, pl.config.maxY, pl.config.maxXZ);
-        Location boxBL = destinationPosition.clone().subtract(boxSize);
-        Location boxTR = destinationPosition.clone().add(boxSize);
+        Location boxBL = destPos.getLocation().subtract(boxSize);
+        Location boxTR = destPos.getLocation().add(boxSize);
         ChunkCoordIntPair.areaIterator(boxBL, boxTR).addAll(destinationChunks);
-
-        rotateToDestination = Matrix.makeRotation(portalDirection, destinationDirection);
-        rotateToOrigin = Matrix.makeRotation(destinationDirection, portalDirection);
-
-        // Matrix that takes a coordinate at the origin of the portal, and rotates and translates it to the destination
-        originToDestination = Matrix.makeTranslation(destinationPosition.toVector())
-                                .multiply(rotateToDestination)
-                                .multiply(Matrix.makeTranslation(portalPosition.toVector().multiply(-1.0)));
-        
-        destinationToOrigin = Matrix.makeTranslation(portalPosition.toVector())
-                                .multiply(rotateToOrigin)
-                                .multiply(Matrix.makeTranslation(destinationPosition.toVector().multiply(-1.0)));
         
         // Divide the size by 2 so it is the correct amount to subtract from the center to reach each corner
         // Then orient it so that is on the z if the portal is north/south
-        this.planeRadius = portalDirection.swapVector(portalSize.clone().multiply(0.5).add(pl.config.portalCollisionBox));
+        this.planeRadius = originPos.getDirection().swapVector(portalSize.clone().multiply(0.5).add(pl.config.portalCollisionBox));
         this.blockRotator = BlockRotator.newInstance(this);
     }
 
+    // TODO: Reimplement portal loading and saving
+    
     // Constructor to make a portal link between two selections
     public Portal(BetterPortals pl, PortalSelection origin, PortalSelection destination, Player creator)  {
-        this(pl, origin.getPortalPosition(), origin.getPortalDirection(),
+        /*this(pl, origin.getPortalPosition(), origin.getPortalDirection(),
                  destination.getPortalPosition(), destination.getPortalDirection(), 
-                 origin.getPortalSize(), true, creator.getUniqueId());
+                 origin.getPortalSize(), true, creator.getUniqueId());*/
     }
 
     // Loads all of the values for this portal from the data file
     public Portal(BetterPortals pl, PortalStorage storage, ConfigurationSection sect)  {
-        this(pl, 
+        /*this(pl, 
             storage.loadLocation(sect.getConfigurationSection("portalPosition")),
             PortalDirection.fromStorage(sect.getString("portalDirection")),
             storage.loadLocation(sect.getConfigurationSection("destinationPosition")),
             PortalDirection.fromStorage(sect.getString("destinationDirection")),
             storage.loadPortalSize(sect.getConfigurationSection("portalSize")), 
-            sect.getBoolean("anchored"), storage.loadUUID(sect.getString("owner")));
+            sect.getBoolean("anchored"), storage.loadUUID(sect.getString("owner")));*/
     }
 
     // Saves all of the values for this portal into sect
     public void save(PortalStorage storage, ConfigurationSection sect)   {
+        /*
         storage.setLocation(sect.createSection("portalPosition"), originPos);
         sect.set("portalDirection", originDir.toString());
         storage.setLocation(sect.createSection("destinationPosition"), destPos);
@@ -139,7 +118,7 @@ public class Portal {
         storage.setPortalSize(sect.createSection("portalSize"), portalSize);
         sect.set("anchored", anchored);
         // Store who created the portal
-        sect.set("owner", (owner == null) ? null : owner.toString());
+        sect.set("owner", (owner == null) ? null : owner.toString());*/
     }
 
     // Called every tick when the portal is in a loaded chunk
@@ -197,7 +176,7 @@ public class Portal {
     // Updates the two lists of neaby entities
     private void updateNearbyEntities()   {
         Collection<Entity> nearbyEntities = originPos.getWorld()
-                    .getNearbyEntities(originPos, pl.config.maxXZ, pl.config.maxY, pl.config.maxXZ);
+                    .getNearbyEntities(originPos.getLocation(), pl.config.maxXZ, pl.config.maxY, pl.config.maxXZ);
 
         // Store the entity and last location in a hash map
         Map<Entity, Vector> newOriginEntites = new HashMap<>();
@@ -210,7 +189,7 @@ public class Portal {
 
         if(pl.config.enableEntitySupport)   {
             nearbyEntitiesDestination = destPos.getWorld()
-                        .getNearbyEntities(destPos, pl.config.maxXZ, pl.config.maxY, pl.config.maxXZ);
+                        .getNearbyEntities(destPos.getLocation(), pl.config.maxXZ, pl.config.maxY, pl.config.maxXZ);
         }
     }
 
@@ -219,13 +198,13 @@ public class Portal {
         // Save their velocity for later
         Vector playerVelocity = entity.getVelocity().clone();
         // Move them to the other portal
-        Location newLoc = moveOriginToDestination(entity.getLocation());
-        newLoc.setDirection(rotateToDestination(entity.getLocation().getDirection()));
+        Location newLoc = locTransformer.moveToDestination(entity.getLocation());
+        newLoc.setDirection(locTransformer.rotateToDestination(entity.getLocation().getDirection()));
 
         entity.teleport(newLoc);
         
         // Set their velocity back to what it was
-        entity.setVelocity(rotateToDestination(playerVelocity));
+        entity.setVelocity(locTransformer.rotateToDestination(playerVelocity));
     }
 
     public boolean checkOriginAndDestination()  {
@@ -247,39 +226,15 @@ public class Portal {
         }
 
         // Get the offset from the portals absolute center to the top left and bottom right corners of the portal blocks
-        Vector subAmount = originDir.swapVector(portalSize.clone().multiply(0.5).add(new Vector(0.0, 0.0, 0.5)));
+        Vector subAmount = originPos.getDirection().swapVector(portalSize.clone().multiply(0.5).add(new Vector(0.0, 0.0, 0.5)));
         WorldBorder border = originPos.getWorld().getWorldBorder();
 
         // Check if the block at the centre of the portal is a portal block
         return originPos.getBlock().getType() == ReflectUtils.portalMaterial &&
                 // Check that the bottom left and top right of the portal are both inside the worldborder,
                 // since portals outside the worldborder should be broken
-                border.isInside(originPos.clone().subtract(subAmount)) &&
-                border.isInside(originPos.clone().add(subAmount));
-    }
-
-    public Location moveOriginToDestination(Location loc)   {
-        return originToDestination.transform(loc.toVector()).toLocation(destPos.getWorld());
-    }
-
-    public Vector moveOriginToDestination(Vector vec)   {
-        return originToDestination.transform(vec);
-    }
-
-    public Location moveDestinationToOrigin(Location loc)   {
-        return destinationToOrigin.transform(loc.toVector()).toLocation(originPos.getWorld());
-    }
-
-    public Vector moveDestinationToOrigin(Vector vec)   {
-        return destinationToOrigin.transform(vec);
-    }
-
-    public Vector rotateToOrigin(Vector dir)    {
-        return rotateToOrigin.transform(dir);
-    }
-
-    public Vector rotateToDestination(Vector dir)    {
-        return rotateToDestination.transform(dir);
+                border.isInside(originPos.getLocation().subtract(subAmount)) &&
+                border.isInside(originPos.getLocation().add(subAmount));
     }
 
     public void remove()    {
@@ -310,14 +265,14 @@ public class Portal {
     private void setPortalBlocks(Player player, boolean reset)  {
         MultiBlockChangeManager manager = MultiBlockChangeManager.createInstance(player);
 
-        Vector actualSize = originDir.swapVector(portalSize);
-        Vector blockBL = originPos.toVector().subtract(actualSize.multiply(0.5));
+        Vector actualSize = originPos.getDirection().swapVector(portalSize);
+        Vector blockBL = originPos.getVector().subtract(actualSize.multiply(0.5));
 
         // Loop through each block of the portal, and set them to either air or back to portal
         Object nmsAirData = BlockRaycastData.getNMSData(Material.AIR);
         for(int x = 0; x < portalSize.getX(); x++)  {
             for(int y = 0; y < portalSize.getY(); y++)  {
-                Vector offset = originDir.swapVector(new Vector(x, y, 0.0));
+                Vector offset = originPos.getDirection().swapVector(new Vector(x, y, 0.0));
                 Location position = blockBL.toLocation(originPos.getWorld()).add(offset);
                 
                 // Add the changes to our manager
@@ -335,11 +290,13 @@ public class Portal {
     // Checks if the location is on the plane made by the portal window
     // This is used because entities in line with the portal should not be rendered
     public boolean positionInlineWithOrigin(Location loc)  {
-        return originDir.swapLocation(loc).getBlockZ() == originDir.swapLocation(originPos).getBlockZ();
+        return originPos.getDirection().swapLocation(loc).getBlockZ() ==
+            originPos.getDirection().swapLocation(originPos.getLocation()).getBlockZ();
     }
 
     public boolean positionInlineWithDestination(Location loc)  {
-        return destDir.swapLocation(loc).getZ() == destDir.swapLocation(destPos).getZ();
+        return destPos.getDirection().swapLocation(loc).getBlockZ() ==
+            destPos.getDirection().swapLocation(destPos.getLocation()).getBlockZ();
     }
 
     public boolean isCustom()   {
@@ -357,8 +314,8 @@ public class Portal {
         for(double z = config.minXZ; z <= config.maxXZ; z++) {
             for(double y = config.minY; y <= config.maxY; y++) {
                 for(double x = config.minXZ; x <= config.maxXZ; x++) {
-                    Location originLoc = MathUtils.moveToCenterOfBlock(originPos.clone().add(x, y, z));
-                    Location position = moveOriginToDestination(originLoc);
+                    Location originLoc = MathUtils.moveToCenterOfBlock(originPos.getLocation().add(x, y, z));
+                    Location position = locTransformer.moveToDestination(originLoc);
                     occlusionArray[config.calculateBlockArrayIndex(x, y, z)] = position.getBlock().getType().isOccluding();
                 }
             }
@@ -370,8 +327,8 @@ public class Portal {
                 for(double x = config.minXZ; x <= config.maxXZ; x++) {
                     int arrayIndex = config.calculateBlockArrayIndex(x, y, z);
 
-                    Location originLoc = MathUtils.moveToCenterOfBlock(originPos.clone().add(x, y, z));
-                    Location destLoc = moveOriginToDestination(originLoc);
+                    Location originLoc = MathUtils.moveToCenterOfBlock(originPos.getLocation().add(x, y, z));
+                    Location destLoc = locTransformer.moveToDestination(originLoc);
                     // Skip blocks directly in line with the portal
                     if(positionInlineWithOrigin(originLoc)) {continue;}
                     

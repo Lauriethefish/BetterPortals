@@ -17,6 +17,7 @@ import com.lauriethefish.betterportals.bukkit.events.PlayerTeleport;
 import com.lauriethefish.betterportals.bukkit.events.PortalCreate;
 import com.lauriethefish.betterportals.bukkit.multiblockchange.ChunkCoordIntPair;
 import com.lauriethefish.betterportals.bukkit.portal.Portal;
+import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
 import com.lauriethefish.betterportals.bukkit.portal.PortalSpawnSystem;
 import com.lauriethefish.betterportals.bukkit.portal.PortalStorage;
 import com.lauriethefish.betterportals.bukkit.runnables.MainUpdate;
@@ -123,12 +124,16 @@ public class BetterPortals extends JavaPlugin {
 
     // Adds a new portal
     public void registerPortal(Portal portal)   {
-        portals.put(portal.getOriginPos(), portal);
+        portals.put(portal.getOriginPos().getLocation(), portal);
     }
 
     // Removes a portal
     public void unregisterPortal(Portal portal) {
         unregisterPortal(portal.getOriginPos());
+    }
+
+    public void unregisterPortal(PortalPosition position) {
+        unregisterPortal(position.getLocation());
     }
 
     public void unregisterPortal(Location originPos)    {
@@ -137,6 +142,10 @@ public class BetterPortals extends JavaPlugin {
 
     public Collection<Portal> getPortals()  {
         return portals.values();
+    }
+
+    public Portal getPortal(PortalPosition originPos) {
+        return getPortal(originPos.getLocation());
     }
 
     public Portal getPortal(Location originPos) {
@@ -170,7 +179,7 @@ public class BetterPortals extends JavaPlugin {
         Portal closestPortal = null;
         // Loop through each portal
         for(Portal portal : getPortals())   {
-            Location portalLoc = portal.getOriginPos();
+            Location portalLoc = portal.getOriginPos().getLocation();
             // Only check portals in the correct world
             if(portalLoc.getWorld() != loc.getWorld())  {continue;}
 
