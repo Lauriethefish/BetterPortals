@@ -32,6 +32,9 @@ public class PortalTransformations {
         destinationToOrigin = Matrix.makeTranslation(originPos.getVector())
                                 .multiply(rotateToOrigin)
                                 .multiply(Matrix.makeTranslation(destPos.getVector().multiply(-1.0)));
+
+        originWorld = originPos.getWorld();
+        destinationWorld = destPos.getWorld();
     }
 
     // Helper functions for transforming locations and vectors with the matrices
@@ -43,6 +46,14 @@ public class PortalTransformations {
 
     public Location moveToOrigin(Location loc) {
         return destinationToOrigin.transform(loc.toVector()).toLocation(originWorld);
+    }
+
+    public Vector moveToDestination(Vector vec) {
+        return originToDestination.transform(vec);
+    }
+
+    public Vector moveToOrigin(Vector vec) {
+        return destinationToOrigin.transform(vec);
     }
 
     public Vector rotateToDestination(Vector vec) {
