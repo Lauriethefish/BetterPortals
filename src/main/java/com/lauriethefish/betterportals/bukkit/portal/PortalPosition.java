@@ -32,6 +32,9 @@ public class PortalPosition implements Serializable, ConfigurationSerializable {
     // Used to send this position to the correct server
     @Getter private transient String serverName = null;
 
+    // Since looking up the world of this portal is fairly expensive, we cache the location for later
+    private transient Location locationCache = null;
+
     // Used if this PortalPosition is on a bungeecord server
     public PortalPosition(Vector location, PortalDirection direction, String server, String worldName) {
         this.direction = direction;
@@ -84,8 +87,14 @@ public class PortalPosition implements Serializable, ConfigurationSerializable {
         return world;
     }
 
+    // Returns the actual location represented by this PortalPosition. This will return a location with a null world if the portal is external
     public Location getLocation() {
-        return new Location(getWorld(), x, y, z);
+        // Find the location from getWorld if we need to
+        if(locationCache == null) {
+            locationCache = new Location(getWorld(), x, y, z);
+        }
+
+        return locationCache.clone();
     }
 
     public Vector getVector() {
