@@ -45,8 +45,8 @@ public class BetterPortals extends JavaPlugin {
     private Metrics metrics;
 
     // All PlayerData is stored in this map
-    private Map<UUID, PlayerData> players = new HashMap<UUID, PlayerData>();
-    private Map<Location, Portal> portals;
+    private Map<UUID, PlayerData> players = new HashMap<>();
+    private Map<Location, Portal> portals = new HashMap<>();
 
     @Getter private PortalSpawnSystem portalSpawnSystem = new PortalSpawnSystem(this);
     @Getter private MainUpdate portalUpdator;
