@@ -113,6 +113,28 @@ public class PortalStorage {
         newPortals.save(storageFile);
     }
 
+    // Loads a portal from the legacy format
+    private Portal loadLegacyPortal(ConfigurationSection section) {
+        // Load the two portal positions in the legacy format
+        PortalPosition originPos = new PortalPosition(
+            loadLocation(section.getConfigurationSection("portalPosition")),
+            PortalDirection.valueOf(section.getString("portalDirection"))
+        );
+
+        PortalPosition destPos = new PortalPosition(
+            loadLocation(section.getConfigurationSection("destinationPosition")),
+            PortalDirection.valueOf(section.getString("destinationDirection"))
+        );
+
+        // Load the portalSize and other info, making sure to account for null
+        Vector portalSize = loadPortalSize(section.getConfigurationSection("portalSize"));
+        boolean anchored = section.getBoolean("anchored");
+        String owner = section.getString("owner");
+        UUID ownerId = owner == null ? null : UUID.fromString(owner);
+
+        return new Portal(pl, originPos, destPos, portalSize, anchored, ownerId); // Return a new portal
+    }
+
     // Loads all of the portals from portals.yml and puts them in the given list
     // If no portals were saved it should return an empty list
     // This function will through exceptions if parsing the YAML failed
@@ -132,7 +154,19 @@ public class PortalStorage {
         // Iterate through all of the portals in the list
         Iterator<String> portalItems = portalsSection.getKeys(false).iterator();
         while(portalItems.hasNext())    {
-            Portal newPortal = (Portal) portalsSection.get(portalItems.next());
+            String portalNumber = portalItems.next();
+            ConfigurationSection portalSection = portalsSection.getConfigurationSection(portalNumber);
+            Portal newPortal;
+
+            if(portalSection.contains("portalPosition")) {
+                // Otherwise, use the method for loading legacy portals
+                pl.logDebug("Loading legacy portal.");
+                newPortal = loadLegacyPortal(portalSection);
+            }   else    {
+                // Use configuration serialization to load a portal if it has the new format
+                pl.logDebug("Loading modern portal.");
+                newPortal = (Portal) portalsSection.get(portalNumber);
+            }
 
             // Check if a portal's world is no longer loaded, since this happens when a world is deleted
             if(newPortal.getOriginPos().getWorld() == null) {
