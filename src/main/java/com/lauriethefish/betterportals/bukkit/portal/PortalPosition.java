@@ -97,6 +97,11 @@ public class PortalPosition implements Serializable, ConfigurationSerializable {
         return getLocation().getBlock();
     }
 
+    // Returns true if this PortalPosition is actually on another server
+    public boolean isExternal() {
+        return serverName != null;
+    }
+
     // Saves this portal position to a config section
     @Override
     public Map<String, Object> serialize() {
