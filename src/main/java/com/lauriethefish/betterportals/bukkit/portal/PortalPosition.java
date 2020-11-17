@@ -27,7 +27,7 @@ public class PortalPosition implements Serializable, ConfigurationSerializable {
     // We store the world ID *and* the world name. How this works is that we first
     // look up the world by ID, and if it doesn't exist, look it up by the name
     private transient UUID worldId = null; // Currently unused on cross server portals
-    private String worldName;
+    private String worldName = null;
 
     // Used to send this position to the correct server
     @Getter private transient String serverName = null;
@@ -50,8 +50,11 @@ public class PortalPosition implements Serializable, ConfigurationSerializable {
         x = location.getX();
         y = location.getY();
         z = location.getZ();
-        worldName = location.getWorld().getName();
-        worldId = location.getWorld().getUID();
+        // A location with a null world should just make the world fields in this class null, not throw NullPointerException
+        if(location.getWorld() != null) { 
+            worldName = location.getWorld().getName();
+            worldId = location.getWorld().getUID();
+        }
     }
 
     // Used for loading this position from a config section
@@ -81,7 +84,7 @@ public class PortalPosition implements Serializable, ConfigurationSerializable {
         if(worldId != null) {
             world = Bukkit.getWorld(worldId);
         }
-        if (world == null) {
+        if (world == null && worldName != null) {
             world = Bukkit.getWorld(worldName);
         }
         return world;
