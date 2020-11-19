@@ -16,6 +16,7 @@ import com.lauriethefish.betterportals.bukkit.events.JoinLeave;
 import com.lauriethefish.betterportals.bukkit.events.PlayerTeleport;
 import com.lauriethefish.betterportals.bukkit.events.PortalCreate;
 import com.lauriethefish.betterportals.bukkit.multiblockchange.ChunkCoordIntPair;
+import com.lauriethefish.betterportals.bukkit.network.PortalClient;
 import com.lauriethefish.betterportals.bukkit.portal.Portal;
 import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
 import com.lauriethefish.betterportals.bukkit.portal.PortalSpawnSystem;

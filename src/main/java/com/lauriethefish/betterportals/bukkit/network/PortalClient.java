@@ -1,4 +1,4 @@
-package com.lauriethefish.betterportals.bukkit;
+package com.lauriethefish.betterportals.bukkit.network;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -7,6 +7,7 @@ import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
+import com.lauriethefish.betterportals.bukkit.BetterPortals;
 import com.lauriethefish.betterportals.network.RegisterRequest;
 import com.lauriethefish.betterportals.network.Request;
 import com.lauriethefish.betterportals.network.Response;
