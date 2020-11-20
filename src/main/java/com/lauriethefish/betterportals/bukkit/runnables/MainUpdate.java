@@ -127,7 +127,7 @@ public class MainUpdate implements Runnable {
         Set<Entity> replicatedEntities = new HashSet<>();
         for(Entity entity : portal.getNearbyEntitiesDestination())   {
             // Don't replicate entities almost exactly in line 
-            if(portal.positionInlineWithDestination(entity.getLocation())) {
+            if(portal.getDestPos().isInLine(entity.getLocation())) {
                 continue;
             }
 
