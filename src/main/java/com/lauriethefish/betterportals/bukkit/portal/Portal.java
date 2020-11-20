@@ -288,18 +288,6 @@ public class Portal implements ConfigurationSerializable    {
         manager.sendChanges(); // Send the packet to the player
     }
 
-    // Checks if the location is on the plane made by the portal window
-    // This is used because entities in line with the portal should not be rendered
-    public boolean positionInlineWithOrigin(Location loc)  {
-        return originPos.getDirection().swapLocation(loc).getBlockZ() ==
-            originPos.getDirection().swapLocation(originPos.getLocation()).getBlockZ();
-    }
-
-    public boolean positionInlineWithDestination(Location loc)  {
-        return destPos.getDirection().swapLocation(loc).getBlockZ() ==
-            destPos.getDirection().swapLocation(destPos.getLocation()).getBlockZ();
-    }
-
     public boolean isCustom()   {
         return anchored;
     }
@@ -331,7 +319,7 @@ public class Portal implements ConfigurationSerializable    {
                     Location originLoc = MathUtils.moveToCenterOfBlock(originPos.getLocation().add(x, y, z));
                     Location destLoc = locTransformer.moveToDestination(originLoc);
                     // Skip blocks directly in line with the portal
-                    if(positionInlineWithOrigin(originLoc)) {continue;}
+                    if(originPos.isInLine(originLoc)) {continue;}
                     
                     // First check if the block is visible from any neighboring block
                     boolean transparentBlock = false;

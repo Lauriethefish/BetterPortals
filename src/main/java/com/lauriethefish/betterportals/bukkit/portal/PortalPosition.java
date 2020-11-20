@@ -100,6 +100,12 @@ public class PortalPosition implements Serializable, ConfigurationSerializable {
         return locationCache.clone();
     }
 
+    // Returns if this location is in line with the plane of this portal position
+    public boolean isInLine(Location location) {
+        return direction.swapVector(getVector()).getBlockZ() ==
+            direction.swapLocation(location).getBlockZ();
+    }
+
     public Vector getVector() {
         return new Vector(x, y, z);
     }
