@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 
@@ -152,13 +151,11 @@ public class PortalStorage {
         ConfigurationSection portalsSection = currentStorage.getConfigurationSection("portals");
 
         // Iterate through all of the portals in the list
-        Iterator<String> portalItems = portalsSection.getKeys(false).iterator();
-        while(portalItems.hasNext())    {
-            String portalNumber = portalItems.next();
+        for(String portalNumber : portalsSection.getKeys(false)) {
             ConfigurationSection portalSection = portalsSection.getConfigurationSection(portalNumber);
             Portal newPortal;
 
-            if(portalSection.contains("portalPosition")) {
+            if(portalSection != null && portalSection.contains("portalPosition")) {
                 // Otherwise, use the method for loading legacy portals
                 pl.logDebug("Loading legacy portal.");
                 newPortal = loadLegacyPortal(portalSection);
