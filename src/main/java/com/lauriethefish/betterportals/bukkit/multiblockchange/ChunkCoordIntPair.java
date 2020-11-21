@@ -64,7 +64,7 @@ public class ChunkCoordIntPair {
 
         @Override
         public boolean hasNext() {
-            return false;
+            return currentPos.x < high.x || currentPos.z < high.z;
         }
 
         @Override
