@@ -68,6 +68,7 @@ public class PortalSpawnSystem {
     // if no link is found it will return null
     // The portalSize should be on the x and y coordinates, even if the portal is oriented along the z, it is the size of the portal window, not including the obsidian
     public SpawnPosition findSuitablePortalLocation(Location originLocation, PortalDirection direction, Vector portalSize) {
+        pl.logDebug("Finding portal spawn location (origin position %s)", originLocation);
         // Loop through all of the links between worlds, and try to find a link for this portal
         WorldLink link = null;
         for(WorldLink currentLink : pl.config.worldLinks)   {
@@ -78,6 +79,7 @@ public class PortalSpawnSystem {
         }
         // If no link was found, return null
         if(link == null)    {
+            pl.logDebug("No suitable world link found.");
             return null;
         }
 
@@ -97,10 +99,12 @@ public class PortalSpawnSystem {
         
         // Convert the location to a block and back, this should floor the location so it is all whole numbers
         Location prefferedLocation = destinationLoc.getBlock().getLocation();
+        pl.logDebug("Preferred destination location %s ", destinationLoc);
 
         Location a = prefferedLocation.clone().subtract(128, 0, 128);
         Location b = prefferedLocation.clone().add(128, 0, 128);
 
+        pl.logDebug("Looping through surrounding chunks to look for an existing portal: ");
         // Loop through each chunk around the portal to search for existing portals
         SpawnPosition closestExistingPortal = null;
         for(ChunkCoordIntPair chunkPos : ChunkCoordIntPair.areaIterator(a, b))  {
@@ -112,8 +116,11 @@ public class PortalSpawnSystem {
         }
 
         if(closestExistingPortal != null)   {
+            pl.logDebug("Existing portal found at location %s", closestExistingPortal.location);
             return closestExistingPortal;
         }
+
+        pl.logDebug("No existing portal found, searching for a suitable new portal location . . .");
 
         // Variables for storing the current closestSuitableLocation
         Location closestSuitableLocation = null;
@@ -150,9 +157,11 @@ public class PortalSpawnSystem {
 
         // If a suitable location was found, return it
         if(closestSuitableLocation != null) {
+            pl.logDebug("Returning location %s", closestSuitableLocation);
             return new SpawnPosition(closestSuitableLocation, direction);
         }
         
+        pl.logDebug("No suitable spawn location was found, returning the preferred locaiton. NOTE: This probably shouldn't happen!");
         // Otherwise return the given location
         return new SpawnPosition(prefferedLocation, direction);
     }
