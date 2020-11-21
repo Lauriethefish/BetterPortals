@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import net.md_5.bungee.api.config.ServerInfo;
 
@@ -14,7 +14,7 @@ public class PortalServer {
     private boolean isActive = true;
 
     private ServerSocket socket;
-    private Map<ServerInfo, ServerConnection> connectedServers = new HashMap<>();
+    private Map<ServerInfo, ServerConnection> connectedServers = new ConcurrentHashMap<>();
 
     // Creates a new portal server, and starts the server thread
     public PortalServer(BetterPortals pl) {
