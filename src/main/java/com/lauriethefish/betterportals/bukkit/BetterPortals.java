@@ -18,6 +18,7 @@ import com.lauriethefish.betterportals.bukkit.events.PortalCreate;
 import com.lauriethefish.betterportals.bukkit.multiblockchange.ChunkCoordIntPair;
 import com.lauriethefish.betterportals.bukkit.network.PortalClient;
 import com.lauriethefish.betterportals.bukkit.portal.Portal;
+import com.lauriethefish.betterportals.bukkit.portal.PortalBlockArrayProcessor;
 import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
 import com.lauriethefish.betterportals.bukkit.portal.PortalSpawnSystem;
 import com.lauriethefish.betterportals.bukkit.portal.PortalStorage;
@@ -50,6 +51,8 @@ public class BetterPortals extends JavaPlugin {
     private Map<Location, Portal> portals = new HashMap<>();
 
     @Getter private PortalSpawnSystem portalSpawnSystem = new PortalSpawnSystem(this);
+    @Getter private PortalBlockArrayProcessor blockArrayProcessor;
+
     @Getter private MainUpdate portalUpdator;
     public Config config;
     private PortalStorage storage;
@@ -82,6 +85,7 @@ public class BetterPortals extends JavaPlugin {
         if(!loadConfig())   {
             disablePlugin(); return; // If loading failed, disable the plugin
         }
+        blockArrayProcessor = new PortalBlockArrayProcessor(this);
 
         createPortalWand();
         registerCommands();

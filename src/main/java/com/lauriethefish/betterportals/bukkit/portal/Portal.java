@@ -1,6 +1,5 @@
 package com.lauriethefish.betterportals.bukkit.portal;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,12 +11,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
 import com.lauriethefish.betterportals.bukkit.BlockRaycastData;
-import com.lauriethefish.betterportals.bukkit.BlockRotator;
-import com.lauriethefish.betterportals.bukkit.Config;
 import com.lauriethefish.betterportals.bukkit.ReflectUtils;
-import com.lauriethefish.betterportals.bukkit.math.MathUtils;
 import com.lauriethefish.betterportals.bukkit.multiblockchange.ChunkCoordIntPair;
 import com.lauriethefish.betterportals.bukkit.multiblockchange.MultiBlockChangeManager;
+import com.lauriethefish.betterportals.bukkit.network.GetBlockDataArrayRequest;
 import com.lauriethefish.betterportals.bukkit.selection.PortalSelection;
 
 import org.bukkit.Location;
@@ -40,9 +37,6 @@ public class Portal implements ConfigurationSerializable    {
     @Getter private PortalPosition destPos;
 
     @Getter private PortalTransformations locTransformer;
-
-    // Used to rotate blocks on the other side of the portal to this direction
-    private BlockRotator blockRotator;
 
     // Size of the plane the makes up the portal radius from the centerpoint of the portal
     @Getter private Vector planeRadius;
@@ -86,7 +80,6 @@ public class Portal implements ConfigurationSerializable    {
         // Divide the size by 2 so it is the correct amount to subtract from the center to reach each corner
         // Then orient it so that is on the z if the portal is north/south
         this.planeRadius = originPos.getDirection().swapVector(portalSize.clone().multiply(0.5).add(pl.config.portalCollisionBox));
-        this.blockRotator = BlockRotator.newInstance(this);
     }
     
     // Constructor to make a portal link between two selections
@@ -292,57 +285,9 @@ public class Portal implements ConfigurationSerializable    {
         return anchored;
     }
 
-    // Loops through the blocks at the destination position, and finds the ones that aren't obscured by other solid blocks
-    public void findCurrentBlocks()  {
-        Config config = pl.config;
-
-        List<BlockRaycastData> newBlocks = new ArrayList<>();
-
-        // Loop through the surrounding blocks, and check which ones are occluding
-        boolean[] occlusionArray = new boolean[config.totalArrayLength];
-        for(double z = config.minXZ; z <= config.maxXZ; z++) {
-            for(double y = config.minY; y <= config.maxY; y++) {
-                for(double x = config.minXZ; x <= config.maxXZ; x++) {
-                    Location originLoc = MathUtils.moveToCenterOfBlock(originPos.getLocation().add(x, y, z));
-                    Location position = locTransformer.moveToDestination(originLoc);
-                    occlusionArray[config.calculateBlockArrayIndex(x, y, z)] = position.getBlock().getType().isOccluding();
-                }
-            }
-        }
-
-        // Check to see if each block is fully obscured, if not, add it to the list
-        for(double z = config.minXZ; z <= config.maxXZ; z++) {
-            for(double y = config.minY; y <= config.maxY; y++) {
-                for(double x = config.minXZ; x <= config.maxXZ; x++) {
-                    int arrayIndex = config.calculateBlockArrayIndex(x, y, z);
-
-                    Location originLoc = MathUtils.moveToCenterOfBlock(originPos.getLocation().add(x, y, z));
-                    Location destLoc = locTransformer.moveToDestination(originLoc);
-                    // Skip blocks directly in line with the portal
-                    if(originPos.isInLine(originLoc)) {continue;}
-                    
-                    // First check if the block is visible from any neighboring block
-                    boolean transparentBlock = false;
-                    for(int offset : config.surroundingOffsets) {
-                        int finalIndex = arrayIndex + offset;
-                        if(finalIndex < 0 || finalIndex >= config.totalArrayLength) {
-                            continue;
-                        }
-
-                        if(!occlusionArray[finalIndex])  {
-                            transparentBlock = true;
-                            break;
-                        }
-                    }
-
-                    // If the block is bordered by at least one transparent block, add it to the list
-                    if(transparentBlock)    {
-                        boolean edge = x == config.maxXZ || x == config.minXZ || z == config.maxXZ || z == config.minXZ || y == config.maxY || y == config.minY;
-                        newBlocks.add(new BlockRaycastData(blockRotator, originLoc, destLoc, edge));
-                    }
-                }
-            }
-        }
-        currentBlocks = newBlocks;
-    }
+    public void findCurrentBlocks() {
+        // Send a request to the PortalBlockArrayProcessor
+        GetBlockDataArrayRequest request = new GetBlockDataArrayRequest(originPos, destPos);
+        currentBlocks = pl.getBlockArrayProcessor().findPortalDataArray(request);
+    } 
 }
