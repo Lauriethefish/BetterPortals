@@ -1,5 +1,6 @@
 package com.lauriethefish.betterportals.bukkit;
 
+import java.io.Serializable;
 import java.lang.reflect.Method;
 
 import com.lauriethefish.betterportals.bukkit.math.MathUtils;
@@ -12,7 +13,9 @@ import org.bukkit.util.Vector;
 import lombok.Getter;
 
 // Stores data about a block surrounding the portal that is in the HashMap of viewable blocks
-public class BlockRaycastData {
+public class BlockRaycastData implements Serializable   {
+    private static final long serialVersionUID = -198098468444437819L;
+
     private static int edgeDataCombinedId = makeEdgeData();
 
     private static int makeEdgeData() {
@@ -25,8 +28,11 @@ public class BlockRaycastData {
     }
 
     @Getter private Vector originVec;
+    // Store the origin and destination IBlockData after they have been fetched once
     private transient Object originDataCache;
     private transient Object destDataCache;
+
+    // Store the combined ID of the origin and destination data, since these can be serialized
     private int originDataCombinedId;
     private int destDataCombinedId;
 
@@ -89,43 +95,4 @@ public class BlockRaycastData {
     public static Object getNMSData(BlockState state) {
         return getNMSData(getCombinedId(state));
     }
-
-    /*
-    public static Object getNMSData(Material mat)  {
-        Object block = ReflectUtils.runMethod(null, ReflectUtils.getBukkitClass("util.CraftMagicNumbers"), "getBlock", new Class[]{Material.class}, new Object[]{mat});
-        return ReflectUtils.getField(block, "blockData");
-    }
-
-    @SuppressWarnings("deprecation")
-    public static Object getNMSData(Material mat, byte data)    {
-        int combinedId = mat.getId() + (data << 12);
-        return ReflectUtils.runMethod(null, ReflectUtils.getMcClass("Block"), "getByCombinedId", new Class[]{int.class}, new Object[]{combinedId});
-    }
-
-    private static Method getDataMethod = findGetDataMethod();
-    private static Method findGetDataMethod()  {
-        if(ReflectUtils.isLegacy)   {
-            return ReflectUtils.findMethod(ReflectUtils.getMcClass("Block"), "getByCombinedId", new Class[]{int.class});
-        }   else    {
-            return ReflectUtils.findMethod(ReflectUtils.getBukkitClass("block.CraftBlockState"), "getHandle", new Class[]{});
-        }
-    }
-
-    // Finds the NMS IBlockData from a bukkit block state
-    @SuppressWarnings("deprecation")
-    public static Object getNMSData(BlockState state)   {
-        try {
-            // Use the combinedId to get IBlockData in legacy versions, or just use getHandle on a BlockState in modern versions
-            if(ReflectUtils.isLegacy)    {
-                int combined = state.getType().getId() + (state.getRawData() << 12);
-                return getDataMethod.invoke(null, combined);
-            }   else    {
-                return getDataMethod.invoke(state);
-            }
-        }   catch(ReflectiveOperationException ex)  {
-            ex.printStackTrace();
-            return null;
-        }
-    }
-    */
 }
