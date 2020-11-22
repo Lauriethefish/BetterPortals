@@ -1,5 +1,11 @@
 package com.lauriethefish.betterportals.network;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 import com.lauriethefish.betterportals.network.Response.RequestException;
 
 import lombok.Getter;
@@ -9,11 +15,22 @@ public class ServerBoundRequestContainer implements Request {
     private static final long serialVersionUID = 6541785442214174677L;
     
     @Getter private String destinationServer; // The name of the server this request should be forwarded to
-    @Getter private Request request; // The bytes of the request, which are deserialized on the bukkit/spigot server
+    private byte[] request; // The bytes of the request, which are deserialized on the bukkit/spigot server
 
-    public ServerBoundRequestContainer(String destinationServer, Request request)    {
+    public ServerBoundRequestContainer(String destinationServer, Request request) throws IOException    {
         this.destinationServer = destinationServer;
-        this.request = request;
+
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
+        objectOutputStream.writeObject(request);
+        this.request = byteArrayOutputStream.toByteArray();
+    }
+
+    public Request getRequest() throws IOException, ClassNotFoundException {
+        // Deserialize the byte array into the Request object
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(request);
+        ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
+        return (Request) objectInputStream.readObject();
     }
 
     // Thrown if the requested server does not exist

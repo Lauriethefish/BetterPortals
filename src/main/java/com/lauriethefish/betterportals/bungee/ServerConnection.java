@@ -127,17 +127,12 @@ public class ServerConnection {
 
     // Sends a request to the bukkit server, and returns the result, or throws RequestException if the result was an error
     public Object sendRequest(Request request) throws IOException, RequestException, ClassNotFoundException  {
-        return sendRequestRaw(request).getResult();
-    }
-
-    // Sends a request to the bukkit server, and returns the response
-    public Response sendRequestRaw(Request request) throws IOException, ClassNotFoundException {
         objectStream.writeObject(request);
 
-        return (Response) objectStream.readNextOfType(Response.class);
+        return ((Response) objectStream.readNextOfType(Response.class)).getResult();
     }
 
-    private Object handleServerBoundRequestContainer(ServerBoundRequestContainer request) throws ServerNotFoundException, IOException, ClassNotFoundException {
+    private Object handleServerBoundRequestContainer(ServerBoundRequestContainer request) throws ServerNotFoundException, IOException, ClassNotFoundException, RequestException {
         // Find the server this request should be forwarded to
         ServerConnection dServerConnection = pl.getPortalServer().getConnection(request.getDestinationServer());
         if(dServerConnection == null) {
@@ -145,7 +140,7 @@ public class ServerConnection {
         }
         
         // Send the bytes of the request, and get the response
-        return dServerConnection.sendRequestRaw(request.getRequest());
+        return dServerConnection.sendRequest(request);
     }
     
     // Closes the connection to the client
