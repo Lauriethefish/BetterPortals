@@ -1,5 +1,8 @@
 package com.lauriethefish.betterportals.bukkit;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 
@@ -94,5 +97,20 @@ public class BlockRaycastData implements Serializable   {
 
     public static Object getNMSData(BlockState state) {
         return getNMSData(getCombinedId(state));
+    }
+
+    // Manually implement readObject and writeObject for efficiency and because Vector isn't serializable
+    private void readObject(ObjectInputStream inputStream) throws IOException {
+        originVec = new Vector(inputStream.readDouble(), inputStream.readDouble(), inputStream.readDouble());
+        originDataCombinedId = inputStream.readInt();
+        destDataCombinedId = inputStream.readInt();
+    }
+
+    private void writeObject(ObjectOutputStream outputStream) throws IOException {
+        outputStream.writeDouble(originVec.getX());
+        outputStream.writeDouble(originVec.getY());
+        outputStream.writeDouble(originVec.getZ());
+        outputStream.writeInt(originDataCombinedId);
+        outputStream.writeInt(destDataCombinedId);
     }
 }
