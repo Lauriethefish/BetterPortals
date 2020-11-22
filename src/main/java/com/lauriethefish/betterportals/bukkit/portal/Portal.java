@@ -288,6 +288,15 @@ public class Portal implements ConfigurationSerializable    {
     public void findCurrentBlocks() {
         // Send a request to the PortalBlockArrayProcessor
         GetBlockDataArrayRequest request = new GetBlockDataArrayRequest(originPos, destPos);
+        if(destPos.isExternal()) {
+            try {
+                pl.getNetworkClient().sendRequestToServer(request, destPos.getServerName());
+            }   catch(Exception ex) {
+                ex.printStackTrace();
+            }
+            return;
+        }
+
         currentBlocks = pl.getBlockArrayProcessor().findPortalDataArray(request);
     } 
 }
