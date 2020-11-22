@@ -137,4 +137,9 @@ public class PortalPosition implements Serializable, ConfigurationSerializable {
         }
         return map;
     }
+    
+    @Override
+    public String toString() {
+        return String.format("x: %.02f, y: %.02f, z: %.02f, worldName: %s", x, y, z, worldName);
+    }
 }
