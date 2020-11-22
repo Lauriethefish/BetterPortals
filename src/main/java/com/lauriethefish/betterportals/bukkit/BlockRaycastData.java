@@ -10,6 +10,7 @@ import com.lauriethefish.betterportals.bukkit.math.MathUtils;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.BlockState;
 import org.bukkit.util.Vector;
 
@@ -36,14 +37,13 @@ public class BlockRaycastData implements Serializable   {
     private transient Object destDataCache;
 
     // Store the combined ID of the origin and destination data, since these can be serialized
-    private int originDataCombinedId;
     private int destDataCombinedId;
 
     public BlockRaycastData(BlockRotator rotator, Location originLoc, Location destLoc, boolean edge) {
         // Find the location at the exact center of the origin block, used for portal
         // intersection checking
         this.originVec = MathUtils.moveToCenterOfBlock(originLoc.toVector());
-        this.originDataCombinedId = getCombinedId(originLoc.getBlock().getState()); // Find the IBlockData in the origin block
+        //this.originDataCombinedId = getCombinedId(originLoc.getBlock().getState()); // Find the IBlockData in the origin block
 
         // Rotate the block at the other side if we need to, so it is at the origin
         BlockState destBlockState = destLoc.getBlock().getState();
@@ -52,8 +52,10 @@ public class BlockRaycastData implements Serializable   {
     }
 
     // Fetches the NMS IBlockData if we need to, otherwise just returns the cached data
-    public Object getOriginData() {
-        if(originDataCache == null) {originDataCache = getNMSData(originDataCombinedId);}
+    public Object getOriginData(World world) {
+        if(originDataCache == null) {
+            originDataCache = getNMSData(originVec.toLocation(world).getBlock().getState());
+        }
         return originDataCache;
     }
 
@@ -102,7 +104,6 @@ public class BlockRaycastData implements Serializable   {
     // Manually implement readObject and writeObject for efficiency and because Vector isn't serializable
     private void readObject(ObjectInputStream inputStream) throws IOException {
         originVec = new Vector(inputStream.readDouble(), inputStream.readDouble(), inputStream.readDouble());
-        originDataCombinedId = inputStream.readInt();
         destDataCombinedId = inputStream.readInt();
     }
 
@@ -110,7 +111,6 @@ public class BlockRaycastData implements Serializable   {
         outputStream.writeDouble(originVec.getX());
         outputStream.writeDouble(originVec.getY());
         outputStream.writeDouble(originVec.getZ());
-        outputStream.writeInt(originDataCombinedId);
         outputStream.writeInt(destDataCombinedId);
     }
 }
