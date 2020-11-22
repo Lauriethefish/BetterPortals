@@ -65,19 +65,46 @@ public class PortalClient {
         while(isConnected) {
             // Read the next request from the server
             Request request = (Request) objectStream.readNextOfType(Request.class);
-            pl.logDebug("Received request from client %s of type %s", socket.getInetAddress(), request.getClass().getName());
+            pl.logDebug("Received request from server of type %s", request.getClass().getName());
             
-            handleRequest(request);
+            // Send it to the handler, then write the result back to the server
+            Response response = handleRequest(request);
+            pl.logDebug("Sending response");
+            objectStream.writeObject(response);
         }
 
         socket.close();
         pl.getLogger().warning("This probably shouldn't happen!");
     }
 
-    private void handleRequest(Request request) throws IOException {
+    private Response handleRequest(Request request) throws IOException, ClassNotFoundException {
+        pl.logDebug("Procesing request of type %s", request.getClass().getName());
         Object result = null;
 
-        objectStream.writeObject(Response.success(result));
+        try {
+            // Send the request to the correct handler
+            if(request instanceof ServerBoundRequestContainer) {
+                result = handleServerBoundRequestContainer((ServerBoundRequestContainer) request);
+            } else if(request instanceof GetBlockDataArrayRequest) {
+                result = handleGetBlockDataArrayRequest((GetBlockDataArrayRequest) request);
+            }
+        }   catch(RuntimeException ex) { // If an unchecked exception was thrown, pass it to a RequestException as the cause
+            pl.logDebug("Returning request exception!");
+            return Response.error(new RequestException(ex));
+        }   catch(RequestException ex) { // Otherwise, just return a response with the request exception
+            pl.logDebug("Returning request exception!");
+            return Response.error(ex);
+        }
+
+        return Response.success(result);
+    }
+
+    private Object handleGetBlockDataArrayRequest(GetBlockDataArrayRequest request) {
+        return pl.getBlockArrayProcessor().findPortalDataArray(request);
+    }
+
+    private Object handleServerBoundRequestContainer(ServerBoundRequestContainer request) throws RequestException, IOException, ClassNotFoundException {
+        return handleRequest(request.getRequest());
     }
 
     // Sends a request to the bukkit server, and returns the result. Throws an exception if the request failed
