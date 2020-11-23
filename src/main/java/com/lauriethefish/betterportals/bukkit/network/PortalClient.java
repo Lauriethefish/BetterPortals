@@ -115,7 +115,8 @@ public class PortalClient {
     private void handleTeleportPlayerRequest(TeleportPlayerRequest request) {
         // Find the position specified in the TeleportPlayerRequest
         Location destPos = new Location(pl.getServer().getWorld(request.getDestWorldName()),
-                request.getDestX(), request.getDestY(), request.getDestZ());
+                request.getDestX(), request.getDestY(), request.getDestZ(),
+                request.getDestYaw(), request.getDestPitch());
         
         pl.logDebug("Setting to teleport on join for player %s", request.getPlayerId());
         pl.setToTeleportOnJoin(request.getPlayerId(), destPos); // Make sure the player teleports to the destination when they join

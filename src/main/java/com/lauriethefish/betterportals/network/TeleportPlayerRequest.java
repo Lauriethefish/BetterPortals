@@ -18,12 +18,17 @@ public class TeleportPlayerRequest implements Request   {
     @Getter private double destY;
     @Getter private double destZ;
 
-    public TeleportPlayerRequest(UUID playerId, String destServer, String destWorldName, double destX, double destY, double destZ) {
+    @Getter private float destYaw;
+    @Getter private float destPitch;
+
+    public TeleportPlayerRequest(UUID playerId, String destServer, String destWorldName, double destX, double destY, double destZ, float destYaw, float destPitch) {
         this.playerId = playerId;
         this.destServer = destServer;
         this.destWorldName = destWorldName;
         this.destX = destX;
         this.destY = destY;
         this.destZ = destZ;
+        this.destYaw = destYaw;
+        this.destPitch = destPitch;
     }
 }

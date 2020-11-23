@@ -215,7 +215,8 @@ public class Portal implements ConfigurationSerializable    {
         pl.logDebug("Requesting player to be teleported across servers!");
         TeleportPlayerRequest request = new TeleportPlayerRequest(player.getUniqueId(),
                     destPos.getServerName(), destPos.getWorldName(),
-                    newLoc.getX(), newLoc.getY(), newLoc.getZ());
+                    newLoc.getX(), newLoc.getY(), newLoc.getZ(),
+                    newLoc.getYaw(), newLoc.getPitch());
         
         // Send the correct request.
         try {
