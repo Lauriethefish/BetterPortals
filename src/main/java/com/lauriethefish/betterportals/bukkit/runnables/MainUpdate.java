@@ -86,6 +86,9 @@ public class MainUpdate implements Runnable {
     }
 
     private void updateEntities(PlayerData playerData, Portal portal, PlaneIntersectionChecker checker, boolean viewEntitiesThroughPortals)  {
+        // Entity processing, be that teleportation through portals or viewing entities through them, is not supported with portals across servers
+        if(portal.isCrossServer()) {return;}
+
         EntityManipulator manipulator = playerData.getEntityManipulator();
 
         // We need to loop through the entities at the origin regardless of if entities are enabled, since we also need to teleport those going through portals

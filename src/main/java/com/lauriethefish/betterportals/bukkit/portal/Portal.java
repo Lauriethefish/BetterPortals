@@ -1,5 +1,6 @@
 package com.lauriethefish.betterportals.bukkit.portal;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,6 +17,8 @@ import com.lauriethefish.betterportals.bukkit.multiblockchange.ChunkCoordIntPair
 import com.lauriethefish.betterportals.bukkit.multiblockchange.MultiBlockChangeManager;
 import com.lauriethefish.betterportals.bukkit.network.GetBlockDataArrayRequest;
 import com.lauriethefish.betterportals.bukkit.selection.PortalSelection;
+import com.lauriethefish.betterportals.network.TeleportPlayerRequest;
+import com.lauriethefish.betterportals.network.Response.RequestException;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -190,15 +193,36 @@ public class Portal implements ConfigurationSerializable    {
     // Teleports an entity from the origin to the destination
     public void teleportEntity(Entity entity)  {
         // Save their velocity for later
-        Vector playerVelocity = entity.getVelocity().clone();
+        Vector entityVelocity = entity.getVelocity().clone();
         // Move them to the other portal
         Location newLoc = locTransformer.moveToDestination(entity.getLocation());
         newLoc.setDirection(locTransformer.rotateToDestination(entity.getLocation().getDirection()));
 
-        entity.teleport(newLoc);
+        // If the portal is cross-server, call the teleportCrossServer function.
+        // This function should only be called on cross-server portals with a player - never with an entity
+        if(isCrossServer()) {
+            teleportCrossServer((Player) entity, newLoc);
+        }   else    {
+            entity.teleport(newLoc);
         
-        // Set their velocity back to what it was
-        entity.setVelocity(locTransformer.rotateToDestination(playerVelocity));
+            // Set their velocity back to what it was
+            entity.setVelocity(locTransformer.rotateToDestination(entityVelocity));
+        }
+    }
+
+    private void teleportCrossServer(Player player, Location newLoc) {
+        // Make a TeleportPlayerRequest to teleport the player to the right place on another server
+        pl.logDebug("Requesting player to be teleported across servers!");
+        TeleportPlayerRequest request = new TeleportPlayerRequest(player.getUniqueId(),
+                    destPos.getServerName(), destPos.getWorldName(),
+                    newLoc.getX(), newLoc.getY(), newLoc.getZ());
+        
+        // Send the correct request.
+        try {
+            pl.getNetworkClient().sendRequest(request);
+        } catch (ClassNotFoundException | IOException | RequestException ex) {
+            ex.printStackTrace();
+        }
     }
 
     public boolean checkOriginAndDestination()  {

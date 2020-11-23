@@ -14,9 +14,11 @@ import org.bukkit.Location;
 
 // Handles creating the array of blocks that aren't obscured by other solid blocks.
 public class PortalBlockArrayProcessor {
+    private BetterPortals pl;
     private Config config;
 
     public PortalBlockArrayProcessor(BetterPortals pl) {
+        this.pl = pl;
         this.config = pl.config;
     }
 
@@ -25,6 +27,8 @@ public class PortalBlockArrayProcessor {
         boolean[] occlusionArray = findBlockOcclusionArray(request);
 
         BlockRotator blockRotator = BlockRotator.newInstance(request);
+
+        pl.logDebug("Destination pos: %s", request.getDestPos());
 
         // Check to see if each block is fully obscured, if not, add it to the list
         for(double z = config.minXZ; z <= config.maxXZ; z++) {

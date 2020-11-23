@@ -66,6 +66,8 @@ public class BetterPortals extends JavaPlugin {
     // Used to connect to bungeecord/velocity for cross-server portals
     @Getter private PortalClient networkClient;
 
+    private Map<UUID, Location> teleportOnJoin = new HashMap<>();
+
     // This method is called once when our plugin is enabled
     @Override
     public void onEnable() {
@@ -309,5 +311,15 @@ public class BetterPortals extends JavaPlugin {
         if(config.enableDebugLogging)   { // Make sure debug logging is enabled first
             getLogger().info("[DEBUG] " + message);
         }
+    }
+
+    // Functions for manipulating the teleportOnJoin map
+    public void setToTeleportOnJoin(UUID playerId, Location location) {
+        teleportOnJoin.put(playerId, location);
+    }
+
+    // Remove the teleport pos from the map, since the player has now been teleported
+    public Location getTeleportPosOnJoin(Player player) {
+        return teleportOnJoin.remove(player.getUniqueId());
     }
 }

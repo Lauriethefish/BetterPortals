@@ -12,6 +12,7 @@ import com.lauriethefish.betterportals.network.Request;
 import com.lauriethefish.betterportals.network.Response;
 import com.lauriethefish.betterportals.network.ServerBoundRequestContainer;
 import com.lauriethefish.betterportals.network.SyncronizedObjectStream;
+import com.lauriethefish.betterportals.network.TeleportPlayerRequest;
 import com.lauriethefish.betterportals.network.ServerBoundRequestContainer.ServerNotFoundException;
 import com.lauriethefish.betterportals.network.RegisterRequest.UnknownRegisterServerException;
 import com.lauriethefish.betterportals.network.Response.RequestException;
@@ -84,6 +85,8 @@ public class ServerConnection {
                 handleRegisterRequest((RegisterRequest) request);
             } else if (request instanceof ServerBoundRequestContainer) {
                 result = handleServerBoundRequestContainer((ServerBoundRequestContainer) request);
+            } else if (request instanceof TeleportPlayerRequest) {
+                handleTeleportPlayerRequest((TeleportPlayerRequest) request);
             }
 
         } catch (RequestException ex) {
@@ -141,6 +144,20 @@ public class ServerConnection {
         
         // Send the bytes of the request, and get the response
         return dServerConnection.sendRequest(request);
+    }
+
+    private void handleTeleportPlayerRequest(TeleportPlayerRequest request) throws RequestException, IOException, ClassNotFoundException {
+        // Find the destination server
+        ServerConnection dServerConnection = pl.getPortalServer().getConnection(request.getDestServer());
+        if(dServerConnection == null) {
+            throw new ServerNotFoundException(request.getDestServer());
+        }
+        
+        // Send the teleport request to the destination server so that the player gets teleported when they join
+        dServerConnection.sendRequest(request);
+        
+        // Move the player to the destination server
+        pl.getProxy().getPlayer(request.getPlayerId()).connect(pl.getProxy().getServerInfo(request.getDestServer()));
     }
     
     // Closes the connection to the client

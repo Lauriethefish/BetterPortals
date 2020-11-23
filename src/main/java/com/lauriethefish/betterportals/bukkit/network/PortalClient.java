@@ -13,7 +13,10 @@ import com.lauriethefish.betterportals.network.Request;
 import com.lauriethefish.betterportals.network.Response;
 import com.lauriethefish.betterportals.network.ServerBoundRequestContainer;
 import com.lauriethefish.betterportals.network.SyncronizedObjectStream;
+import com.lauriethefish.betterportals.network.TeleportPlayerRequest;
 import com.lauriethefish.betterportals.network.Response.RequestException;
+
+import org.bukkit.Location;
 
 // Handles connecting to the bungeecord/velocity server to allow cross-server portals
 public class PortalClient {
@@ -87,6 +90,8 @@ public class PortalClient {
                 result = handleServerBoundRequestContainer((ServerBoundRequestContainer) request);
             } else if(request instanceof GetBlockDataArrayRequest) {
                 result = handleGetBlockDataArrayRequest((GetBlockDataArrayRequest) request);
+            } else if(request instanceof TeleportPlayerRequest) {
+                handleTeleportPlayerRequest((TeleportPlayerRequest) request);
             }
         }   catch(RuntimeException ex) { // If an unchecked exception was thrown, pass it to a RequestException as the cause
             pl.logDebug("Returning request exception!");
@@ -105,6 +110,15 @@ public class PortalClient {
 
     private Object handleServerBoundRequestContainer(ServerBoundRequestContainer request) throws RequestException, IOException, ClassNotFoundException {
         return handleRequest(request.getRequest());
+    }
+
+    private void handleTeleportPlayerRequest(TeleportPlayerRequest request) {
+        // Find the position specified in the TeleportPlayerRequest
+        Location destPos = new Location(pl.getServer().getWorld(request.getDestWorldName()),
+                request.getDestX(), request.getDestY(), request.getDestZ());
+        
+        pl.logDebug("Setting to teleport on join for player %s", request.getPlayerId());
+        pl.setToTeleportOnJoin(request.getPlayerId(), destPos); // Make sure the player teleports to the destination when they join
     }
 
     // Sends a request to the bukkit server, and returns the result. Throws an exception if the request failed
