@@ -285,6 +285,10 @@ public class Portal implements ConfigurationSerializable    {
         return anchored;
     }
 
+    public boolean isCrossServer() {
+        return destPos.isExternal();
+    }
+
     @SuppressWarnings("unchecked")
     public void findCurrentBlocks() {
         // Send a request to the PortalBlockArrayProcessor
