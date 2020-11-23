@@ -26,8 +26,8 @@ public class PortalPosition implements Serializable, ConfigurationSerializable {
 
     // We store the world ID *and* the world name. How this works is that we first
     // look up the world by ID, and if it doesn't exist, look it up by the name
-    private transient UUID worldId = null; // Currently unused on cross server portals
-    private String worldName = null;
+    @Getter private transient UUID worldId = null; // Currently unused on cross server portals
+    @Getter private String worldName = null;
 
     // Used to send this position to the correct server
     @Getter private transient String serverName = null;
