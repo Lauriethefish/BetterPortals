@@ -9,6 +9,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
+//import static java.lang.System.out;
+
 public class SyncronizedObjectStream {
     private ObjectInputStream inputStream;
     private ObjectOutputStream outputStream;
@@ -26,17 +28,27 @@ public class SyncronizedObjectStream {
     // Reads the next Object of type type from the stream, or fetches it from
     // skippedList if it was received previously
     public Object readNextOfType(Class<?> type) throws IOException, ClassNotFoundException {
-        while (!inputLock.tryLock() || skippedList.size() > 0) {
+        //out.println("Reading next object of type " + type.getName());
+        //out.println(skippedList.size());
+
+        while(true) {
+            boolean breakOnFinish = inputLock.tryLock();
+
             // Loop through any objects that were skipped because they weren't of the right type
             Iterator<Object> iterator = skippedList.iterator();
             while (iterator.hasNext()) {
                 // Find the first of the correct type, then remove and return it
                 Object obj = iterator.next();
                 if (type.isInstance(obj)) {
+                    if(inputLock.isHeldByCurrentThread()) {inputLock.unlock();}
+
                     iterator.remove();
+                    //out.println("Found in skipped objects");
                     return obj;
                 }
             }
+
+            if(breakOnFinish) {break;}
 
             try {
                 Thread.sleep(10);
@@ -45,6 +57,7 @@ public class SyncronizedObjectStream {
             }
         }
 
+        //out.println("Reading objects - none skipped found!");
         // Read objects from the stream if one hasn't been read already
         while(true) {
             Object obj = inputStream.readObject();
@@ -59,6 +72,8 @@ public class SyncronizedObjectStream {
     
     // Write function that guarantees order using locks
     public void writeObject(Object obj) throws IOException  {
+        //out.println("Sending object of type " + obj.getClass());
+
         outputLock.lock();
         outputStream.writeObject(obj);
         outputLock.unlock();
