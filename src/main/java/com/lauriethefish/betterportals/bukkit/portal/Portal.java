@@ -224,6 +224,8 @@ public class Portal implements ConfigurationSerializable    {
         } catch (ClassNotFoundException | IOException | RequestException ex) {
             ex.printStackTrace();
         }
+
+        pl.removePlayer(player); // Avoid the player being teleported multiple times
     }
 
     public boolean checkOriginAndDestination()  {
