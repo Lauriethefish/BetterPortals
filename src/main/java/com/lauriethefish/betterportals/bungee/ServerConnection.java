@@ -130,8 +130,10 @@ public class ServerConnection {
 
     // Sends a request to the bukkit server, and returns the result, or throws RequestException if the result was an error
     public Object sendRequest(Request request) throws IOException, RequestException, ClassNotFoundException  {
+        pl.logDebug("Sending request of type %s", request.getClass().getName());
         objectStream.writeObject(request);
 
+        pl.logDebug("Reading response . . .");
         return ((Response) objectStream.readNextOfType(Response.class)).getResult();
     }
 
