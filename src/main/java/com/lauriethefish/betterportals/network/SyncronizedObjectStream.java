@@ -76,6 +76,7 @@ public class SyncronizedObjectStream {
 
         outputLock.lock();
         outputStream.writeObject(obj);
+        outputStream.reset();
         outputLock.unlock();
     }
 }
