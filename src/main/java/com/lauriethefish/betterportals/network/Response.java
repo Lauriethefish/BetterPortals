@@ -62,5 +62,9 @@ public class Response implements Serializable   {
         public RequestException(Throwable cause) {
             super(cause);
         }
+
+        public RequestException(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 }
