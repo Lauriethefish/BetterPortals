@@ -33,19 +33,8 @@ public class PortalClient {
         new Thread(() -> {
             try {
                 connectToServer();
-            } catch (EOFException ex) {
-                // An EOFException is thrown whenever the other side closes the connection. This shouldn't be printed.
-            } catch (IOException | RequestException | ClassNotFoundException ex)    {
-                if(isConnected) { // An IOException is thrown whenever this side closes the connection from another thread, so don't print it if we've disconnected
-                    pl.getLogger().severe("An error occured while connected to the proxy!");
-                    ex.printStackTrace();
-                }
-            } finally {
-                try {
-                    socket.close();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
+            } catch (Exception ex) {
+                handleException(ex);
             }
             pl.getLogger().info("Disconnected from bungeecord.");
             isConnected = false;
@@ -123,23 +112,48 @@ public class PortalClient {
     }
 
     // Sends a request to the bukkit server, and returns the result. Throws an exception if the request failed
-    public Object sendRequest(Request request) throws IOException, RequestException, ClassNotFoundException {
+    public Object sendRequest(Request request) throws RequestException {
         pl.logDebug("Sending request of type %s", request.getClass().getName());
-        objectStream.writeObject(request);
+        try {
+            objectStream.writeObject(request);
 
-        Response response = ((Response) objectStream.readNextOfType(Response.class)); // Read the response
-        pl.logDebug("Received response");
-        return response.getResult(); // Get the result, throwing an error if there is one
+            Response response = ((Response) objectStream.readNextOfType(Response.class)); // Read the response
+            pl.logDebug("Received response");
+            return response.getResult(); // Get the result, throwing an error if there is one
+        }   catch(IOException | ClassNotFoundException ex) {
+            handleException(ex); // Shut down the connection if necessary
+            throw new RequestException("Error occured while reading the response!", ex);
+        }
     }
 
     // Sends a forward request to the proxy that sends the request to another server in the network
-    public Object sendRequestToServer(Request request, String serverName) throws IOException, RequestException, ClassNotFoundException {
+    public Object sendRequestToServer(Request request, String serverName) throws RequestException {
         // What is sent back by the proxy is a response within a response
         // Calling the sendRequest method unwraps the first response, throwing any errors that occured *while forwarding the request*, like a server not existing
         // What we have now is the actual response sent by the destination server
         Response response = (Response) sendRequest(new ServerBoundRequestContainer(serverName, request));
 
-        return response.getResult(); // Throw an error if the request failed
+        try {
+			return response.getResult();
+		} catch (ClassNotFoundException | IOException ex) {
+            handleException(ex);
+			return new RequestException("Error occured while reading the result!", ex);
+		}
+    }
+
+    // Should be called whenever there is any kind of exception while reading from/writing to the socket.
+    // This shuts down the connection, so that later attempts to read or write will fail.
+    // Methods that can throw exceptions other than RequestException should direct them here and then package them as RequestException to be sent back to the caller
+    private void handleException(Exception ex) {
+        if(!isConnected) {return;}
+
+        shutdown(); // Shut down the connection
+
+        // An EOFException is thrown whenever the other side closes the connection. This shouldn't be printed.
+        if(!(ex instanceof EOFException)) {
+            pl.getLogger().severe("An error occured while connected to the proxy!");
+            ex.printStackTrace();
+        }
     }
 
     public void shutdown() {
