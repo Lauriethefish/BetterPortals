@@ -1,6 +1,5 @@
 package com.lauriethefish.betterportals.bukkit.portal;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -221,7 +220,7 @@ public class Portal implements ConfigurationSerializable    {
         // Send the correct request.
         try {
             pl.getNetworkClient().sendRequest(request);
-        } catch (ClassNotFoundException | IOException | RequestException ex) {
+        } catch (RequestException ex) {
             ex.printStackTrace();
         }
 
