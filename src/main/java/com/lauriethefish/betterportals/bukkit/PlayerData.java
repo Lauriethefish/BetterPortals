@@ -49,7 +49,7 @@ public class PlayerData {
 
     // Called every tick while the player is focused on a particular portal
     // If newPortal is null, that means that there is no longer an active portal
-    public void setPortal(Portal newPortal)    {
+    public void setViewingPortal(Portal newPortal)    {
         // Return if the portal stayed the same
         if(newPortal == lastActivePortal)   {return;}
 
