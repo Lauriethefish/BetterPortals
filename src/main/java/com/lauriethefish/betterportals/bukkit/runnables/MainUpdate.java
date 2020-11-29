@@ -162,26 +162,24 @@ public class MainUpdate implements Runnable {
             // Find the closest portal to the player
             Portal portal = findClosestPortal(player);
 
-            playerData.setPortal(portal);
             // If no portals were found, don't update anything
-            if(portal == null) {continue;}
+            if(portal != null) {
+                // Create the portal's block state array if necessary
+                portal.update(currentTick);
+                // Set the player to be viewing the portal if they can see through portals
+                playerData.setViewingPortal(canSeeThroughPortals ? portal : null);
 
-            // Create the portal's block state array if necessary
-            portal.update(currentTick);
+                PlaneIntersectionChecker intersectionChecker = new PlaneIntersectionChecker(player, portal);
 
-            PlaneIntersectionChecker intersectionChecker = new PlaneIntersectionChecker(player, portal);
+                updateEntities(playerData, portal, intersectionChecker, canSeeThroughPortals && pl.config.enableEntitySupport);
+                if(canSeeThroughPortals) {updatePortal(playerData, portal, intersectionChecker);}
 
-            updateEntities(playerData, portal, intersectionChecker, canSeeThroughPortals && pl.config.enableEntitySupport);
-            // Queue the update to happen on another thread
-            if(canSeeThroughPortals)    {
-                updatePortal(playerData, portal, intersectionChecker);
-            }
-
-            // Teleport the player if they cross through a portal
-            if(performPlayerTeleport(playerData, portal, intersectionChecker))    {
+                // Teleport the player if they cross through a portal
+                performPlayerTeleport(playerData, portal, intersectionChecker);
                 continue;
             }
-
+            
+            playerData.setViewingPortal(null);
             playerData.setLastPosition(player.getLocation().toVector());
         }
 
