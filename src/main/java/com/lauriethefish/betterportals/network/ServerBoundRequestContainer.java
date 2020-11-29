@@ -17,12 +17,16 @@ public class ServerBoundRequestContainer implements Request {
     @Getter private String destinationServer; // The name of the server this request should be forwarded to
     private byte[] request; // The bytes of the request, which are deserialized on the bukkit/spigot server
 
-    public ServerBoundRequestContainer(String destinationServer, Request request) throws IOException    {
+    public ServerBoundRequestContainer(String destinationServer, Request request)    {
         this.destinationServer = destinationServer;
 
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
-        objectOutputStream.writeObject(request);
+        try {
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
+            objectOutputStream.writeObject(request);
+        }   catch(IOException ex) {
+            ex.printStackTrace(); // This should never happen!
+        }
         this.request = byteArrayOutputStream.toByteArray();
     }
 
