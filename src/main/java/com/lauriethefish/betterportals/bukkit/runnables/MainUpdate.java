@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
 import com.lauriethefish.betterportals.bukkit.Config;
@@ -47,14 +48,21 @@ public class MainUpdate implements Runnable {
     // this also deletes portals if they have been broken amongst other things
     // Will return null if not portals can be found within the portal activation distance
     private Portal findClosestPortal(Player player)   {
-        // Loop through all active portals and find the closest one to activate
-        // This is for performance - only one portal can be active at a time
-        Portal closestPortal = pl.findClosestPortal(player.getLocation(), config.portalActivationDistance);
+        Predicate<Portal> isValidPortal = new Predicate<Portal>() {
+            @Override
+            public boolean test(Portal portal) {
+                // If the portal goes across servers, and we aren't connected to bungeecord, we can't activate it.
+                if(portal.isCrossServer() && !pl.getNetworkClient().isConnected()) {return false;}
+                return true;
+            }
+        };
 
-        // Check if the portal or it's detination has any missing blocks
-        if(closestPortal != null && !closestPortal.checkOriginAndDestination())    {
-            return null;
-        }
+        // Loop through all active portals and find the closest one to be activated
+        // This is for performance - only one portal can be active at a time
+        Portal closestPortal = pl.findClosestPortal(player.getLocation(), config.portalActivationDistance, isValidPortal);
+
+        // If a portal has been destroyed, we can't use it.
+        if(closestPortal != null && !closestPortal.checkOriginAndDestination()) {return null;}
 
         // Return the closest portal
         return closestPortal;
