@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.function.Predicate;
 
 import com.lauriethefish.betterportals.bukkit.commands.MainCommand;
 import com.lauriethefish.betterportals.bukkit.events.ChunkUnload;
@@ -191,7 +192,7 @@ public class BetterPortals extends JavaPlugin {
 
     // Finds the closest portal to the given location that is closer than minimumDistance
     // If no portals exist in that area, null is returned
-    public Portal findClosestPortal(Location loc, double minimumDistance)    {
+    public Portal findClosestPortal(Location loc, double minimumDistance, Predicate<Portal> predicate)    {
         double closestDistance = minimumDistance;
         Portal closestPortal = null;
         // Loop through each portal
@@ -202,7 +203,7 @@ public class BetterPortals extends JavaPlugin {
 
             // Set the portal if it is closer than the current one
             double distance = portalLoc.distance(loc);
-            if(distance < closestDistance)  {
+            if(distance < closestDistance && predicate.test(portal))  { // Test against the predicate
                 closestDistance = distance;
                 closestPortal = portal;
             }
@@ -210,8 +211,16 @@ public class BetterPortals extends JavaPlugin {
         return closestPortal;
     }
 
-    public Portal findClosestPortal(Location loc)   {
-        return findClosestPortal(loc, Double.POSITIVE_INFINITY);
+    public Portal findClosestPortal(Location loc, double minimumDistance) {
+        return findClosestPortal(loc, minimumDistance, null);
+    }
+
+    public Portal findClosestPortal(Location loc, Predicate<Portal> predicate)   {
+        return findClosestPortal(loc, Double.POSITIVE_INFINITY, predicate);
+    }
+
+    public Portal findClosestPortal(Location loc) {
+        return findClosestPortal(loc, null);
     }
 
     public void disablePlugin() {
