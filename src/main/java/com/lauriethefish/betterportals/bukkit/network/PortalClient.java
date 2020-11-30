@@ -18,12 +18,14 @@ import com.lauriethefish.betterportals.network.Response.RequestException;
 
 import org.bukkit.Location;
 
+import lombok.Getter;
+
 // Handles connecting to the bungeecord/velocity server to allow cross-server portals
 public class PortalClient {
     private BetterPortals pl;
 
     private Socket socket;
-    private volatile boolean isConnected = true;
+    @Getter private volatile boolean isConnected = true;
 
     private SyncronizedObjectStream objectStream;
 
