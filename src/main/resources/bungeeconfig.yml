@@ -1,3 +1,4 @@
 bindAddress: "0.0.0.0" # Change this to 127.0.0.1 to only allow local connections
 serverPort: 25510 # The port that the server will listen on
 enableDebugLogging: false # Setting this to true will make the plugin print much more detailed info about what is happenning. Useful for finding issues.
+key: "" # Used to authenticate and encrypt connecting servers. This is automatically generated if empty/invalid

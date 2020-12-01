@@ -80,6 +80,7 @@ proxy:
   enableProxy: false
   proxyAddress: ""
   proxyPort: 25510
+  key: "" # A UUID used for encrypted communication with the proxy. You should set this to the UUID in the BetterPortals config on the bungee side.
 
 chatMessages:
   prefix: "&7[&aBetterPortals&7]&a "

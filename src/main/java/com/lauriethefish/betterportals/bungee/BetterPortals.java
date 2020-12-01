@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.logging.Handler;
+import java.util.UUID;
 
 import lombok.Getter;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -23,18 +23,12 @@ public class BetterPortals extends Plugin {
         // Load the config, printing any errors that occured
         try {
             loadConfig();
-        } catch (IOException ex) {
+            validateEncryptionKey(); // Generate the encryption key
+        } catch (Throwable ex) {
             getLogger().severe("An error occured while loading the config (maybe it isn't valid YAML)!");
             ex.printStackTrace();
             return;
         }
-
-        // copy the common logger's two handlers
-        for (Handler handler : getLogger().getParent().getHandlers()) {
-            getLogger().addHandler(handler);
-        }
-        // ensure that the common logger's handlers don't get used too
-        getLogger().setUseParentHandlers(false);
 
         portalServer = new PortalServer(this);
     }
@@ -55,6 +49,23 @@ public class BetterPortals extends Plugin {
         // Load the config from disk
         config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(configFile);
         enableDebugLogging = config.getBoolean("enableDebugLogging");
+
+    }
+
+    // Saves the currently loaded config file back to config.yml (useful for saving changes)
+    private void saveConfig() throws IOException {
+        ConfigurationProvider.getProvider(YamlConfiguration.class)
+                .save(config, new File(getDataFolder(), "config.yml"));
+    }
+
+    private void validateEncryptionKey() throws IOException {
+        try {
+            UUID.fromString(config.getString("key")); // Attempt to parse the key as a UUID
+        }   catch(IllegalArgumentException ex) { // This will be thrown if it has never been generated before, or is invalid
+            getLogger().info("Generating new random encryption key . . .");
+            config.set("key", UUID.randomUUID().toString());
+            saveConfig();
+        }
     }
 
     @Override

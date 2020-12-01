@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -85,6 +86,7 @@ public class Config {
     public boolean enableProxy; // Whether or not bungeecord support will be enabled
     public String proxyAddress; // The address of the proxy to connect to
     public int proxyPort; // The port on the proxy to connect to
+    public UUID encryptionKey;
 
     // Loads the configuration from the given file, setting all the parameters of the class
     public Config(BetterPortals pl)   {
@@ -181,8 +183,11 @@ public class Config {
         // Load the values to do with proxy configuration
         ConfigurationSection proxySection = file.getConfigurationSection("proxy");
         enableProxy = proxySection.getBoolean("enableProxy");
-        proxyAddress = proxySection.getString("proxyAddress");
-        proxyPort = proxySection.getInt("proxyPort");
+        if(enableProxy) {
+            proxyAddress = proxySection.getString("proxyAddress");
+            proxyPort = proxySection.getInt("proxyPort");
+            encryptionKey = UUID.fromString(proxySection.getString("key"));
+        }
     }
 
     // Reads everything inside a resource of the JAR to a string
