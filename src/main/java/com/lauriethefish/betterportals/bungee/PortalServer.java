@@ -4,8 +4,12 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+
+import com.lauriethefish.betterportals.network.encryption.EncryptionManager;
 
 import net.md_5.bungee.api.config.ServerInfo;
 
@@ -16,9 +20,22 @@ public class PortalServer {
     private ServerSocket socket;
     private Map<ServerInfo, ServerConnection> connectedServers = new ConcurrentHashMap<>();
 
+    private EncryptionManager encryptionManager;
+
     // Creates a new portal server, and starts the server thread
     public PortalServer(BetterPortals pl) {
         this.pl = pl;
+
+        // Create the encryption manager using the UUID key from the config file
+        UUID encryptionKey = UUID.fromString(pl.getConfig().getString("key"));
+        try {
+            encryptionManager = new EncryptionManager(encryptionKey);
+        }   catch(NoSuchAlgorithmException ex) {
+            // If an error occurs, print it and return
+            pl.getLogger().severe("Error occured while starting server: failed to initialise encryption");
+            ex.printStackTrace();
+            return;
+        }
 
         // Start a new thread to run the server on
         new Thread(() -> {
@@ -58,7 +75,7 @@ public class PortalServer {
         while(isActive) {
             Socket client = socket.accept();
             // Start a new ServerConnection to handle this client
-            new ServerConnection(pl, client);
+            new ServerConnection(pl, client, encryptionManager);
         }
     }
 
