@@ -1,33 +1,48 @@
 package com.lauriethefish.betterportals.network;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.crypto.Cipher;
+
+import com.lauriethefish.betterportals.network.encryption.EncryptionManager;
+
 //import static java.lang.System.out;
 
-public class SyncronizedObjectStream {
-    private ObjectInputStream inputStream;
-    private ObjectOutputStream outputStream;
+// Used to read and write requests/responses and guarantees ordering of sent and received objects
+// Also uses encryption for security n'stuff
+public class RequestStream {
+    private DataInputStream inputStream;
+    private DataOutputStream outputStream;
+
+    private Cipher encryptionCipher;
+    private Cipher decryptionCipher;
 
     private ReentrantLock outputLock = new ReentrantLock(true); // Use a fair lock to guarantee ordering of written objects
     private ReentrantLock inputLock = new ReentrantLock(true);
 
     private List<Object> skippedList = Collections.synchronizedList(new ArrayList<>());
 
-    public SyncronizedObjectStream(ObjectInputStream inputStream, ObjectOutputStream outputStream) {
-        this.inputStream = inputStream;
-        this.outputStream = outputStream;
+    public RequestStream(InputStream inputStream, OutputStream outputStream, EncryptionManager manager) throws GeneralSecurityException {
+        this.inputStream = new DataInputStream(inputStream);
+        this.outputStream = new DataOutputStream(outputStream);
+
+        this.encryptionCipher = manager.newCipherInstance(Cipher.ENCRYPT_MODE);
+        this.decryptionCipher = manager.newCipherInstance(Cipher.DECRYPT_MODE);
     }
 
     // Reads the next Object of type type from the stream, or fetches it from
     // skippedList if it was received previously
-    public Object readNextOfType(Class<?> type) throws IOException, ClassNotFoundException {
+    public Object readNextOfType(Class<?> type) throws IOException, ClassNotFoundException, GeneralSecurityException {
         //out.println("Reading next object of type " + type.getName());
         //out.println(skippedList.size());
 
@@ -60,7 +75,7 @@ public class SyncronizedObjectStream {
         //out.println("Reading objects - none skipped found!");
         // Read objects from the stream if one hasn't been read already
         while(true) {
-            Object obj = inputStream.readObject();
+            Object obj = readObject();
             if(type.isInstance(obj)) { // If the object read had the right type, return it
                 inputLock.unlock();
                 return obj;
@@ -69,14 +84,26 @@ public class SyncronizedObjectStream {
             }
         }
     }
+
+    private Object readObject() throws IOException, ClassNotFoundException, GeneralSecurityException {
+        byte[] data = new byte[inputStream.readInt()]; // Make a new byte array for the data, reading the length from the stream
+        inputStream.readFully(data);
+
+        byte[] decrypted = decryptionCipher.doFinal(data); // Decrypt the data
+        return SerializationUtils.deserialize(decrypted); // Deserialize it into an object
+    }
     
     // Write function that guarantees order using locks
-    public void writeObject(Object obj) throws IOException  {
+    public void writeObject(Object obj) throws IOException, GeneralSecurityException  {
         //out.println("Sending object of type " + obj.getClass());
 
+        byte[] data = SerializationUtils.serialize(obj);
         outputLock.lock();
-        outputStream.writeObject(obj);
-        outputStream.reset();
+        byte[] encryptedData = encryptionCipher.doFinal(data); // Make sure this is inside the locked block
+        // First write the length of the encrypted request, then the request itself
+        outputStream.writeInt(encryptedData.length);
+        outputStream.write(encryptedData);
+
         outputLock.unlock();
     }
 }
