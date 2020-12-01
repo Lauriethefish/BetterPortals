@@ -2,19 +2,20 @@ package com.lauriethefish.betterportals.bukkit.network;
 
 import java.io.EOFException;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.security.GeneralSecurityException;
+import java.util.UUID;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
 import com.lauriethefish.betterportals.network.RegisterRequest;
 import com.lauriethefish.betterportals.network.Request;
 import com.lauriethefish.betterportals.network.Response;
 import com.lauriethefish.betterportals.network.ServerBoundRequestContainer;
-import com.lauriethefish.betterportals.network.SyncronizedObjectStream;
+import com.lauriethefish.betterportals.network.RequestStream;
 import com.lauriethefish.betterportals.network.TeleportPlayerRequest;
 import com.lauriethefish.betterportals.network.Response.RequestException;
+import com.lauriethefish.betterportals.network.encryption.EncryptionManager;
 
 import org.bukkit.Location;
 
@@ -27,7 +28,7 @@ public class PortalClient {
     private Socket socket;
     @Getter private volatile boolean isConnected = true;
 
-    private SyncronizedObjectStream objectStream;
+    private RequestStream objectStream;
 
     public PortalClient(BetterPortals pl) {
         this.pl = pl;
@@ -44,14 +45,13 @@ public class PortalClient {
     }
 
     // Connects a socket to the PortalServer
-    private void connectToServer() throws IOException, RequestException, ClassNotFoundException {
+    private void connectToServer() throws IOException, RequestException, ClassNotFoundException, GeneralSecurityException {
         pl.getLogger().info("Connecting to bungeecord . . .");
         socket = new Socket();
         socket.connect(new InetSocketAddress(pl.config.proxyAddress, pl.config.proxyPort));
 
-        ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
-        ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
-        objectStream = new SyncronizedObjectStream(inputStream, outputStream);
+        EncryptionManager manager = new EncryptionManager(UUID.fromString("3d62a5b2-dd2b-40a1-99f6-3fa64687c519"));
+        objectStream = new RequestStream(socket.getInputStream(), socket.getOutputStream(), manager);
 
         // Send a RegisterRequest to inform the proxy of our existence
         sendRequest(new RegisterRequest(pl.getDescription().getVersion(), pl.getServer().getPort()));
@@ -71,7 +71,7 @@ public class PortalClient {
         pl.getLogger().warning("This probably shouldn't happen!");
     }
 
-    private Response handleRequest(Request request) throws IOException, ClassNotFoundException {
+    private Response handleRequest(Request request) {
         pl.logDebug("Procesing request of type %s", request.getClass().getName());
         Object result = null;
 
@@ -84,12 +84,12 @@ public class PortalClient {
             } else if(request instanceof TeleportPlayerRequest) {
                 handleTeleportPlayerRequest((TeleportPlayerRequest) request);
             }
-        }   catch(RuntimeException ex) { // If an unchecked exception was thrown, pass it to a RequestException as the cause
-            pl.logDebug("Returning request exception!");
-            return Response.error(new RequestException(ex));
-        }   catch(RequestException ex) { // Otherwise, just return a response with the request exception
+        }   catch(RequestException ex) { // Send back RequestExceptions to the requester
             pl.logDebug("Returning request exception!");
             return Response.error(ex);
+        }   catch(Throwable ex) { // If any other exception was thrown, box it in a RequestException
+            pl.logDebug("Returning request exception!");
+            return Response.error(new RequestException(ex));
         }
 
         return Response.success(result);
@@ -122,7 +122,7 @@ public class PortalClient {
             Response response = ((Response) objectStream.readNextOfType(Response.class)); // Read the response
             pl.logDebug("Received response");
             return response.getResult(); // Get the result, throwing an error if there is one
-        }   catch(IOException | ClassNotFoundException ex) {
+        }   catch(IOException | ClassNotFoundException | GeneralSecurityException ex) {
             handleException(ex); // Shut down the connection if necessary
             throw new RequestException("Error occured while reading the response!", ex);
         }
