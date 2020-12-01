@@ -1,10 +1,6 @@
 package com.lauriethefish.betterportals.network;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 import lombok.Getter;
@@ -17,22 +13,18 @@ public class Response implements Serializable   {
     @Getter private RequestException error; // This is null if the result was a success
 
     // Private constructor so that we use the statis methods below
-    private Response(Object result, RequestException error)  throws IOException {
+    private Response(Object result, RequestException error) {
         // Serialize the result to a byte array to avoid it being deserialized on the proxy
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
-        objectOutputStream.writeObject(result);
-
-        this.result = byteArrayOutputStream.toByteArray();
+        this.result = SerializationUtils.serialize(result);
         this.error = error;
     }
 
     // Methods for easily creating an error or success result
-    public static Response error(RequestException error) throws IOException {
+    public static Response error(RequestException error) {
         return new Response(null, error);
     }
 
-    public static Response success(Object result) throws IOException  {
+    public static Response success(Object result)  {
         return new Response(result, null);
     }
 
@@ -40,10 +32,7 @@ public class Response implements Serializable   {
     public Object getResult() throws RequestException, IOException, ClassNotFoundException {
         if(error != null)   {throw error;}
 
-        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(result);
-        ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
-
-        return objectInputStream.readObject();
+        return SerializationUtils.deserialize(result);
     }
 
     // Returns the result if there is one, or null if there isn't.
