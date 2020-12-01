@@ -50,7 +50,7 @@ public class EncryptionManager  {
 
     // Gets a new Cipher instance using the specified mode and the key in the EncryptionManager
     // The mode specifies whether this Cipher will be used for encryption or decryption.
-    public Cipher newCipherInstance(int mode) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException {
+    Cipher newCipherInstance(int mode) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException {
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding"); // Create a new cipher instance
         cipher.init(mode, secretKey, spec); // Set it up with our key, mode and algorithm.
 
