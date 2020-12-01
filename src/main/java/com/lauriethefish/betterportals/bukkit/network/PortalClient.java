@@ -36,7 +36,7 @@ public class PortalClient {
         new Thread(() -> {
             try {
                 connectToServer();
-            } catch (Exception ex) {
+            } catch (Throwable ex) {
                 handleException(ex);
             }
             pl.getLogger().info("Disconnected from bungeecord.");
@@ -146,7 +146,7 @@ public class PortalClient {
     // Should be called whenever there is any kind of exception while reading from/writing to the socket.
     // This shuts down the connection, so that later attempts to read or write will fail.
     // Methods that can throw exceptions other than RequestException should direct them here and then package them as RequestException to be sent back to the caller
-    private void handleException(Exception ex) {
+    private void handleException(Throwable ex) {
         if(!isConnected) {return;}
 
         shutdown(); // Shut down the connection
