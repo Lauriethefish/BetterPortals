@@ -54,6 +54,7 @@ public class BetterPortals extends Plugin {
 
     // Saves the currently loaded config file back to config.yml (useful for saving changes)
     private void saveConfig() throws IOException {
+        getLogger().info("Saving config . . .");
         ConfigurationProvider.getProvider(YamlConfiguration.class)
                 .save(config, new File(getDataFolder(), "config.yml"));
     }
