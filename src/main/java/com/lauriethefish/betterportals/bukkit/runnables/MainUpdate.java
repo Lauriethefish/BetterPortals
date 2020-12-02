@@ -159,6 +159,7 @@ public class MainUpdate implements Runnable {
         // Loop through every online player
         for (Player player : pl.getServer().getOnlinePlayers()) {
             PlayerData playerData = pl.getPlayerData(player);
+            if(playerData == null) {return;} // Happens just after a player has joined
 
             // If we changed worlds in the last tick, we wait to avoid chunks not being loaded while sending updates
             if(playerData.checkIfDisabled())    {
@@ -184,10 +185,10 @@ public class MainUpdate implements Runnable {
 
                 // Teleport the player if they cross through a portal
                 performPlayerTeleport(playerData, portal, intersectionChecker);
-                continue;
+            }   else    {
+                playerData.setViewingPortal(null);
             }
             
-            playerData.setViewingPortal(null);
             playerData.setLastPosition(player.getLocation().toVector());
         }
 
