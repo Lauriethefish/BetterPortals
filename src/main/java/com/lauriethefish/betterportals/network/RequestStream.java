@@ -12,8 +12,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.crypto.Cipher;
-
 import com.lauriethefish.betterportals.network.encryption.EncryptionManager;
 
 //import static java.lang.System.out;
@@ -24,20 +22,17 @@ public class RequestStream {
     private DataInputStream inputStream;
     private DataOutputStream outputStream;
 
-    private Cipher encryptionCipher;
-    private Cipher decryptionCipher;
-
     private ReentrantLock outputLock = new ReentrantLock(true); // Use a fair lock to guarantee ordering of written objects
     private ReentrantLock inputLock = new ReentrantLock(true);
 
+    private EncryptionManager encryptionManager; // Handles encrypting/decrypting requests
+
     private List<Object> skippedList = Collections.synchronizedList(new ArrayList<>());
 
-    public RequestStream(InputStream inputStream, OutputStream outputStream, EncryptionManager manager) throws GeneralSecurityException {
+    public RequestStream(InputStream inputStream, OutputStream outputStream, EncryptionManager encryptionManager) throws GeneralSecurityException {
         this.inputStream = new DataInputStream(inputStream);
         this.outputStream = new DataOutputStream(outputStream);
-
-        this.encryptionCipher = manager.newCipherInstance(Cipher.ENCRYPT_MODE);
-        this.decryptionCipher = manager.newCipherInstance(Cipher.DECRYPT_MODE);
+        this.encryptionManager = encryptionManager;
     }
 
     // Reads the next Object of type type from the stream, or fetches it from
@@ -89,7 +84,7 @@ public class RequestStream {
         byte[] data = new byte[inputStream.readInt()]; // Make a new byte array for the data, reading the length from the stream
         inputStream.readFully(data);
 
-        byte[] decrypted = decryptionCipher.doFinal(data); // Decrypt the data
+        byte[] decrypted = encryptionManager.decrypt(data); // Decrypt the data
         return SerializationUtils.deserialize(decrypted); // Deserialize it into an object
     }
     
@@ -99,7 +94,7 @@ public class RequestStream {
 
         byte[] data = SerializationUtils.serialize(obj);
         outputLock.lock();
-        byte[] encryptedData = encryptionCipher.doFinal(data); // Make sure this is inside the locked block
+        byte[] encryptedData = encryptionManager.encrypt(data); // Make sure this is inside the locked block
         // First write the length of the encrypted request, then the request itself
         outputStream.writeInt(encryptedData.length);
         outputStream.write(encryptedData);

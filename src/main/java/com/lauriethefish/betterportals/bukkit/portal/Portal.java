@@ -191,6 +191,7 @@ public class Portal implements ConfigurationSerializable    {
 
     // Teleports an entity from the origin to the destination
     public void teleportEntity(Entity entity)  {
+        pl.logDebug("Teleporting entity");
         // Save their velocity for later
         Vector entityVelocity = entity.getVelocity().clone();
         // Move them to the other portal
@@ -219,6 +220,7 @@ public class Portal implements ConfigurationSerializable    {
         
         // Send the correct request.
         try {
+            pl.logDebug("Sending teleport player request for player %s", player.getUniqueId());
             pl.getNetworkClient().sendRequest(request);
         } catch (RequestException ex) {
             ex.printStackTrace();

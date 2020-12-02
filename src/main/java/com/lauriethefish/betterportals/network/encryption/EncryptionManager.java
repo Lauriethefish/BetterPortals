@@ -1,6 +1,7 @@
 package com.lauriethefish.betterportals.network.encryption;
 
 import java.nio.ByteBuffer;
+import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -50,10 +51,19 @@ public class EncryptionManager  {
 
     // Gets a new Cipher instance using the specified mode and the key in the EncryptionManager
     // The mode specifies whether this Cipher will be used for encryption or decryption.
-    public Cipher newCipherInstance(int mode) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException {
+    private Cipher getCipher(int mode) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException {
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding"); // Create a new cipher instance
         cipher.init(mode, secretKey, spec); // Set it up with our key, mode and algorithm.
 
         return cipher;
+    }
+
+    // Functions for encrypting/decrypting data
+    public byte[] encrypt(byte[] data) throws GeneralSecurityException  {
+        return getCipher(Cipher.ENCRYPT_MODE).doFinal(data);
+    }
+
+    public byte[] decrypt(byte[] data) throws GeneralSecurityException {
+        return getCipher(Cipher.DECRYPT_MODE).doFinal(data);
     }
 }

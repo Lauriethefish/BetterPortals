@@ -146,15 +146,19 @@ public class ServerConnection {
     }
 
     private void handleTeleportPlayerRequest(TeleportPlayerRequest request) throws RequestException {
+        pl.logDebug("Teleporting player %s to server %s", request.getPlayerId(), request.getDestServer());
         // Find the destination server
         ServerConnection dServerConnection = pl.getPortalServer().getConnection(request.getDestServer());
         if(dServerConnection == null) {
+            pl.logDebug("Server was not found!");
             throw new ServerNotFoundException(request.getDestServer());
         }
         
+        pl.logDebug("Sending teleport request");
         // Send the teleport request to the destination server so that the player gets teleported when they join
         dServerConnection.sendRequest(request);
         
+        pl.logDebug("Teleporting to remote server");
         // Move the player to the destination server
         pl.getProxy().getPlayer(request.getPlayerId()).connect(pl.getProxy().getServerInfo(request.getDestServer()));
     }
