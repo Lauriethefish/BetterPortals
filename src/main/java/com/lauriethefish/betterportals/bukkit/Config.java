@@ -186,7 +186,13 @@ public class Config {
         if(enableProxy) {
             proxyAddress = proxySection.getString("proxyAddress");
             proxyPort = proxySection.getInt("proxyPort");
-            encryptionKey = UUID.fromString(proxySection.getString("key"));
+            try {
+                encryptionKey = UUID.fromString(proxySection.getString("key"));
+            }   catch(IllegalArgumentException ex) {
+                // Print a warning message if it fails instead of a spammy error message
+                pl.getLogger().warning("Failed to load encryption key from config file! Please make sure you set this to the key in the bungeecord config.");
+                enableProxy = false; // Disable proxy connection - there's no valid encryption key so connection will just fail
+            }
         }
     }
 
