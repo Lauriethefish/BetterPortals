@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.security.GeneralSecurityException;
-import java.util.UUID;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
 import com.lauriethefish.betterportals.network.RegisterRequest;
@@ -50,7 +49,7 @@ public class PortalClient {
         socket = new Socket();
         socket.connect(new InetSocketAddress(pl.config.proxyAddress, pl.config.proxyPort));
 
-        EncryptionManager manager = new EncryptionManager(UUID.fromString("3d62a5b2-dd2b-40a1-99f6-3fa64687c519"));
+        EncryptionManager manager = new EncryptionManager(pl.config.encryptionKey);
         objectStream = new RequestStream(socket.getInputStream(), socket.getOutputStream(), manager);
 
         // Send a RegisterRequest to inform the proxy of our existence
