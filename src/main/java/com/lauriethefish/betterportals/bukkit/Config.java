@@ -45,6 +45,8 @@ public class Config {
     private int yMultip;
     private int zMultip;
 
+    private Vector halfFullSize;
+
     public int arraySizeXZ;
     public int arraySizeY;
     public int totalArrayLength;
@@ -119,6 +121,7 @@ public class Config {
             zMultip,
             -zMultip
         };
+        halfFullSize = new Vector((maxXZ - minXZ) / 2, (maxY - minY) / 2, (maxXZ - minXZ) / 2);
 
         portalActivationDistance = file.getDouble("portalActivationDistance");
         portalBlockUpdateInterval = file.getInt("portalBlockUpdateInterval");
@@ -129,7 +132,7 @@ public class Config {
         hidePortalBlocks = file.getBoolean("hidePortalBlocks");
         minimumPortalSpawnDistance = file.getInt("minimumPortalSpawnDistance");
         worldSwitchWaitTime = file.getInt("waitTimeAfterSwitchingWorlds");
-        unsafeMode = file.getBoolean("unsafeMode");
+        unsafeMode = false;
         enableDebugLogging = file.getBoolean("enableDebugLogging");
 
         // If the maxRayCastDistance is set to -1, work it out based on the portalActivationDistance
@@ -253,6 +256,18 @@ public class Config {
     // Coordinates should be relative to the bottom left and lowest corner of the box
     public int calculateBlockArrayIndex(double x, double y, double z)  {
         return (int) (z * zMultip + y * yMultip + x) + totalArrayLength / 2;
+    }
+
+    // Essentially just does the opposite of the above
+    public Vector calculateRelativePos(int index) {
+        int x = Math.floorMod(index, zMultip);
+        index -= x;
+        int z = Math.floorMod(index, yMultip) / zMultip;
+        index -= z * zMultip;
+        int y = index / yMultip;
+        index -= y * yMultip;
+
+        return new Vector(x, y, z).subtract(halfFullSize);
     }
 
     // Convenience methods for getting if a world is disabled
