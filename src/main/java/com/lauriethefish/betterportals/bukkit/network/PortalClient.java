@@ -95,7 +95,8 @@ public class PortalClient {
     }
 
     private Object handleGetBlockDataArrayRequest(GetBlockDataArrayRequest request) {
-        return pl.getBlockArrayProcessor().findPortalDataArray(request);
+        //return pl.getBlockArrayProcessor().findPortalDataArray(request); // TODO: reimplement
+        return null;
     }
 
     private Object handleServerBoundRequestContainer(ServerBoundRequestContainer request) throws RequestException, IOException, ClassNotFoundException {

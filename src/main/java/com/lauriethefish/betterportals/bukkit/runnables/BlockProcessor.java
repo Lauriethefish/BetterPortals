@@ -1,6 +1,6 @@
 package com.lauriethefish.betterportals.bukkit.runnables;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -12,7 +12,6 @@ import com.lauriethefish.betterportals.bukkit.math.PlaneIntersectionChecker;
 import com.lauriethefish.betterportals.bukkit.multiblockchange.MultiBlockChangeManager;
 import com.lauriethefish.betterportals.bukkit.portal.Portal;
 
-import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -63,10 +62,9 @@ public class BlockProcessor implements Runnable {
             return;
         }
 
-        List<BlockRaycastData> currentBlocks = data.portal.getCurrentBlocks(); // Store the current blocks incase they change while being processed
+        Collection<BlockRaycastData> currentBlocks = data.portal.getCurrentBlocks(); // Store the current blocks incase they change while being processed
         MultiBlockChangeManager changeManager = MultiBlockChangeManager.createInstance(player);
         Map<Vector, Object> blockStates = data.playerData.getSurroundingPortalBlockStates();
-        World originWorld = data.portal.getOriginPos().getWorld();
 
         for(BlockRaycastData raycastData : currentBlocks)    {
             Vector originPos = raycastData.getOriginVec();              
@@ -74,7 +72,7 @@ public class BlockProcessor implements Runnable {
             boolean visible = data.checker.checkIfVisibleThroughPortal(originPos);
 
             Object oldState = blockStates.get(originPos); // Find if it was visible last tick
-            Object newState = visible ? raycastData.getDestData() : raycastData.getOriginData(originWorld);
+            Object newState = visible ? raycastData.getDestData() : raycastData.getOriginData();
 
             // If we are overwriting the block, change it in the player's block array and send them a block update
             if(!newState.equals(oldState)) {

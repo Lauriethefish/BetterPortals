@@ -3,7 +3,6 @@ package com.lauriethefish.betterportals.bukkit.portal;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -49,7 +48,6 @@ public class Portal implements ConfigurationSerializable    {
     private int lastActive = -2;
     private int ticksSinceActivation = 0;
 
-    @Getter List<BlockRaycastData> currentBlocks;
     @Getter private Map<Entity, Vector> nearbyEntitiesOrigin = null;
     @Getter private Collection<Entity> nearbyEntitiesDestination = null;
 
@@ -317,11 +315,11 @@ public class Portal implements ConfigurationSerializable    {
         return destPos.isExternal();
     }
 
-    @SuppressWarnings("unchecked")
+    //@SuppressWarnings("unchecked")
     public void findCurrentBlocks() {
         // Send a request to the PortalBlockArrayProcessor
         GetBlockDataArrayRequest request = new GetBlockDataArrayRequest(originPos, destPos);
-        if(destPos.isExternal()) {
+        /*if(destPos.isExternal()) {
             try {
                 Object result = pl.getNetworkClient().sendRequestToServer(request, destPos.getServerName());
                 currentBlocks = (List<BlockRaycastData>) result;
@@ -329,8 +327,12 @@ public class Portal implements ConfigurationSerializable    {
                 ex.printStackTrace();
             }
             return;
-        }
+        }*/
 
-        currentBlocks = pl.getBlockArrayProcessor().findPortalDataArray(request);
-    } 
+        pl.getBlockArrayProcessor().updateBlockArray(request);
+    }
+    
+    public Collection<BlockRaycastData> getCurrentBlocks() {
+        return pl.getBlockArrayProcessor().getBlockDataArray(this);
+    }
 }
