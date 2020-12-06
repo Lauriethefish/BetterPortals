@@ -312,8 +312,4 @@ public class Portal implements ConfigurationSerializable    {
         GetBlockDataArrayRequest request = new GetBlockDataArrayRequest(originPos, destPos);
         pl.getBlockArrayProcessor().updateBlockArray(request);
     }
-    
-    public Collection<BlockRaycastData> getCurrentBlocks() {
-        return pl.getBlockArrayProcessor().getBlockDataArray(this);
-    }
 }

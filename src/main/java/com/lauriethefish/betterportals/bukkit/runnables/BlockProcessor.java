@@ -1,6 +1,5 @@
 package com.lauriethefish.betterportals.bukkit.runnables;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -11,12 +10,15 @@ import com.lauriethefish.betterportals.bukkit.PlayerData;
 import com.lauriethefish.betterportals.bukkit.math.PlaneIntersectionChecker;
 import com.lauriethefish.betterportals.bukkit.multiblockchange.MultiBlockChangeManager;
 import com.lauriethefish.betterportals.bukkit.portal.Portal;
+import com.lauriethefish.betterportals.bukkit.portal.blockarray.CachedViewableBlocksArray;
 
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 // An asynchronous task that handles sending block updates to the player
 public class BlockProcessor implements Runnable {
+    private BetterPortals pl;
+
     // Stores the information required to process the portal block update on another thread
     private class UpdateData {
         public PlayerData playerData;
@@ -29,10 +31,11 @@ public class BlockProcessor implements Runnable {
 
     private BlockingQueue<UpdateData> updateQueue = new LinkedBlockingQueue<>(); 
     public BlockProcessor(BetterPortals pl) {
+        this.pl = pl;
         pl.getServer().getScheduler().runTaskTimerAsynchronously(pl, this, 0, 1);
     }
 
-    // Adds a new update to the queue to be processed asyncronously
+    // Adds a new update to the queue to be processed asynchronously
     public void queueUpdate(PlayerData playerData, PlaneIntersectionChecker checker, Portal portal)  {
         updateQueue.add(new UpdateData(playerData, checker, portal));
     }
@@ -58,11 +61,12 @@ public class BlockProcessor implements Runnable {
             return;
         }
 
-        Collection<BlockRaycastData> currentBlocks = data.portal.getCurrentBlocks(); // Store the current blocks incase they change while being processed
+        CachedViewableBlocksArray blocksArray = pl.getBlockArrayProcessor().getCachedArray(data.portal.getDestPos());
         MultiBlockChangeManager changeManager = MultiBlockChangeManager.createInstance(player);
         Map<Vector, Object> blockStates = data.playerData.getSurroundingPortalBlockStates();
 
-        for(BlockRaycastData raycastData : currentBlocks)    {
+        blocksArray.lockWhileInUse();
+        for(BlockRaycastData raycastData : blocksArray.getBlocks())    {
             Vector originPos = raycastData.getOriginVec();              
             // Check if the block is visible
             boolean visible = data.checker.checkIfVisibleThroughPortal(originPos);
@@ -76,6 +80,7 @@ public class BlockProcessor implements Runnable {
                 changeManager.addChange(originPos, newState);
             }
         }
+        blocksArray.unlockAfterUse();
 
         // Send all the block changes
         changeManager.sendChanges();

@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
 import com.lauriethefish.betterportals.bukkit.BlockRaycastData;
@@ -27,6 +28,8 @@ public class CachedViewableBlocksArray {
 
     private Config config;
     private BetterPortals pl;
+
+    private ReentrantLock lock = new ReentrantLock();
 
     // Initial constructor, called when a new Cached array is created
     public CachedViewableBlocksArray(BetterPortals pl) {
@@ -66,8 +69,8 @@ public class CachedViewableBlocksArray {
                             positionsNeedUpdating.add(arrayIndex + offset);
                         }
                     }
-                    if(originChanged || destinationChanged) { // Even if only the origin changed, we must update the current block
-                        positionsNeedUpdating.add(arrayIndex);
+                    if(originChanged || destinationChanged) {
+                        updateOriginIfExisting(arrayIndex); // Update the existing origin data
                     }
                 }
             }
@@ -76,7 +79,16 @@ public class CachedViewableBlocksArray {
         return positionsNeedUpdating;
     }
 
+    // Called if an origin state changes and updates the existing BlockRaycastData
+    private void updateOriginIfExisting(int index) {
+        BlockRaycastData existingData = blocks.get(index);
+        if(existingData != null) {
+            existingData.changeOriginData(blockStatesOrigin.getCombinedIds()[index]);
+        }
+    }
+
     public void processExternalUpdate(GetBlockDataArrayRequest request, BlockDataUpdateResult result) {
+        lockWhileInUse();
         // Remove any blocks that are now fully obscured
         for(int index : result.getRemovedBlocks()) {
             blocks.remove(index);
@@ -95,6 +107,7 @@ public class CachedViewableBlocksArray {
             BlockRaycastData newData = new BlockRaycastData(relativePos.add(originPos), originCombinedID, entry.getValue(), isEdge);
             blocks.put(entry.getKey(), newData);
         }
+        unlockAfterUse();
     }
 
     // This is either called on the external server whenever an update is required, or on the local server for local portals
@@ -103,9 +116,10 @@ public class CachedViewableBlocksArray {
         boolean external = request.getDestPos().isExternal();
         BlockDataUpdateResult result = new BlockDataUpdateResult();
 
+        lockWhileInUse();
         // For each of the positions that have changed, we need to update them
         BlockRotator rotator = BlockRotator.newInstance(request);
-        pl.logDebug("Block update count %d", changes.size());
+        pl.logDebug("Destination block update count %d", changes.size());
         for(int index : changes) {
             if(isOutOfBounds(index)) {continue;}
 
@@ -147,8 +161,18 @@ public class CachedViewableBlocksArray {
                 }
             } 
         }
+        unlockAfterUse();
 
         return external ? result : null;
+    }
+
+    // Used the make sure that ConcurrentModificationException isn't thrown if this is called while BlockProcessor is processing the array on an async task
+    public void lockWhileInUse() {
+        lock.lock();
+    }
+
+    public void unlockAfterUse() {
+        lock.unlock();
     }
 
     // Checks if the portal relative coordinates are on the edge - they should be replaces with black concrete

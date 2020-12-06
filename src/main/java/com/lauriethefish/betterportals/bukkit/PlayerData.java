@@ -6,6 +6,7 @@ import java.util.Map;
 import com.lauriethefish.betterportals.bukkit.entitymanipulation.EntityManipulator;
 import com.lauriethefish.betterportals.bukkit.multiblockchange.MultiBlockChangeManager;
 import com.lauriethefish.betterportals.bukkit.portal.Portal;
+import com.lauriethefish.betterportals.bukkit.portal.blockarray.CachedViewableBlocksArray;
 import com.lauriethefish.betterportals.bukkit.selection.PortalSelection;
 
 import org.bukkit.Location;
@@ -89,10 +90,14 @@ public class PlayerData {
     public void resetSurroundingBlockStates(boolean sendPackets)   {
         if(sendPackets && lastActivePortal != null) {
             MultiBlockChangeManager changeManager = MultiBlockChangeManager.createInstance(player);
+
+            CachedViewableBlocksArray viewableBlocksArray = pl.getBlockArrayProcessor().getCachedArray(lastActivePortal.getDestPos());
+            viewableBlocksArray.lockWhileInUse();
             // Loop through all of the potential ghost blocks, and add to the change manager to change them back
-            for(BlockRaycastData data : lastActivePortal.getCurrentBlocks())   {
+            for(BlockRaycastData data : viewableBlocksArray.getBlocks())   {
                 changeManager.addChange(data.getOriginVec(), data.getOriginData());
             }
+            viewableBlocksArray.unlockAfterUse();
             changeManager.sendChanges();
         }
         surroundingPortalBlockStates = new HashMap<>();

@@ -42,6 +42,12 @@ public class BlockRaycastData implements Serializable   {
         this.destDataCombinedId = edge ? edgeDataCombinedId : destCombinedID;
     }
 
+    // Used when a block state only changes at the origin and not the destination
+    public void changeOriginData(int newValue) {
+        originDataCombinedId = newValue;
+        originDataCache = null; // Invalidate the old cached data
+    }
+
     // Fetches the NMS IBlockData if we need to, otherwise just returns the cached data
     public Object getOriginData() {
         if(originDataCache == null) {

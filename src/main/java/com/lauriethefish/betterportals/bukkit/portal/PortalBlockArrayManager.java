@@ -28,7 +28,7 @@ public class PortalBlockArrayManager {
         return cachedArrays.get(portal.getDestPos()).getBlocks();
     }
 
-    private CachedViewableBlocksArray getCachedArray(PortalPosition destPos) {
+    public CachedViewableBlocksArray getCachedArray(PortalPosition destPos) {
         // Make a new cached array if one doesn't exist
         if (!cachedArrays.containsKey(destPos)) {
             cachedArrays.put(destPos, new CachedViewableBlocksArray(pl));
