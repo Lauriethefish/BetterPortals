@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
 import com.lauriethefish.betterportals.bukkit.BlockRaycastData;
@@ -54,9 +53,6 @@ public class Portal implements ConfigurationSerializable    {
     private Set<ChunkCoordIntPair> destinationChunks = new HashSet<>();
 
     private boolean anchored;
-
-    // Used in unsafe mode to run block updates inside the async task
-    @Getter AtomicBoolean queueBlockUpdate = new AtomicBoolean();
 
     @Getter private UUID owner; // Who created this portal. This is null for nether portals
 
@@ -158,11 +154,7 @@ public class Portal implements ConfigurationSerializable    {
             updateNearbyEntities();
         }
         if(ticksSinceActivation % pl.config.portalBlockUpdateInterval == 0)   {
-            if(pl.config.unsafeMode)    {
-                queueBlockUpdate.set(true);
-            }   else    {
-                findCurrentBlocks();
-            }
+            findCurrentBlocks();
         }
         ticksSinceActivation++;
     }
@@ -315,20 +307,9 @@ public class Portal implements ConfigurationSerializable    {
         return destPos.isExternal();
     }
 
-    //@SuppressWarnings("unchecked")
     public void findCurrentBlocks() {
         // Send a request to the PortalBlockArrayProcessor
         GetBlockDataArrayRequest request = new GetBlockDataArrayRequest(originPos, destPos);
-        /*if(destPos.isExternal()) {
-            try {
-                Object result = pl.getNetworkClient().sendRequestToServer(request, destPos.getServerName());
-                currentBlocks = (List<BlockRaycastData>) result;
-            }   catch(Exception ex) {
-                ex.printStackTrace();
-            }
-            return;
-        }*/
-
         pl.getBlockArrayProcessor().updateBlockArray(request);
     }
     
