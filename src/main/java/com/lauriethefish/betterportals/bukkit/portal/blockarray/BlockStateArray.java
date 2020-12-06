@@ -12,7 +12,7 @@ class BlockStateArray {
     private Config config;
     
     @Getter private boolean[] occlusion = null; // Array of which blocks fully block out light
-    private int[] combinedIds = null; // Array of combined block IDs
+    @Getter private int[] combinedIds = null; // Array of combined block IDs
 
     public BlockStateArray(BetterPortals pl) {
         this.config = pl.config;

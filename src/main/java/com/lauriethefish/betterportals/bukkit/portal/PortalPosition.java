@@ -27,11 +27,11 @@ public class PortalPosition implements Serializable, ConfigurationSerializable {
 
     // We store the world ID *and* the world name. How this works is that we first
     // look up the world by ID, and if it doesn't exist, look it up by the name
-    @Getter private transient UUID worldId = null; // Currently unused on cross server portals
+    @Getter private UUID worldId = null; // Currently unused on cross server portals
     @Getter private String worldName = null;
 
     // Used to send this position to the correct server
-    @Getter private transient String serverName = null;
+    @Getter private String serverName = null;
 
     // Since looking up the world of this portal is fairly expensive, we cache the location for later
     private transient Location locationCache = null;
@@ -142,6 +142,22 @@ public class PortalPosition implements Serializable, ConfigurationSerializable {
     @Override
     public String toString() {
         return String.format("x: %.02f, y: %.02f, z: %.02f, worldName: %s", x, y, z, worldName);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(this == obj) {return true;}
+        if(obj == null) {return false;}
+        if(!(obj instanceof PortalPosition)) {return false;}
+        PortalPosition other = (PortalPosition) obj;
+        
+        return  other.direction == direction &&
+                other.x == x &&
+                other.y == y &&
+                other.z == z &&
+                (other.worldId == worldId || other.worldId.equals(worldId)) &&
+                (other.worldName == worldName || other.worldName.equals(worldName)) &&
+                (other.serverName == serverName || other.serverName.equals(serverName));
     }
 
     @Override

@@ -41,11 +41,9 @@ public class CachedViewableBlocksArray {
         return blocks.values();
     }
 
-    public Set<Integer> checkForChanges(GetBlockDataArrayRequest request) {
-        boolean updateOrigin = request.getDestPos().isExternal();
-
+    public Set<Integer> checkForChanges(GetBlockDataArrayRequest request, boolean updateOrigin, boolean updateDestination) {
         // If this is the first update, then we have to update all blocks.
-        boolean updateAll = (updateOrigin && blockStatesOrigin.initialise()) | (updateOrigin && blockStatesDestination.initialise());
+        boolean updateAll = (updateOrigin && blockStatesOrigin.initialise()) | (updateDestination && blockStatesDestination.initialise());
 
         Set<Integer> positionsNeedUpdating = new HashSet<>();
         for(double z = config.minXZ; z <= config.maxXZ; z++) {
@@ -60,7 +58,7 @@ public class CachedViewableBlocksArray {
                     // If the block state has changed, then we need to update all blocks around this one
                     
                     boolean originChanged = updateOrigin && blockStatesOrigin.update(originBlockLoc, arrayIndex);
-                    boolean destinationChanged =  blockStatesDestination.update(destBlockLoc, arrayIndex);
+                    boolean destinationChanged =  updateDestination && blockStatesDestination.update(destBlockLoc, arrayIndex);
 
                     // If a destination block changed, or this is the initial update, we need to loop around the surrounding blocks and update them
                     if(destinationChanged || updateAll) {
@@ -78,11 +76,31 @@ public class CachedViewableBlocksArray {
         return positionsNeedUpdating;
     }
 
+    public void processExternalUpdate(GetBlockDataArrayRequest request, BlockDataUpdateResult result) {
+        // Remove any blocks that are now fully obscured
+        for(int index : result.getRemovedBlocks()) {
+            blocks.remove(index);
+        }
+
+        // Add any new blocks
+        Vector originPos = request.getOriginPos().getLocation().toVector();
+        for(Map.Entry<Integer, Integer> entry : result.getUpdatedBlocks().entrySet()) {
+            Vector relativePos = config.calculateRelativePos(entry.getKey());
+            boolean isEdge = isEdge(relativePos);
+
+            // Find the combined ID at the origin
+            int originCombinedID = blockStatesOrigin.getCombinedIds()[entry.getKey()];
+
+            // Use the combined ID sent back from the remote server for the destination
+            BlockRaycastData newData = new BlockRaycastData(relativePos.add(originPos), originCombinedID, entry.getValue(), isEdge);
+            blocks.put(entry.getKey(), newData);
+        }
+    }
+
     // This is either called on the external server whenever an update is required, or on the local server for local portals
     // If it's called locally, null will be returned, otherwise the result will be returned to be sent back to the origin server
     public BlockDataUpdateResult processChanges(GetBlockDataArrayRequest request, Set<Integer> changes) {
         boolean external = request.getDestPos().isExternal();
-
         BlockDataUpdateResult result = new BlockDataUpdateResult();
 
         // For each of the positions that have changed, we need to update them
