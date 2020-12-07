@@ -1,6 +1,7 @@
 package com.lauriethefish.betterportals.bukkit.portal;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -66,8 +67,38 @@ public class PortalBlockArrayManager {
         pl.logDebug("Time taken: %.03fms", ((double) timeTaken) / 1000000);
     }
 
+    private Map<GetBlockDataArrayRequest, BlockDataUpdateResult> pendingRequests = Collections.synchronizedMap(new HashMap<>()); // We need null values, so can't use ConcurrentHashMap
     // Called whenever a GetBlockDataArrayRequest is received from another server.
     public BlockDataUpdateResult handleGetBlockDataArrayRequest(GetBlockDataArrayRequest request) {
+        pendingRequests.put(request, null);
+
+        // Wait until the request has been processed by the main thread
+        while(pendingRequests.get(request) == null) {
+            try {
+				Thread.sleep(10);
+			} catch (InterruptedException ex) {
+				ex.printStackTrace();
+			}
+        }
+
+        return pendingRequests.remove(request); // Return the result from the main thread, removing it from the pending list
+    }
+
+    // Processes any external block updates that need to be sent back to the origin server
+    public void processPendingExternalUpdates() {
+        if(pendingRequests.size() > 0)  {
+            pl.logDebug("Processing %d external updates . . .", pendingRequests.size());
+        }
+
+        for(Map.Entry<GetBlockDataArrayRequest, BlockDataUpdateResult> entry : pendingRequests.entrySet()) {
+            if(entry.getValue() != null) {continue;} // Skip if already processed
+
+            BlockDataUpdateResult result = handleGetBlockDataArrayRequestInternal(entry.getKey());
+            pendingRequests.put(entry.getKey(), result);
+        }
+    }
+
+    private BlockDataUpdateResult handleGetBlockDataArrayRequestInternal(GetBlockDataArrayRequest request) {
         CachedViewableBlocksArray array = getCachedArray(request.getDestPos());
         Set<Integer> changes = array.checkForChanges(request, false, true); // Check for the changes at the destination
 

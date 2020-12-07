@@ -156,6 +156,9 @@ public class MainUpdate implements Runnable {
 
     @Override
     public void run() {
+        // Process any requests from the network that must go on the main thread
+        pl.getBlockArrayProcessor().processPendingExternalUpdates();
+
         // Loop through every online player
         for (Player player : pl.getServer().getOnlinePlayers()) {
             PlayerData playerData = pl.getPlayerData(player);
