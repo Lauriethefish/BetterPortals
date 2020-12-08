@@ -253,7 +253,7 @@ public class Config {
     }
 
     // Finds the index in an array of blocks surrounding the portal
-    // Coordinates should be relative to the bottom left and lowest corner of the box
+    // Coordinates should be relative to the centre of the box
     public int calculateBlockArrayIndex(double x, double y, double z)  {
         return (int) (z * zMultip + y * yMultip + x) + totalArrayLength / 2;
     }
