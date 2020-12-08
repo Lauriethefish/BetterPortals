@@ -178,16 +178,21 @@ public class MainUpdate implements Runnable {
             if(portal != null) {
                 // Create the portal's block state array if necessary
                 portal.update(currentTick);
-                // Set the player to be viewing the portal if they can see through portals
-                playerData.setViewingPortal(canSeeThroughPortals ? portal : null);
 
-                PlaneIntersectionChecker intersectionChecker = new PlaneIntersectionChecker(player, portal);
+                if(pl.getBlockArrayProcessor().getBlockDataArray(portal) != null) { // Make sure that we don't run the update if fetching the data array failed
+                    // Set the player to be viewing the portal if they can see through portals
+                    playerData.setViewingPortal(canSeeThroughPortals ? portal : null);
 
-                updateEntities(playerData, portal, intersectionChecker, canSeeThroughPortals && pl.config.enableEntitySupport);
-                if(canSeeThroughPortals) {updatePortal(playerData, portal, intersectionChecker);}
+                    PlaneIntersectionChecker intersectionChecker = new PlaneIntersectionChecker(player, portal);
 
-                // Teleport the player if they cross through a portal
-                performPlayerTeleport(playerData, portal, intersectionChecker);
+                    updateEntities(playerData, portal, intersectionChecker, canSeeThroughPortals && pl.config.enableEntitySupport);
+                    if(canSeeThroughPortals) {updatePortal(playerData, portal, intersectionChecker);}
+
+                    // Teleport the player if they cross through a portal
+                    performPlayerTeleport(playerData, portal, intersectionChecker);
+                }   else    {
+                    playerData.setViewingPortal(null);
+                }
             }   else    {
                 playerData.setViewingPortal(null);
             }

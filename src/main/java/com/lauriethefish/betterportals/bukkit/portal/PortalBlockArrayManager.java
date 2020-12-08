@@ -3,6 +3,7 @@ package com.lauriethefish.betterportals.bukkit.portal;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -11,13 +12,14 @@ import com.lauriethefish.betterportals.bukkit.BlockRaycastData;
 import com.lauriethefish.betterportals.bukkit.network.BlockDataUpdateResult;
 import com.lauriethefish.betterportals.bukkit.network.GetBlockDataArrayRequest;
 import com.lauriethefish.betterportals.bukkit.portal.blockarray.CachedViewableBlocksArray;
-import com.lauriethefish.betterportals.network.Response.RequestException;
+import com.lauriethefish.betterportals.bukkit.portal.blockarray.ExternalUpdateWorker;
 
 // Handles creating the array of blocks that aren't obscured by other solid blocks.
 public class PortalBlockArrayManager {
     private BetterPortals pl;
 
     private Map<PortalPosition, CachedViewableBlocksArray> cachedArrays = new HashMap<>();
+    private Map<PortalPosition, ExternalUpdateWorker> externalUpdateWorkers = new HashMap<>();
 
     public PortalBlockArrayManager(BetterPortals pl) {
         this.pl = pl;
@@ -47,13 +49,10 @@ public class PortalBlockArrayManager {
         // We still need to process changes here, even for an external portal, although for external portals only the origin gets processed
         if (request.getDestPos().isExternal()) {
             pl.logDebug("Updating blocks for external portal . . .");
-            try {
-                array.checkForChanges(request, true, false);
-                // Send a request to get which blocks changed at the destination and thus require updating
-                BlockDataUpdateResult result = (BlockDataUpdateResult) pl.getNetworkClient().sendRequestToServer(request, request.getDestPos().getServerName());
-                array.processExternalUpdate(request, result);
-            } catch (RequestException ex) {
-                ex.printStackTrace();
+            if(!externalUpdateWorkers.containsKey(request.getDestPos())) {
+                externalUpdateWorkers.put(request.getDestPos(), new ExternalUpdateWorker(pl, request, array));
+            }   else    {
+                pl.getLogger().warning("External portal update lagging behind, worker still processing next update attempt.");
             }
         }   else    {
             pl.logDebug("Updating blocks for local portal . . .");
@@ -85,9 +84,10 @@ public class PortalBlockArrayManager {
     }
 
     // Processes any external block updates that need to be sent back to the origin server
+    // Also finishes any workers that now have the request from the destination server
     public void processPendingExternalUpdates() {
         if(pendingRequests.size() > 0)  {
-            pl.logDebug("Processing %d external updates . . .", pendingRequests.size());
+            pl.logDebug("Processing %d external updates at destination . . .", pendingRequests.size());
         }
 
         for(Map.Entry<GetBlockDataArrayRequest, BlockDataUpdateResult> entry : pendingRequests.entrySet()) {
@@ -95,6 +95,21 @@ public class PortalBlockArrayManager {
 
             BlockDataUpdateResult result = handleGetBlockDataArrayRequestInternal(entry.getKey());
             pendingRequests.put(entry.getKey(), result);
+        }
+
+        Iterator<ExternalUpdateWorker> iterator = externalUpdateWorkers.values().iterator();
+        while(iterator.hasNext()) {
+            ExternalUpdateWorker worker = iterator.next();
+            if(worker.hasFailed()) {
+                iterator.remove(); // Just remove the worker - the error has already been printed by the worker thread
+            }
+            
+            // If the worker has finished, we can process the fetched blocks on the main thread.
+            if(worker.hasFinished()) {
+                pl.logDebug("Finishing external update . . .");
+                worker.finishUpdate();
+                iterator.remove();
+            }
         }
     }
 
