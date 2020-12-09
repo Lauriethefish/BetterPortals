@@ -9,6 +9,7 @@ import com.lauriethefish.betterportals.bukkit.portal.PortalDirection;
 import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
 import com.lauriethefish.betterportals.bukkit.portal.PortalSpawnSystem;
 import com.lauriethefish.betterportals.bukkit.portal.PortalSpawnSystem.SpawnPosition;
+import com.lauriethefish.betterportals.bukkit.portal.BlockBlender;
 import com.lauriethefish.betterportals.bukkit.portal.Portal;
 
 import org.bukkit.Location;
@@ -100,6 +101,12 @@ public class PortalCreate implements Listener {
         if(spawnLocation == null)   {
             event.setCancelled(true);
             return;
+        }
+
+        // Swap the dimension blend if we need to.
+        if(pl.config.enableDimensionBlend)  {
+            pl.logDebug("Performing dimension blend . . .");
+            new BlockBlender(location, spawnLocation.getLocation(), pl.config.dimensionBlendFallOff);
         }
 
         // Spawn a portal in the opposite world and the right location

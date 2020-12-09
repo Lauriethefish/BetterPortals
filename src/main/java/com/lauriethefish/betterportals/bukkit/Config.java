@@ -90,6 +90,9 @@ public class Config {
     public int proxyPort; // The port on the proxy to connect to
     public UUID encryptionKey;
 
+    public boolean enableDimensionBlend;
+    public double dimensionBlendFallOff;
+
     // Loads the configuration from the given file, setting all the parameters of the class
     public Config(BetterPortals pl)   {
         this.pl = pl;
@@ -197,6 +200,10 @@ public class Config {
                 enableProxy = false; // Disable proxy connection - there's no valid encryption key so connection will just fail
             }
         }
+
+        ConfigurationSection dimBlendSection = file.getConfigurationSection("dimensionBlend");
+        enableDimensionBlend = dimBlendSection.getBoolean("enable");
+        dimensionBlendFallOff =dimBlendSection.getDouble("fallOffRate");
     }
 
     // Reads everything inside a resource of the JAR to a string
