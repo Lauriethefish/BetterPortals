@@ -19,10 +19,10 @@ import com.lauriethefish.betterportals.bukkit.events.PortalCreate;
 import com.lauriethefish.betterportals.bukkit.multiblockchange.ChunkCoordIntPair;
 import com.lauriethefish.betterportals.bukkit.network.PortalClient;
 import com.lauriethefish.betterportals.bukkit.portal.Portal;
-import com.lauriethefish.betterportals.bukkit.portal.PortalBlockArrayManager;
 import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
 import com.lauriethefish.betterportals.bukkit.portal.PortalSpawnSystem;
 import com.lauriethefish.betterportals.bukkit.portal.PortalStorage;
+import com.lauriethefish.betterportals.bukkit.portal.blockarray.PortalBlockArrayManager;
 import com.lauriethefish.betterportals.bukkit.runnables.MainUpdate;
 import com.lauriethefish.betterportals.bukkit.selection.WandInteract;
 

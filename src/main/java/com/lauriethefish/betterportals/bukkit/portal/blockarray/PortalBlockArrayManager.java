@@ -1,4 +1,4 @@
-package com.lauriethefish.betterportals.bukkit.portal;
+package com.lauriethefish.betterportals.bukkit.portal.blockarray;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -11,8 +11,8 @@ import com.lauriethefish.betterportals.bukkit.BetterPortals;
 import com.lauriethefish.betterportals.bukkit.BlockRaycastData;
 import com.lauriethefish.betterportals.bukkit.network.BlockDataUpdateResult;
 import com.lauriethefish.betterportals.bukkit.network.GetBlockDataArrayRequest;
-import com.lauriethefish.betterportals.bukkit.portal.blockarray.CachedViewableBlocksArray;
-import com.lauriethefish.betterportals.bukkit.portal.blockarray.ExternalUpdateWorker;
+import com.lauriethefish.betterportals.bukkit.portal.Portal;
+import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
 
 // Handles creating the array of blocks that aren't obscured by other solid blocks.
 public class PortalBlockArrayManager {
