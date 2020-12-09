@@ -143,6 +143,7 @@ public class CachedViewableBlocksArray {
                 Vector relativePos = config.calculateRelativePos(index);
                 Location originLoc = MathUtils.moveToCenterOfBlock(request.getOriginPos().getLocation().add(relativePos));
                 Location destLoc = request.getTransformations().moveToDestination(originLoc);
+                if(request.getDestPos().isInLine(destLoc)) {continue;} // No need to view blocks directly in line with the portal's frame. This avoids random glitches
 
                 // Find the destination combined ID, making sure to rotate the block if necessary
                 BlockState destState = destLoc.getBlock().getState();
