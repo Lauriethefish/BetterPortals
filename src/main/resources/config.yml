@@ -82,7 +82,7 @@ proxy:
 # Will randomly swap some blocks between the two ends of a nether portal when it's made, makes a cool effect.
 dimensionBlend:
   enable: false
-  fallOffRate: 0.2 # Low values mean a greater distance
+  fallOffRate: 0.15 # Low values mean a greater distance
 
 chatMessages:
   prefix: "&7[&aBetterPortals&7]&a "
