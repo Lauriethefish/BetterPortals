@@ -203,7 +203,7 @@ public class BetterPortals extends JavaPlugin {
 
             // Set the portal if it is closer than the current one
             double distance = portalLoc.distance(loc);
-            if(distance < closestDistance && predicate.test(portal))  { // Test against the predicate
+            if(distance < closestDistance && (predicate == null || predicate.test(portal)))  { // Test against the predicate
                 closestDistance = distance;
                 closestPortal = portal;
             }
