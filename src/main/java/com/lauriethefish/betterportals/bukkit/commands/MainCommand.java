@@ -4,6 +4,8 @@ import com.lauriethefish.betterportals.bukkit.BetterPortals;
 import com.lauriethefish.betterportals.bukkit.Config;
 import com.lauriethefish.betterportals.bukkit.PlayerData;
 import com.lauriethefish.betterportals.bukkit.portal.Portal;
+import com.lauriethefish.betterportals.bukkit.portal.PortalDirection;
+import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
 import com.lauriethefish.betterportals.bukkit.selection.PortalSelection;
 
 import org.bukkit.ChatColor;
@@ -12,6 +14,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.util.Vector;
 
 public class MainCommand implements CommandExecutor {
     private BetterPortals pl;
@@ -182,6 +185,41 @@ public class MainCommand implements CommandExecutor {
             return true;
         }
 
+        // Used for linking a position on this server with a cross-server portal to an external server.
+        if(subcommand.equals("linkexternal")) {
+            // Check the argument length
+            if(args.length != 7) {
+                player.sendMessage(config.getErrorMessage("wrongNumberOfArgs"));
+                return false;
+            }
+
+            if(playerData.getOriginSelection() == null) {
+                player.sendMessage(config.getErrorMessage("mustSelectOrigin"));
+                return false;
+            }
+            // Find the origin pos and size from the player's selection
+            PortalPosition originPos = playerData.getOriginSelection().getPortalPosition();
+            Vector size = playerData.getOriginSelection().getPortalSize();
+
+            // Find all the various parameters of the destination
+            PortalPosition destPos;
+            try {
+                Vector destLoc = new Vector(Double.parseDouble(args[1]), Double.parseDouble(args[2]), Double.parseDouble(args[3]));
+                String destServer = args[4];
+                String destWorldName = args[5];
+                PortalDirection destDirection = PortalDirection.valueOf(args[6]);
+                destPos = new PortalPosition(destLoc, destDirection, destServer, destWorldName);
+            }   catch(IllegalArgumentException ex) {
+                player.sendMessage(config.getErrorMessage("invalidArgs"));
+                return false;
+            }
+            
+            // Register the portal with the plugin
+            pl.registerPortal(new Portal(pl, originPos, destPos, size, true, player.getUniqueId()));
+            player.sendMessage(config.getChatMessage("portalsLinked"));
+            return true;
+        }
+
         player.sendMessage(config.getErrorMessage("unknownCommand"));
         return false;
     }
@@ -196,5 +234,6 @@ public class MainCommand implements CommandExecutor {
         sender.sendMessage(ChatColor.GRAY + "- bp origin");
         sender.sendMessage(ChatColor.GRAY + "- bp destination");
         sender.sendMessage(ChatColor.GRAY + "- bp link [2 way] [invert]");
+        sender.sendMessage(ChatColor.GRAY + "- bp linkexternal <destX> <destY> <destZ> <destServer> <destWorldName> <destDirection>");
     }
 }
