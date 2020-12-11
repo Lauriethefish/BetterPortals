@@ -110,9 +110,7 @@ public class BetterPortals extends JavaPlugin {
         }
 
         initialiseStatistics();
-        if(config.enableProxy) {
-            networkClient = new PortalClient(this); // Initialise the bungeecord connection if it's enabled
-        }
+        connectToProxy();
     }
 
     // Allows Portal and PortalPosition to be serialized and deserialized by Bukkit's API
@@ -133,6 +131,13 @@ public class BetterPortals extends JavaPlugin {
         portalWand.setItemMeta(meta);
         // Add an NBT tag to help us identify the wand later
         portalWand = ReflectUtils.addItemNBTTag(portalWand, "betterportals_wand", "true");
+    }
+
+    // Starts a new connection to the proxy if it's enabled
+    public void connectToProxy() {
+        if(config.enableProxy) {
+            networkClient = new PortalClient(this); // Initialise the bungeecord connection if it's enabled
+        }
     }
 
     // Finds if the given item is usable as the portal wand

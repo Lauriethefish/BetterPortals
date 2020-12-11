@@ -89,6 +89,7 @@ public class Config {
     public String proxyAddress; // The address of the proxy to connect to
     public int proxyPort; // The port on the proxy to connect to
     public UUID encryptionKey;
+    public int reconnectionDelay;
 
     public boolean enableDimensionBlend;
     public double dimensionBlendFallOff;
@@ -192,6 +193,7 @@ public class Config {
         if(enableProxy) {
             proxyAddress = proxySection.getString("proxyAddress");
             proxyPort = proxySection.getInt("proxyPort");
+            reconnectionDelay = proxySection.getInt("reconnectionDelay");
             try {
                 encryptionKey = UUID.fromString(proxySection.getString("key"));
             }   catch(IllegalArgumentException ex) {

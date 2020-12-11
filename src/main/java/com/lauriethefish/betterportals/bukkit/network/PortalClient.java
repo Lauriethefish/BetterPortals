@@ -7,6 +7,7 @@ import java.net.Socket;
 import java.security.GeneralSecurityException;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
+import com.lauriethefish.betterportals.bukkit.runnables.ClientReconnect;
 import com.lauriethefish.betterportals.network.RegisterRequest;
 import com.lauriethefish.betterportals.network.Request;
 import com.lauriethefish.betterportals.network.Response;
@@ -166,6 +167,11 @@ public class PortalClient {
             socket.close();
         } catch (IOException ex) {
             ex.printStackTrace();
+        }
+
+        // Attempt a reconnection if enabled
+        if(pl.config.reconnectionDelay > 0) {
+            new ClientReconnect(pl);
         }
     }
 }

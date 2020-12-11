@@ -78,6 +78,7 @@ proxy:
   proxyAddress: ""
   proxyPort: 25510
   key: "" # A UUID used for encrypted communication with the proxy. You should set this to the UUID in the BetterPortals config on the bungee side.
+  reconnectionDelay: 300 # Delay in ticks before attempting a reconnection to the proxy if disconnected (default 30 seconds) Set to -1 to disable.
 
 # Will randomly swap some blocks between the two ends of a nether portal when it's made, makes a cool effect.
 dimensionBlend:
