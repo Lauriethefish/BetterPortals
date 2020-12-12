@@ -13,6 +13,10 @@ public class ClientReconnect implements Runnable  {
 
     @Override
     public void run() {
-        pl.connectToProxy(); // Attempt a reconnection
+        if(!pl.getNetworkClient().isConnected()) {
+            pl.connectToProxy(); // Attempt a reconnection
+        }   else    {
+            pl.logDebug("Reconnect worker did not start a reconnection since it had already happened.");
+        }
     }
 }

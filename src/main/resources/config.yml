@@ -100,12 +100,15 @@ chatMessages:
   noPortalCloseEnough: "No portal close enough found"
   portalNotOwnedByPlayer: "You do not have permission to remove portals created by other people"
   unknownCommand: "Unknown Command. For help, run /bp help"
+  proxyDisabled: "Unable to reconnect to the proxy: it is not enabled!"
+  alreadyConnected: "Unable to reconnect to the proxy: the server is already connected!"
 
   reload: "Reloaded plugin"
   originPortalSet: "Origin portal set"
   destPortalSet: "Destination portal set"
   portalsLinked: "Portals linked successfully"
   portalRemoved: "Portal removed"
+  startedReconnection: "Started reconnecting to the proxy. See console for details."
   
   setPosA: "Set position A"
   setPosB: "Set position B"

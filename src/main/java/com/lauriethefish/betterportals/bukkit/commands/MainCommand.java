@@ -54,6 +54,24 @@ public class MainCommand implements CommandExecutor {
             return true;
         }
 
+        if(subcommand.equals("reconnect")) {
+            // Check that the proxy is enabled
+            if(!config.enableProxy) {
+                sender.sendMessage(config.getErrorMessage("proxyDisabled"));
+                return false;
+            }
+            // Check if we're already connected.
+            if(pl.getNetworkClient().isConnected()) {
+                sender.sendMessage(config.getErrorMessage("alreadyConnected"));
+                return false;
+            }
+
+            // Start to reconnect
+            sender.sendMessage(config.getChatMessage("startedReconnection"));
+            pl.connectToProxy();
+            return true;
+        }
+
         if (!(sender instanceof Player)) {
             sender.sendMessage(config.getErrorMessage("mustBePlayer"));
             return false;
@@ -235,5 +253,6 @@ public class MainCommand implements CommandExecutor {
         sender.sendMessage(ChatColor.GRAY + "- bp destination");
         sender.sendMessage(ChatColor.GRAY + "- bp link [2 way] [invert]");
         sender.sendMessage(ChatColor.GRAY + "- bp linkexternal <destX> <destY> <destZ> <destServer> <destWorldName> <destDirection>");
+        sender.sendMessage(ChatColor.GRAY + "- bp reconnect: Reconnects to the proxy server if disconnected");
     }
 }
