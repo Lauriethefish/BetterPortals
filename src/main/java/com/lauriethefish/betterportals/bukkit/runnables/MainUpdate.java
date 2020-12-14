@@ -128,7 +128,7 @@ public class MainUpdate implements Runnable {
             entry.setValue(actualLocation);
 
             // If an entity is visible through the portal, then we hide it
-            if(viewEntitiesThroughPortals && checker.checkIfVisibleThroughPortal(entity.getLocation().toVector()))  {
+            if(viewEntitiesThroughPortals && checker.checkIfVisibleThroughPortal(entity.getLocation().toVector()) && entity != playerData.getPlayer())  {
                 hiddenEntities.add(entity);
             }
         }
