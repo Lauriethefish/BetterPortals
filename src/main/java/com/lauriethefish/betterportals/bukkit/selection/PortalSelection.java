@@ -63,6 +63,8 @@ public class PortalSelection {
             portalDirection = PortalDirection.NORTH;
         }   else if(a.getX() == b.getX())    {
             portalDirection =  PortalDirection.EAST;
+        }   else if(a.getY() == b.getY()) {
+            portalDirection = PortalDirection.UP;
         }
     }
 
