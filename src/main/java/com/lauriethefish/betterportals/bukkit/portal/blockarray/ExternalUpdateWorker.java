@@ -3,7 +3,6 @@ package com.lauriethefish.betterportals.bukkit.portal.blockarray;
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
 import com.lauriethefish.betterportals.bukkit.network.BlockDataUpdateResult;
 import com.lauriethefish.betterportals.bukkit.network.GetBlockDataArrayRequest;
-import com.lauriethefish.betterportals.network.Response.RequestException;
 
 import lombok.Getter;
 
@@ -43,6 +42,7 @@ public class ExternalUpdateWorker implements Runnable {
         // Make sure we're actually connected
         if(pl.getNetworkClient() == null) {
             pl.getLogger().warning("Update for external portal failed - bungeecord is not enabled!");
+            failed = true;
             return;
         }
 
@@ -50,7 +50,7 @@ public class ExternalUpdateWorker implements Runnable {
             // Send the request to the destination server
             Object rawResult = pl.getNetworkClient().sendRequestToServer(request, destinationServer);
             result = (BlockDataUpdateResult) rawResult;
-        } catch (RequestException ex) {
+        } catch (Throwable ex) {
             pl.getLogger().warning("An error occured while fetching the blocks for an external portal. This portal will not activate.");
             failed = true;
             ex.printStackTrace();

@@ -48,6 +48,8 @@ public class PortalBlockArrayManager {
         
         // We still need to process changes here, even for an external portal, although for external portals only the origin gets processed
         if (request.getDestPos().isExternal()) {
+            if(pl.getNetworkClient() != null && !pl.getNetworkClient().isConnected()) {return;}
+
             pl.logDebug("Updating blocks for external portal . . .");
             if(!externalUpdateWorkers.containsKey(request.getDestPos())) {
                 externalUpdateWorkers.put(request.getDestPos(), new ExternalUpdateWorker(pl, request, array));

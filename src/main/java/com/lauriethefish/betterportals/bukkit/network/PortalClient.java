@@ -26,7 +26,7 @@ public class PortalClient {
     private BetterPortals pl;
 
     private Socket socket;
-    @Getter private volatile boolean isConnected = true;
+    @Getter private volatile boolean isConnected = false;
 
     private RequestStream objectStream;
 
@@ -55,6 +55,7 @@ public class PortalClient {
 
         // Send a RegisterRequest to inform the proxy of our existence
         sendRequest(new RegisterRequest(pl.getDescription().getVersion(), pl.getServer().getPort()));
+        isConnected = true;
 
         while(isConnected) {
             // Read the next request from the server
@@ -151,10 +152,15 @@ public class PortalClient {
 
         shutdown(); // Shut down the connection
 
-        // An EOFException is thrown whenever the other side closes the connection. This shouldn't be printed.
+        // An EOFException is thrown whenever the other side closes the connection. This shouldn't be printed/handled as an error.
         if(!(ex instanceof EOFException)) {
             pl.getLogger().severe("An error occured while connected to the proxy!");
             ex.printStackTrace();
+
+            // Attempt a reconnection if enabled
+            if(pl.config.reconnectionDelay > 0) {
+                new ClientReconnect(pl);
+            }
         }
     }
 
@@ -167,11 +173,6 @@ public class PortalClient {
             socket.close();
         } catch (IOException ex) {
             ex.printStackTrace();
-        }
-
-        // Attempt a reconnection if enabled
-        if(pl.config.reconnectionDelay > 0) {
-            new ClientReconnect(pl);
         }
     }
 }
