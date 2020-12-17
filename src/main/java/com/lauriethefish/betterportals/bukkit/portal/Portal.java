@@ -8,11 +8,11 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
-import com.lauriethefish.betterportals.bukkit.BlockRaycastData;
 import com.lauriethefish.betterportals.bukkit.ReflectUtils;
 import com.lauriethefish.betterportals.bukkit.multiblockchange.ChunkCoordIntPair;
 import com.lauriethefish.betterportals.bukkit.multiblockchange.MultiBlockChangeManager;
 import com.lauriethefish.betterportals.bukkit.network.GetBlockDataArrayRequest;
+import com.lauriethefish.betterportals.bukkit.portal.blockarray.SerializableBlockData;
 import com.lauriethefish.betterportals.bukkit.selection.PortalSelection;
 import com.lauriethefish.betterportals.network.TeleportPlayerRequest;
 import com.lauriethefish.betterportals.network.Response.RequestException;
@@ -281,7 +281,7 @@ public class Portal implements ConfigurationSerializable    {
         Vector blockBL = originPos.getVector().subtract(actualSize.multiply(0.5));
 
         // Loop through each block of the portal, and set them to either air or back to portal
-        Object nmsAirData = BlockRaycastData.getNMSData(Material.AIR);
+        Object nmsAirData = new SerializableBlockData(Material.AIR).getNMSData();
         for(int x = 0; x < portalSize.getX(); x++)  {
             for(int y = 0; y < portalSize.getY(); y++)  {
                 Vector offset = originPos.getDirection().swapVector(new Vector(x, y, 0.0));
@@ -289,7 +289,7 @@ public class Portal implements ConfigurationSerializable    {
                 
                 // Add the changes to our manager
                 if(reset)   {
-                    manager.addChange(position, BlockRaycastData.getNMSData(position.getBlock().getState()));
+                    manager.addChange(position, new SerializableBlockData(position.getBlock()));
                 }   else    {
                     manager.addChange(position, nmsAirData);
                 }

@@ -72,7 +72,7 @@ public class BlockProcessor implements Runnable {
             boolean visible = data.checker.checkIfVisibleThroughPortal(originPos);
 
             Object oldState = blockStates.get(originPos); // Find if it was visible last tick
-            Object newState = visible ? raycastData.getDestData() : raycastData.getOriginData();
+            Object newState = visible ? raycastData.getDestData().getNMSData() : raycastData.getOriginData().getNMSData();
 
             // If we are overwriting the block, change it in the player's block array and send them a block update
             if(!newState.equals(oldState)) {

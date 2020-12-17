@@ -95,7 +95,7 @@ public class PlayerData {
             viewableBlocksArray.lockWhileInUse();
             // Loop through all of the potential ghost blocks, and add to the change manager to change them back
             for(BlockRaycastData data : viewableBlocksArray.getBlocks())   {
-                changeManager.addChange(data.getOriginVec(), data.getOriginData());
+                changeManager.addChange(data.getOriginVec(), data.getOriginData().getNMSData());
             }
             viewableBlocksArray.unlockAfterUse();
             changeManager.sendChanges();

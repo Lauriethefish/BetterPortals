@@ -16,6 +16,7 @@ import com.lauriethefish.betterportals.bukkit.network.BlockDataUpdateResult;
 import com.lauriethefish.betterportals.bukkit.network.GetBlockDataArrayRequest;
 
 import org.bukkit.Location;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.util.Vector;
 
@@ -83,7 +84,7 @@ public class CachedViewableBlocksArray {
     private void updateOriginIfExisting(int index) {
         BlockRaycastData existingData = blocks.get(index);
         if(existingData != null) {
-            existingData.changeOriginData(blockStatesOrigin.getCombinedIds()[index]);
+            existingData.changeOriginData(new SerializableBlockData(blockStatesOrigin.getMaterials()[index], blockStatesOrigin.getDataValues()[index]));
         }
     }
 
@@ -96,15 +97,16 @@ public class CachedViewableBlocksArray {
 
         // Add any new blocks
         Vector originPos = request.getOriginPos().getLocation().toVector();
-        for(Map.Entry<Integer, Integer> entry : result.getUpdatedBlocks().entrySet()) {
-            Vector relativePos = config.calculateRelativePos(entry.getKey());
+        for(Map.Entry<Integer, SerializableBlockData> entry : result.getUpdatedBlocks().entrySet()) {
+            int index = entry.getKey();
+            Vector relativePos = config.calculateRelativePos(index);
             boolean isEdge = isEdge(relativePos);
 
-            // Find the combined ID at the origin
-            int originCombinedID = blockStatesOrigin.getCombinedIds()[entry.getKey()];
+            // Find the data at the origin
+            SerializableBlockData originData = new SerializableBlockData(blockStatesOrigin.getMaterials()[index], blockStatesOrigin.getDataValues()[index]);
 
-            // Use the combined ID sent back from the remote server for the destination
-            BlockRaycastData newData = new BlockRaycastData(relativePos.add(originPos), originCombinedID, entry.getValue(), isEdge);
+            // Use the data sent back from the remote server to create the BlockRaycastData
+            BlockRaycastData newData = new BlockRaycastData(relativePos.add(originPos), originData, entry.getValue(), isEdge);
             blocks.put(entry.getKey(), newData);
         }
         unlockAfterUse();
@@ -148,16 +150,17 @@ public class CachedViewableBlocksArray {
                 // Find the destination combined ID, making sure to rotate the block if necessary
                 BlockState destState = destLoc.getBlock().getState();
                 rotator.rotateToOrigin(destState);
-                int destCombinedID = BlockRaycastData.getCombinedId(destState);
 
                 if(external) {
                     // If this portal has its destination on another server, then we send the destination block ID back to the origin server
-                    result.getUpdatedBlocks().put(index, destCombinedID);
+                    result.getUpdatedBlocks().put(index, new SerializableBlockData(destState));
                 }   else    {
-                    // Otherwise, we can also find the origin data and just add it directly to the list
-                    int originCombinedID = BlockRaycastData.getCombinedId(originLoc.getBlock().getState());
+                    Block originBlock = originLoc.getBlock();
                     // Make a new BlockRaycastData
-                    BlockRaycastData newData = new BlockRaycastData(originLoc.toVector(), originCombinedID, destCombinedID, isEdge(relativePos));
+                    BlockRaycastData newData = new BlockRaycastData(originLoc.toVector(),
+                                                                    new SerializableBlockData(originBlock),
+                                                                    new SerializableBlockData(destState),
+                                                                    isEdge(relativePos));
                     blocks.put(index, newData);
                 }
             } 
