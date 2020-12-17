@@ -16,8 +16,9 @@ import lombok.Getter;
 public class BlockRaycastData implements Serializable   {
     private static final long serialVersionUID = -198098468444437819L;
 
-    private SerializableBlockData edgeData = ReflectUtils.isLegacy ? new SerializableBlockData(Material.valueOf("CONCRETE"), (byte) 15)
-                                                                   : new SerializableBlockData(Material.valueOf("BLACK_CONCRETE"), (byte) 0);
+    private static final SerializableBlockData edgeData = ReflectUtils.isLegacy ? new SerializableBlockData(Material.valueOf("CONCRETE"), (byte) 15)
+                                                                   : new SerializableBlockData(Material.valueOf("BLACK_CONCRETE"));
+
 
     @Getter private Vector originVec;
 

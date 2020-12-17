@@ -281,7 +281,7 @@ public class Portal implements ConfigurationSerializable    {
         Vector blockBL = originPos.getVector().subtract(actualSize.multiply(0.5));
 
         // Loop through each block of the portal, and set them to either air or back to portal
-        Object nmsAirData = new SerializableBlockData(Material.AIR).getNMSData();
+        Object nmsAirData = new SerializableBlockData(Material.AIR).getNmsData();
         for(int x = 0; x < portalSize.getX(); x++)  {
             for(int y = 0; y < portalSize.getY(); y++)  {
                 Vector offset = originPos.getDirection().swapVector(new Vector(x, y, 0.0));

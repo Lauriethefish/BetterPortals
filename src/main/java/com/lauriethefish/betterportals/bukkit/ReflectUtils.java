@@ -18,6 +18,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.BlockState;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.ItemStack;
@@ -360,5 +361,66 @@ public class ReflectUtils {
 		Object itemTag = ReflectUtils.runMethod(nmsItem, "getTag"); // Otherwise, get the item's NBT tag
 
 		return (String) ReflectUtils.runMethod(itemTag, "getString", new Class[]{String.class}, new Object[]{key}); // Return the value of the key
-	}
+    }
+    
+    // This works fine on modern versions
+    public static Object getNMSData(Material mat)  {
+        Object block = ReflectUtils.runMethod(null, ReflectUtils.getBukkitClass("util.CraftMagicNumbers"), "getBlock", new Class[]{Material.class}, new Object[]{mat});
+        return ReflectUtils.getField(block, "blockData");
+    }
+
+    // This won't work properly on non-legacy versions!
+    @SuppressWarnings("deprecation")
+    public static Object getNMSData(Material mat, byte data)    {
+        int combinedId = mat.getId() + (data << 12);
+        return ReflectUtils.runMethod(null, ReflectUtils.getMcClass("Block"), "getByCombinedId", new Class[]{int.class}, new Object[]{combinedId});
+    }
+
+    private static Method getDataMethod = findGetDataMethod();
+    private static Method findGetDataMethod()  {
+        if(ReflectUtils.isLegacy)   {
+            return ReflectUtils.findMethod(ReflectUtils.getMcClass("Block"), "getByCombinedId", new Class[]{int.class});
+        }   else    {
+            return ReflectUtils.findMethod(ReflectUtils.getBukkitClass("block.CraftBlockState"), "getHandle", new Class[]{});
+        }
+    }
+
+    // Finds the NMS IBlockData from a bukkit block state
+    @SuppressWarnings("deprecation")
+    public static Object getNMSData(BlockState state)   {
+        try {
+            // Use the combinedId to get IBlockData in legacy versions, or just use getHandle on a BlockState in modern versions
+            if(ReflectUtils.isLegacy)    {
+                int combined = state.getType().getId() + (state.getRawData() << 12);
+                return getDataMethod.invoke(null, combined);
+            }   else    {
+                return getDataMethod.invoke(state);
+            }
+        }   catch(ReflectiveOperationException ex)  {
+            ex.printStackTrace();
+            return null;
+        }
+    }
+
+    // The combined ID of IBlockData is only used for serialization, since this is what PacketDataSerializer uses.
+    // It's also not really possible to easily get back the right IBlockData from a material and data value, since some modern blocks get messed up/colours changed.
+    private static Method getCombinedIdMethod = findMethod(getMcClass("Block"), "getCombinedId", new Class[]{getMcClass("IBlockData")});
+    private static Method getFromCombinedIdMethod = findMethod(getMcClass("Block"), "getByCombinedId", new Class[]{int.class});
+    public static int NMSDataToCombinedId(Object blockData) {
+        try {
+            return (int) getCombinedIdMethod.invoke(null, blockData);
+        }   catch(ReflectiveOperationException ex) {
+            ex.printStackTrace();
+            return -1;
+        }
+    }
+
+    public static Object combinedIdToNMSData(int combinedId) {
+        try {
+            return getFromCombinedIdMethod.invoke(null, combinedId);
+        }   catch(ReflectiveOperationException ex) {
+            ex.printStackTrace();
+            return -1;
+        }
+    }
 }

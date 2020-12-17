@@ -71,7 +71,7 @@ public class CachedViewableBlocksArray {
                         }
                     }
                     if(originChanged || destinationChanged) {
-                        updateOriginIfExisting(arrayIndex); // Update the existing origin data
+                        updateOriginIfExisting(arrayIndex, originBlockLoc); // Update the existing origin data
                     }
                 }
             }
@@ -81,10 +81,10 @@ public class CachedViewableBlocksArray {
     }
 
     // Called if an origin state changes and updates the existing BlockRaycastData
-    private void updateOriginIfExisting(int index) {
+    private void updateOriginIfExisting(int index, Location originLoc) {
         BlockRaycastData existingData = blocks.get(index);
         if(existingData != null) {
-            existingData.changeOriginData(new SerializableBlockData(blockStatesOrigin.getMaterials()[index], blockStatesOrigin.getDataValues()[index]));
+            existingData.changeOriginData(new SerializableBlockData(originLoc.getBlock()));
         }
     }
 
