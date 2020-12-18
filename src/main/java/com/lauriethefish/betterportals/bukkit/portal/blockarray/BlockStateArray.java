@@ -1,7 +1,7 @@
 package com.lauriethefish.betterportals.bukkit.portal.blockarray;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
-import com.lauriethefish.betterportals.bukkit.Config;
+import com.lauriethefish.betterportals.bukkit.config.Config;
 
 import org.bukkit.Location;
 import org.bukkit.Material;

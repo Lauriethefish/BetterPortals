@@ -10,6 +10,7 @@ import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 
 import com.lauriethefish.betterportals.bukkit.commands.MainCommand;
+import com.lauriethefish.betterportals.bukkit.config.Config;
 import com.lauriethefish.betterportals.bukkit.events.ChunkUnload;
 import com.lauriethefish.betterportals.bukkit.events.EntityPortal;
 import com.lauriethefish.betterportals.bukkit.events.EntityReplicationEvents;

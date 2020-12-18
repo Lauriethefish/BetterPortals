@@ -1,4 +1,4 @@
-package com.lauriethefish.betterportals.bukkit;
+package com.lauriethefish.betterportals.bukkit.config;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -9,6 +9,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+
+import com.lauriethefish.betterportals.bukkit.BetterPortals;
+import com.lauriethefish.betterportals.bukkit.WorldLink;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
