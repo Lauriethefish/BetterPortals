@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
 import com.lauriethefish.betterportals.bukkit.ReflectUtils;
+import com.lauriethefish.betterportals.bukkit.config.RenderConfig;
 import com.lauriethefish.betterportals.bukkit.multiblockchange.ChunkCoordIntPair;
 import com.lauriethefish.betterportals.bukkit.multiblockchange.MultiBlockChangeManager;
 import com.lauriethefish.betterportals.bukkit.network.GetBlockDataArrayRequest;
@@ -32,6 +33,7 @@ import lombok.Setter;
 // Two of these should be created per portal, one for the effect on each side
 public class Portal implements ConfigurationSerializable    {
     private BetterPortals pl;
+    private RenderConfig renderConfig;
 
     @Getter private PortalPosition originPos;
     @Getter private PortalPosition destPos;
@@ -60,6 +62,7 @@ public class Portal implements ConfigurationSerializable    {
     // NOTE: The portalPosition must be the EXACT center of the portal on the x, y and z
     public Portal(BetterPortals pl, PortalPosition originPos, PortalPosition destPos, Vector portalSize, boolean anchored, UUID owner) {
         this.pl = pl;
+        this.renderConfig = pl.getLoadedConfig().getRendering();
         this.originPos = originPos;
         this.destPos = destPos;
         this.portalSize = portalSize;
@@ -68,14 +71,14 @@ public class Portal implements ConfigurationSerializable    {
         locTransformer = new PortalTransformations(originPos, destPos);
 
         // Find the chunks around the destination of the portal
-        Vector boxSize = new Vector(pl.config.maxXZ, pl.config.maxY, pl.config.maxXZ);
+        Vector boxSize = new Vector(renderConfig.getMaxXZ(), renderConfig.getMaxY(), renderConfig.getMaxXZ());
         Location boxBL = destPos.getLocation().subtract(boxSize);
         Location boxTR = destPos.getLocation().add(boxSize);
         ChunkCoordIntPair.areaIterator(boxBL, boxTR).addAll(destinationChunks);
         
         // Divide the size by 2 so it is the correct amount to subtract from the center to reach each corner
         // Then orient it so that is on the z if the portal is north/south
-        this.planeRadius = originPos.getDirection().swapVector(portalSize.clone().multiply(0.5).add(pl.config.portalCollisionBox));
+        this.planeRadius = originPos.getDirection().swapVector(portalSize.clone().multiply(0.5).add(renderConfig.getCollisionBox()));
     }
     
     // Constructor to make a portal link between two selections
@@ -150,10 +153,10 @@ public class Portal implements ConfigurationSerializable    {
         pl.getPortalUpdator().keepChunksForceLoaded(destinationChunks);
 
         // Update the entities and blocks if we need to
-        if(ticksSinceActivation % pl.config.entityCheckInterval == 0)   {
+        if(ticksSinceActivation % pl.getLoadedConfig().getEntityCheckInterval() == 0)   {
             updateNearbyEntities();
         }
-        if(ticksSinceActivation % pl.config.portalBlockUpdateInterval == 0)   {
+        if(ticksSinceActivation % renderConfig.getBlockUpdateInterval() == 0)   {
             findCurrentBlocks();
         }
         ticksSinceActivation++;
@@ -162,7 +165,7 @@ public class Portal implements ConfigurationSerializable    {
     // Updates the two lists of neaby entities
     private void updateNearbyEntities()   {
         Collection<Entity> nearbyEntities = originPos.getWorld()
-                    .getNearbyEntities(originPos.getLocation(), pl.config.maxXZ, pl.config.maxY, pl.config.maxXZ);
+                    .getNearbyEntities(originPos.getLocation(), renderConfig.getMaxXZ(), renderConfig.getMaxY(), renderConfig.getMaxXZ());
 
         // Store the entity and last location in a hash map
         Map<Entity, Vector> newOriginEntites = new HashMap<>();
@@ -173,9 +176,9 @@ public class Portal implements ConfigurationSerializable    {
         }
         nearbyEntitiesOrigin = newOriginEntites;
 
-        if(pl.config.enableEntitySupport)   {
+        if(pl.getLoadedConfig().isEntitySupportEnabled())   {
             nearbyEntitiesDestination = destPos.getWorld()
-                        .getNearbyEntities(destPos.getLocation(), pl.config.maxXZ, pl.config.maxY, pl.config.maxXZ);
+                        .getNearbyEntities(destPos.getLocation(), renderConfig.getMaxXZ(), renderConfig.getMaxY(), renderConfig.getMaxXZ());
         }
     }
 

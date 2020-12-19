@@ -71,7 +71,7 @@ public class PortalSpawnSystem {
         pl.logDebug("Finding portal spawn location (origin position %s)", originLocation);
         // Loop through all of the links between worlds, and try to find a link for this portal
         WorldLink link = null;
-        for(WorldLink currentLink : pl.config.worldLinks)   {
+        for(WorldLink currentLink : pl.getLoadedConfig().getSpawning().getWorldLinks())   {
             if(currentLink.originWorld.equals(originLocation.getWorld())) {
                 link = currentLink;
                 break;
@@ -202,7 +202,7 @@ public class PortalSpawnSystem {
             Location otherPos = portal.getOriginPos().getLocation();
 
             // If the portal is in the same world, and is too close, return true
-            if(otherPos.getWorld() == loc.getWorld() && otherPos.distance(loc) < pl.config.minimumPortalSpawnDistance) {
+            if(otherPos.getWorld() == loc.getWorld() && otherPos.distance(loc) < pl.getLoadedConfig().getSpawning().getMinimumPortalSpawnDistance()) {
                 return true;
             }
         }

@@ -9,7 +9,7 @@ import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 
-import com.lauriethefish.betterportals.bukkit.commands.MainCommand;
+import com.lauriethefish.betterportals.bukkit.commandsystem.MainCommand;
 import com.lauriethefish.betterportals.bukkit.config.Config;
 import com.lauriethefish.betterportals.bukkit.events.ChunkUnload;
 import com.lauriethefish.betterportals.bukkit.events.EntityPortal;
@@ -56,7 +56,7 @@ public class BetterPortals extends JavaPlugin {
     @Getter private PortalBlockArrayManager blockArrayProcessor;
 
     @Getter private MainUpdate portalUpdator;
-    public Config config;
+    @Getter private Config loadedConfig;
     private PortalStorage storage;
 
     // Item given to the player to select portals
@@ -127,7 +127,7 @@ public class BetterPortals extends JavaPlugin {
 
         // Set the name to the one in the config file
         ItemMeta meta = portalWand.getItemMeta();
-        meta.setDisplayName(config.portalWandName);
+        meta.setDisplayName(loadedConfig.getMessages().getPortalWandName());
 
         portalWand.setItemMeta(meta);
         // Add an NBT tag to help us identify the wand later
@@ -136,7 +136,7 @@ public class BetterPortals extends JavaPlugin {
 
     // Starts a new connection to the proxy if it's enabled
     public void connectToProxy() {
-        if(config.enableProxy) {
+        if(loadedConfig.getProxy().isEnabled()) {
             networkClient = new PortalClient(this); // Initialise the bungeecord connection if it's enabled
         }
     }
@@ -245,19 +245,19 @@ public class BetterPortals extends JavaPlugin {
         metrics.addCustomChart(new Metrics.SimplePie("render_distance_xz", new Callable<String>() {
             @Override
             public String call() throws Exception  {
-                return String.valueOf(config.maxXZ);
+                return String.valueOf(loadedConfig.getRendering().getMaxXZ());
             }
         }));
         metrics.addCustomChart(new Metrics.SimplePie("render_distance_y", new Callable<String>() {
             @Override
             public String call() throws Exception  {
-                return String.valueOf(config.maxY);
+                return String.valueOf(loadedConfig.getRendering().getMaxY());
             }
         }));
         metrics.addCustomChart(new Metrics.SimplePie("entities_enabled", new Callable<String>() {
             @Override
             public String call() throws Exception   {
-                if(config.enableEntitySupport)  {
+                if(loadedConfig.isEntitySupportEnabled())  {
                     return "Entities";
                 }   else    {
                     return "No Entities";
@@ -269,7 +269,7 @@ public class BetterPortals extends JavaPlugin {
     // This method is called when the plugin is disabled
     @Override
     public void onDisable() {
-        if(config.enableProxy) { // Don't shut down the server if the proxy is disabled
+        if(loadedConfig.getProxy().isEnabled()) { // Don't shut down the server if the proxy is disabled
             networkClient.shutdown();
         }
 
@@ -294,7 +294,7 @@ public class BetterPortals extends JavaPlugin {
     public boolean loadConfig()   {
         try {
             saveDefaultConfig(); // Make a new config file with the default settings if one does not exist
-            config = new Config(this);
+            loadedConfig = new Config(this);
             return true;
         }   catch(Exception ex) {
             getLogger().warning("Failed to load config file. This may be because it is invalid YAML");
@@ -323,7 +323,7 @@ public class BetterPortals extends JavaPlugin {
     }
 
     public void logDebug(String message) {
-        if(config.enableDebugLogging)   { // Make sure debug logging is enabled first
+        if(loadedConfig.isEntitySupportEnabled())   { // Make sure debug logging is enabled first
             getLogger().info("[DEBUG] " + message);
         }
     }

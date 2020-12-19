@@ -2,11 +2,11 @@ package com.lauriethefish.betterportals.bukkit.network;
 
 import java.io.EOFException;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.security.GeneralSecurityException;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
+import com.lauriethefish.betterportals.bukkit.config.ProxyConfig;
 import com.lauriethefish.betterportals.bukkit.runnables.ClientReconnect;
 import com.lauriethefish.betterportals.network.RegisterRequest;
 import com.lauriethefish.betterportals.network.Request;
@@ -27,11 +27,13 @@ public class PortalClient {
 
     private Socket socket;
     @Getter private volatile boolean isConnected = false;
+    private ProxyConfig config;
 
     private RequestStream objectStream;
 
     public PortalClient(BetterPortals pl) {
         this.pl = pl;
+        this.config = pl.getLoadedConfig().getProxy();
 
         new Thread(() -> {
             try {
@@ -48,9 +50,9 @@ public class PortalClient {
     private void connectToServer() throws IOException, RequestException, ClassNotFoundException, GeneralSecurityException {
         pl.getLogger().info("Connecting to bungeecord . . .");
         socket = new Socket();
-        socket.connect(new InetSocketAddress(pl.config.proxyAddress, pl.config.proxyPort));
+        socket.connect(config.getAddress());
 
-        EncryptionManager manager = new EncryptionManager(pl.config.encryptionKey);
+        EncryptionManager manager = new EncryptionManager(config.getEncryptionKey());
         objectStream = new RequestStream(socket.getInputStream(), socket.getOutputStream(), manager);
 
         // Send a RegisterRequest to inform the proxy of our existence
@@ -158,7 +160,7 @@ public class PortalClient {
             ex.printStackTrace();
 
             // Attempt a reconnection if enabled
-            if(pl.config.reconnectionDelay > 0) {
+            if(config.getReconnectionDelay() > 0) {
                 new ClientReconnect(pl);
             }
         }

@@ -7,9 +7,9 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
-import com.lauriethefish.betterportals.bukkit.Config;
 import com.lauriethefish.betterportals.bukkit.PlayerData;
 import com.lauriethefish.betterportals.bukkit.ReflectUtils;
+import com.lauriethefish.betterportals.bukkit.config.Config;
 import com.lauriethefish.betterportals.bukkit.entitymanipulation.EntityManipulator;
 import com.lauriethefish.betterportals.bukkit.math.PlaneIntersectionChecker;
 import com.lauriethefish.betterportals.bukkit.multiblockchange.ChunkCoordIntPair;
@@ -33,7 +33,7 @@ public class MainUpdate implements Runnable {
     public MainUpdate(BetterPortals pl) {
         blockRenderer = new BlockProcessor(pl);
         this.pl = pl;
-        this.config = pl.config;
+        this.config = pl.getLoadedConfig();
 
         // Set the task to run every tick
         pl.getServer().getScheduler().scheduleSyncRepeatingTask(pl, this, 0, 1);
@@ -59,7 +59,7 @@ public class MainUpdate implements Runnable {
 
         // Loop through all active portals and find the closest one to be activated
         // This is for performance - only one portal can be active at a time
-        Portal closestPortal = pl.findClosestPortal(player.getLocation(), config.portalActivationDistance, isValidPortal);
+        Portal closestPortal = pl.findClosestPortal(player.getLocation(), config.getPortalActivationDistance(), isValidPortal);
 
         // If a portal has been destroyed, we can't use it.
         if(closestPortal != null && !closestPortal.checkOriginAndDestination()) {return null;}
@@ -185,7 +185,7 @@ public class MainUpdate implements Runnable {
 
                     PlaneIntersectionChecker intersectionChecker = new PlaneIntersectionChecker(player, portal);
 
-                    updateEntities(playerData, portal, intersectionChecker, canSeeThroughPortals && pl.config.enableEntitySupport);
+                    updateEntities(playerData, portal, intersectionChecker, canSeeThroughPortals && config.isEntitySupportEnabled());
                     if(canSeeThroughPortals) {updatePortal(playerData, portal, intersectionChecker);}
 
                     // Teleport the player if they cross through a portal

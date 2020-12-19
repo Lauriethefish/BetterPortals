@@ -3,99 +3,33 @@ package com.lauriethefish.betterportals.bukkit.config;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
-import com.lauriethefish.betterportals.bukkit.WorldLink;
 
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.util.Vector;
+
+import lombok.Getter;
 
 // Stores all of the configuration for the BetterPortals plugin, so that it can be
 // easy sent between events
 public class Config {
-    private BetterPortals pl; // Reference to the plugin
+    private BetterPortals pl;
 
-    public List<WorldLink> worldLinks = new ArrayList<>();
-    private Set<World> disabledWorlds = new HashSet<>();
+    @Getter private MessageConfig messages;
+    @Getter private PortalSpawnConfig spawning;
+    @Getter private RenderConfig rendering;
+    @Getter private ProxyConfig proxy;
 
-    // The min and max values for the blocks that the raycast will check
-    public double minXZ;
-    public double maxXZ;
-    public double minY;
-    public double maxY;
+    // Miscellaneous config options that don't fit in to any of the sub-configs
+    @Getter private double portalActivationDistance;
 
-    // The minimum distance required for the  portal effect to be displayed
-    public double portalActivationDistance;
-    // The maximum distance that the ray will travel before giving up
-    public double maxRayCastDistance;
-    // The amount that the ray needs to be advanced each raycast iteration
-    public double rayCastIncrement;
+    @Getter private boolean entitySupportEnabled;
+    @Getter private int entityCheckInterval;
 
-    // Multiplyers used to access the array of changed blocks
-    // This array stores the ghost blocks that have been changed
-    // to help performance
-    private int yMultip;
-    private int zMultip;
-
-    private Vector halfFullSize;
-
-    public int arraySizeXZ;
-    public int arraySizeY;
-    public int totalArrayLength;
-
-    public int[] surroundingOffsets;
-
-    // Maximum size of portals
-    public Vector maxPortalSize;
-
-    // The offset of the portal's collision box
-    public Vector portalCollisionBox;
-
-    // How often the portal re-checks its surrounding blocks
-    public int portalBlockUpdateInterval;
-
-    public boolean enableEntitySupport;
-    public int entityCheckInterval;
-
-    // If this is true then we will send packets to hide and show the portal blocks
-    public boolean hidePortalBlocks;
-
-    // How close portals will spawn to each other
-    public int minimumPortalSpawnDistance;
-
-    // How long the plugin waits before rendering portals after switching worlds
-    public int worldSwitchWaitTime;
-
-    // Makes additional things be run on other threads that probably shouldn't be run on other threads
-    public boolean unsafeMode;
-    public boolean enableDebugLogging;
-
-    // Contains all the customisable messages of the plugin
-    public ConfigurationSection messagesSection;
-    public String chatPrefix;
-
-    // Name of all given portal wand items
-    public String portalWandName;
-
-    public boolean enableProxy; // Whether or not bungeecord support will be enabled
-    public String proxyAddress; // The address of the proxy to connect to
-    public int proxyPort; // The port on the proxy to connect to
-    public UUID encryptionKey;
-    public int reconnectionDelay;
-
-    public boolean enableDimensionBlend;
-    public double dimensionBlendFallOff;
+    @Getter private boolean debugLoggingEnabled;
 
     // Loads the configuration from the given file, setting all the parameters of the class
     public Config(BetterPortals pl)   {
@@ -107,108 +41,17 @@ public class Config {
         // This has the side effect of deleting comments, so it only happens if an update is required
         file = updateConfigFile(file);
 
-        // Load all of the parameters from the config file
-        // Calculate the min and max values
-        maxXZ = file.getInt("portalEffectSizeXZ");
-        minXZ = maxXZ * -1.0;
-        maxY = file.getInt("portalEffectSizeY");
-        minY = maxY * -1.0;
-
-        // Calculate the multipliers for accessing the table
-        zMultip = (int) (maxXZ - minXZ + 1);
-        yMultip = zMultip * zMultip;
-        totalArrayLength = yMultip * (int) (maxY - minY + 1);
-
-        // Calculate the differences in index for quickly accessing the block array while building the mesh
-        surroundingOffsets = new int[]{
-            1,
-            -1,
-            yMultip,
-            -yMultip,
-            zMultip,
-            -zMultip
-        };
-        halfFullSize = new Vector((maxXZ - minXZ) / 2, (maxY - minY) / 2, (maxXZ - minXZ) / 2);
-
+        // Load miscellaneous config options.
         portalActivationDistance = file.getDouble("portalActivationDistance");
-        portalBlockUpdateInterval = file.getInt("portalBlockUpdateInterval");
-        rayCastIncrement = file.getDouble("rayCastIncrement");
-        maxRayCastDistance = file.getDouble("maxRayCastDistance");
-        enableEntitySupport = file.getBoolean("enableEntitySupport");
+        entitySupportEnabled = file.getBoolean("enableEntitySupport");
         entityCheckInterval = file.getInt("entityCheckInterval");
-        hidePortalBlocks = file.getBoolean("hidePortalBlocks");
-        minimumPortalSpawnDistance = file.getInt("minimumPortalSpawnDistance");
-        worldSwitchWaitTime = file.getInt("waitTimeAfterSwitchingWorlds");
-        unsafeMode = false;
-        enableDebugLogging = file.getBoolean("enableDebugLogging");
+        debugLoggingEnabled = file.getBoolean("enableDebugLogging");
 
-        // If the maxRayCastDistance is set to -1, work it out based on the portalActivationDistance
-        if(maxRayCastDistance == -1)    {
-            maxRayCastDistance = portalActivationDistance + 3.0;
-        }
-
-        // Load the max portal size
-        ConfigurationSection maxSizeSection = file.getConfigurationSection("maxPortalSize");
-        maxPortalSize = new Vector(
-            maxSizeSection.getInt("x"),
-            maxSizeSection.getInt("y"),
-            0.0
-        );
-
-        // Load the portal's collision box
-        ConfigurationSection cBoxSection = file.getConfigurationSection("portalCollisionBox");
-        portalCollisionBox = new Vector(
-            cBoxSection.getDouble("x"),
-            cBoxSection.getDouble("y"),
-            cBoxSection.getDouble("z")
-        );
-
-        // Get the list that contains all of the world links
-        ConfigurationSection worldLinksSection = file.getConfigurationSection("worldConnections");
-        // Get an iterator over all of the value
-        Iterator<String> links  = worldLinksSection.getKeys(false).iterator();
-
-        while(links.hasNext())  {
-            // Get the configuration section of the link and retrieve all of the values for it using the constructor
-            WorldLink newLink = new WorldLink(pl, worldLinksSection.getConfigurationSection(links.next()));
-            if(!newLink.isValid())  {
-                pl.getLogger().info(ChatColor.RED + "An invalid worldConnection was found in config.yml, please check that your world names are correct");
-                continue;
-            }
-            
-            worldLinks.add(newLink);        
-        }
-
-        // Add all the disabled worlds to a set
-        List<String> disabledWorldsString = file.getStringList("disabledWorlds");
-        for(String worldString : disabledWorldsString)  {
-            World world = pl.getServer().getWorld(worldString);
-            disabledWorlds.add(world);
-        }
-
-        messagesSection = file.getConfigurationSection("chatMessages");
-        chatPrefix = getChatMessageRaw("prefix");
-        portalWandName = ChatColor.translateAlternateColorCodes('&', file.getString("portalWandName"));
-
-        // Load the values to do with proxy configuration
-        ConfigurationSection proxySection = file.getConfigurationSection("proxy");
-        enableProxy = proxySection.getBoolean("enableProxy");
-        if(enableProxy) {
-            proxyAddress = proxySection.getString("proxyAddress");
-            proxyPort = proxySection.getInt("proxyPort");
-            reconnectionDelay = proxySection.getInt("reconnectionDelay");
-            try {
-                encryptionKey = UUID.fromString(proxySection.getString("key"));
-            }   catch(IllegalArgumentException ex) {
-                // Print a warning message if it fails instead of a spammy error message
-                pl.getLogger().warning("Failed to load encryption key from config file! Please make sure you set this to the key in the bungeecord config.");
-                enableProxy = false; // Disable proxy connection - there's no valid encryption key so connection will just fail
-            }
-        }
-
-        ConfigurationSection dimBlendSection = file.getConfigurationSection("dimensionBlend");
-        enableDimensionBlend = dimBlendSection.getBoolean("enable");
-        dimensionBlendFallOff =dimBlendSection.getDouble("fallOffRate");
+        // Load each of the sub-configs.
+        messages = new MessageConfig(file);
+        spawning = new PortalSpawnConfig(pl, file);
+        rendering = new RenderConfig(file);
+        proxy = new ProxyConfig(pl, file);
     }
 
     // Reads everything inside a resource of the JAR to a string
@@ -262,47 +105,5 @@ public class Config {
 
         // Return the default config
         return defaultConfig;
-    }
-
-    // Finds the index in an array of blocks surrounding the portal
-    // Coordinates should be relative to the centre of the box
-    public int calculateBlockArrayIndex(double x, double y, double z)  {
-        return (int) (z * zMultip + y * yMultip + x) + totalArrayLength / 2;
-    }
-
-    // Essentially just does the opposite of the above
-    public Vector calculateRelativePos(int index) {
-        int x = Math.floorMod(index, zMultip);
-        index -= x;
-        int z = Math.floorMod(index, yMultip) / zMultip;
-        index -= z * zMultip;
-        int y = index / yMultip;
-        index -= y * yMultip;
-
-        return new Vector(x, y, z).subtract(halfFullSize);
-    }
-
-    // Convenience methods for getting if a world is disabled
-    public boolean isWorldDisabled(Location loc) {
-        return isWorldDisabled(loc.getWorld());
-    }
-
-    public boolean isWorldDisabled(World world) {
-        return disabledWorlds.contains(world);
-    }
-
-    // Gets the chat message with color codes for the key
-    public String getChatMessageRaw(String key)  {
-        return ChatColor.translateAlternateColorCodes('&', messagesSection.getString(key));
-    }
-
-    // Gets a chat message with the chat prefix before it
-    public String getChatMessage(String key)    {
-        return chatPrefix + getChatMessageRaw(key);
-    }
-
-    // Gets a chat message without the prefix, and colors it red
-    public String getErrorMessage(String key)   {
-        return ChatColor.RED + getChatMessageRaw(key);
     }
 }

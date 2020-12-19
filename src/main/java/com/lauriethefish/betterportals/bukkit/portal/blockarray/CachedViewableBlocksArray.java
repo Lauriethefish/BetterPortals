@@ -10,7 +10,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
 import com.lauriethefish.betterportals.bukkit.BlockRaycastData;
 import com.lauriethefish.betterportals.bukkit.BlockRotator;
-import com.lauriethefish.betterportals.bukkit.config.Config;
+import com.lauriethefish.betterportals.bukkit.config.RenderConfig;
 import com.lauriethefish.betterportals.bukkit.math.MathUtils;
 import com.lauriethefish.betterportals.bukkit.network.BlockDataUpdateResult;
 import com.lauriethefish.betterportals.bukkit.network.GetBlockDataArrayRequest;
@@ -27,14 +27,14 @@ public class CachedViewableBlocksArray {
     private BlockStateArray blockStatesOrigin;
     private BlockStateArray blockStatesDestination;
 
-    private Config config;
+    private RenderConfig config;
     private BetterPortals pl;
 
     private ReentrantLock lock = new ReentrantLock();
 
     // Initial constructor, called when a new Cached array is created
     public CachedViewableBlocksArray(BetterPortals pl) {
-        this.config = pl.config;
+        this.config = pl.getLoadedConfig().getRendering();
         this.pl = pl;
         blockStatesOrigin = new BlockStateArray(pl);
         blockStatesDestination = new BlockStateArray(pl);
@@ -50,9 +50,9 @@ public class CachedViewableBlocksArray {
         boolean updateAll = (updateOrigin && blockStatesOrigin.initialise()) | (updateDestination && blockStatesDestination.initialise());
 
         Set<Integer> positionsNeedUpdating = new HashSet<>();
-        for(double z = config.minXZ; z <= config.maxXZ; z++) {
-            for(double y = config.minY; y <= config.maxY; y++) {
-                for(double x = config.minXZ; x <= config.maxXZ; x++) {
+        for(double z = config.getMinXZ(); z <= config.getMaxXZ(); z++) {
+            for(double y = config.getMinY(); y <= config.getMaxY(); y++) {
+                for(double x = config.getMinXZ(); x <= config.getMaxXZ(); x++) {
                     Location originBlockLoc = MathUtils.moveToCenterOfBlock(request.getOriginPos().getLocation().add(x, y, z));
                     
                     // Find the position at the destination of the portal
@@ -66,7 +66,7 @@ public class CachedViewableBlocksArray {
 
                     // If a destination block changed, or this is the initial update, we need to loop around the surrounding blocks and update them
                     if(destinationChanged || updateAll) {
-                        for(int offset : config.surroundingOffsets) {
+                        for(int offset : config.getSurroundingOffsets()) {
                             positionsNeedUpdating.add(arrayIndex + offset);
                         }
                     }
@@ -127,7 +127,7 @@ public class CachedViewableBlocksArray {
 
             // Check the surrounding block's occlusion values to see if it is fully covered
             boolean isFullySurrounded = true;
-            for(int offset : config.surroundingOffsets) {
+            for(int offset : config.getSurroundingOffsets()) {
                 if(!isOutOfBounds(index + offset) && !blockStatesDestination.getOcclusion()[index + offset]) {
                     isFullySurrounded = false;
                     break;
@@ -181,10 +181,10 @@ public class CachedViewableBlocksArray {
 
     // Checks if the portal relative coordinates are on the edge - they should be replaces with black concrete
     private boolean isEdge(Vector vec) {
-        return vec.getX() == config.maxXZ || vec.getX() == config.minXZ || vec.getZ() == config.maxXZ || vec.getZ() == config.minXZ || vec.getY() == config.maxY || vec.getY() == config.minY;
+        return vec.getX() == config.getMaxXZ() || vec.getX() == config.getMinXZ() || vec.getZ() == config.getMaxXZ() || vec.getZ() == config.getMinXZ() || vec.getY() == config.getMaxY() || vec.getY() == config.getMinY();
     }
 
     private boolean isOutOfBounds(int index) {
-        return index >= config.totalArrayLength || index < 0;
+        return index >= config.getTotalArrayLength() || index < 0;
     }
 }

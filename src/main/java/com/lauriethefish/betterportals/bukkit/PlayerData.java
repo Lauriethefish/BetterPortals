@@ -59,7 +59,7 @@ public class PlayerData {
         resetSurroundingBlockStates(!changedWorlds);
 
         // Don't hide or recreate portal blocks for custom portals
-        if(pl.config.hidePortalBlocks && player.hasPermission("betterportals.see"))  {
+        if(pl.getLoadedConfig().getRendering().isPortalBlocksHidden() && player.hasPermission("betterportals.see"))  {
             // If we're not in the same world as our last portal, there's no point recreating the portal blocks
             if(!changedWorlds && !lastActivePortal.isCustom())   {
                 lastActivePortal.recreatePortalBlocks(player);
@@ -113,10 +113,10 @@ public class PlayerData {
         // Set either position A or B
         if(hand == Action.LEFT_CLICK_BLOCK)  {
             selection.setPositionA(location.toVector());
-            player.sendMessage(pl.config.getChatMessage("setPosA"));
+            player.sendMessage(pl.getLoadedConfig().getMessages().getChatMessage("setPosA"));
         }   else    {
             selection.setPositionB(location.toVector());
-            player.sendMessage(pl.config.getChatMessage("setPosB"));
+            player.sendMessage(pl.getLoadedConfig().getMessages().getChatMessage("setPosB"));
         }
     }
 }

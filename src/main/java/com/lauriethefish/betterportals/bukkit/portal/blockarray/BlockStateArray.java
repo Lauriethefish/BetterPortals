@@ -1,7 +1,7 @@
 package com.lauriethefish.betterportals.bukkit.portal.blockarray;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
-import com.lauriethefish.betterportals.bukkit.config.Config;
+import com.lauriethefish.betterportals.bukkit.config.RenderConfig;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -10,23 +10,23 @@ import org.bukkit.block.Block;
 import lombok.Getter;
 
 class BlockStateArray {
-    private Config config;
+    private RenderConfig config;
     
     @Getter private boolean[] occlusion = null; // Array of which blocks fully block out light
     @Getter private Material[] materials = null; // Array of combined block IDs
     @Getter private byte[] dataValues = null;
 
     public BlockStateArray(BetterPortals pl) {
-        this.config = pl.config;
+        this.config = pl.getLoadedConfig().getRendering();
     }
 
     boolean initialise() {
         if(occlusion != null) {return false;} // If we've already initialised both arrays, return false
         
         // Otherwise, initialise and return true
-        occlusion = new boolean[config.totalArrayLength];
-        materials = new Material[config.totalArrayLength];
-        dataValues = new byte[config.totalArrayLength];
+        occlusion = new boolean[config.getTotalArrayLength()];
+        materials = new Material[config.getTotalArrayLength()];
+        dataValues = new byte[config.getTotalArrayLength()];
         return true;
     }
 

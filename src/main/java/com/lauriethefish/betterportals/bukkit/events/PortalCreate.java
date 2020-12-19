@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
 import com.lauriethefish.betterportals.bukkit.ReflectUtils;
+import com.lauriethefish.betterportals.bukkit.config.PortalSpawnConfig;
 import com.lauriethefish.betterportals.bukkit.math.MathUtils;
 import com.lauriethefish.betterportals.bukkit.portal.PortalDirection;
 import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
@@ -26,8 +27,11 @@ import org.bukkit.util.Vector;
 // This class deals with creating the portal in the BetterPortals format
 public class PortalCreate implements Listener {
     private BetterPortals pl;
+    private PortalSpawnConfig config;
+
     public PortalCreate(BetterPortals pl)   {
         this.pl = pl;
+        this.config = pl.getLoadedConfig().getSpawning();
     }
 
     @EventHandler
@@ -35,7 +39,7 @@ public class PortalCreate implements Listener {
         // If the portal was created by the vanilla portal generator (due to a player manually generating one)
         // then return from this event. This should not happen, but this is here in case it does
         // Also don't check the portal if this world is disabled
-        if(pl.config.isWorldDisabled(event.getWorld()) || event.getReason() != CreateReason.FIRE)   {
+        if(config.isWorldDisabled(event.getWorld()) || event.getReason() != CreateReason.FIRE)   {
             return;
         }
 
@@ -82,7 +86,7 @@ public class PortalCreate implements Listener {
             .add(new Vector(1.0, 1.0, 0.0));
 
         // Check that the portal is smaller than the max size
-        Vector maxPortalSize = pl.config.maxPortalSize;
+        Vector maxPortalSize = config.getMaxPortalSize();
         if(portalSize.getX() > maxPortalSize.getX() || portalSize.getY() > maxPortalSize.getY())    {
             event.setCancelled(true);
             return;
@@ -104,9 +108,9 @@ public class PortalCreate implements Listener {
         }
 
         // Swap the dimension blend if we need to.
-        if(pl.config.enableDimensionBlend)  {
+        if(config.isDimensionBlendEnabled())  {
             pl.logDebug("Performing dimension blend . . .");
-            new BlockBlender(location, spawnLocation.getLocation(), pl.config.dimensionBlendFallOff);
+            new BlockBlender(location, spawnLocation.getLocation(), config.getBlendFallOff());
         }
 
         // Spawn a portal in the opposite world and the right location

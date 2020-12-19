@@ -7,8 +7,9 @@ public class ClientReconnect implements Runnable  {
 
     public ClientReconnect(BetterPortals pl) {
         this.pl = pl;
-        pl.getLogger().info("Attempting reconnection in " + pl.config.reconnectionDelay + " ticks.");
-        pl.getServer().getScheduler().runTaskLater(pl, this, pl.config.reconnectionDelay);
+        int reconnectionDelay = pl.getLoadedConfig().getProxy().getReconnectionDelay();;
+        pl.getLogger().info("Attempting reconnection in " + reconnectionDelay + " ticks.");
+        pl.getServer().getScheduler().runTaskLater(pl, this, reconnectionDelay);
     }
 
     @Override

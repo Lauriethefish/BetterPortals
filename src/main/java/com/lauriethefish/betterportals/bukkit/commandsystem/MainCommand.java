@@ -2,7 +2,7 @@ package com.lauriethefish.betterportals.bukkit.commandsystem;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
 import com.lauriethefish.betterportals.bukkit.PlayerData;
-import com.lauriethefish.betterportals.bukkit.config.Config;
+import com.lauriethefish.betterportals.bukkit.config.MessageConfig;
 import com.lauriethefish.betterportals.bukkit.portal.Portal;
 import com.lauriethefish.betterportals.bukkit.portal.PortalDirection;
 import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
@@ -18,11 +18,11 @@ import org.bukkit.util.Vector;
 
 public class MainCommand implements CommandExecutor {
     private BetterPortals pl;
-    private Config config;
+    private MessageConfig config;
 
     public MainCommand(BetterPortals pl) {
         this.pl = pl;
-        this.config = pl.config;
+        this.config = pl.getLoadedConfig().getMessages();
     }
 
     @Override
@@ -56,7 +56,7 @@ public class MainCommand implements CommandExecutor {
 
         if(subcommand.equals("reconnect")) {
             // Check that the proxy is enabled
-            if(!config.enableProxy) {
+            if(!pl.getLoadedConfig().getProxy().isEnabled()) {
                 sender.sendMessage(config.getErrorMessage("proxyDisabled"));
                 return false;
             }
