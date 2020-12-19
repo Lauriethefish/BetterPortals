@@ -1,8 +1,8 @@
-package com.lauriethefish.betterportals.bukkit.commands;
+package com.lauriethefish.betterportals.bukkit.commandsystem;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
-import com.lauriethefish.betterportals.bukkit.Config;
 import com.lauriethefish.betterportals.bukkit.PlayerData;
+import com.lauriethefish.betterportals.bukkit.config.Config;
 import com.lauriethefish.betterportals.bukkit.portal.Portal;
 import com.lauriethefish.betterportals.bukkit.portal.PortalDirection;
 import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
