@@ -9,7 +9,7 @@ import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 
-import com.lauriethefish.betterportals.bukkit.commandsystem.MainCommand;
+import com.lauriethefish.betterportals.bukkit.commands.MainCommand;
 import com.lauriethefish.betterportals.bukkit.config.Config;
 import com.lauriethefish.betterportals.bukkit.events.ChunkUnload;
 import com.lauriethefish.betterportals.bukkit.events.EntityPortal;

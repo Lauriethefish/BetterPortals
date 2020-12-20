@@ -1,4 +1,4 @@
-package com.lauriethefish.betterportals.bukkit.commandsystem;
+package com.lauriethefish.betterportals.bukkit.commands;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
 import com.lauriethefish.betterportals.bukkit.PlayerData;
