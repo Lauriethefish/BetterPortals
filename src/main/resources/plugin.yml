@@ -24,11 +24,16 @@ permissions:
   betterportals.link:
     description: Allows you to create portals with /bp link
     default: op
+  betterportals.linkexternal:
+    description: Allows you to run /bp linkexternal to create cross-server portals.
   betterportals.remove:
     description: Allows you to remove portals that you created
     default: op
   betterportals.remove.others:
     description: Allows you to remove nether portals, as well as other portals not created by you
+    default: op
+  betterportals.reconnect:
+    description: Allows you to use the /bp reconnect command
     default: op
   betterportals.see:
     description: Allows users to see through portals

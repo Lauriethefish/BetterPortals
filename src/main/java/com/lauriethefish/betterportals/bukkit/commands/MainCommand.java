@@ -55,6 +55,11 @@ public class MainCommand implements CommandExecutor {
         }
 
         if(subcommand.equals("reconnect")) {
+            if(!sender.hasPermission("betterportals.reconnect"))   {
+                sender.sendMessage(config.getErrorMessage("notEnoughPerms"));
+                return false;
+            }
+
             // Check that the proxy is enabled
             if(!pl.getLoadedConfig().getProxy().isEnabled()) {
                 sender.sendMessage(config.getErrorMessage("proxyDisabled"));
@@ -205,6 +210,11 @@ public class MainCommand implements CommandExecutor {
 
         // Used for linking a position on this server with a cross-server portal to an external server.
         if(subcommand.equals("linkexternal")) {
+            if(!sender.hasPermission("betterportals.linkexternal"))   {
+                sender.sendMessage(config.getErrorMessage("notEnoughPerms"));
+                return false;
+            }
+
             // Check the argument length
             if(args.length != 7) {
                 player.sendMessage(config.getErrorMessage("wrongNumberOfArgs"));
