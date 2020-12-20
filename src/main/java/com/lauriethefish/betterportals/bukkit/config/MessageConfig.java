@@ -42,9 +42,4 @@ public class MessageConfig {
     public String getRawMessage(String name) {
         return messageMap.get(name);
     }
-
-    // Throws a RuntimeException with an error message from the message map, since this is what commands use to signify failure
-    public void throwError(String name) {
-        throw new RuntimeException(getRawMessage(name));
-    }
 }
