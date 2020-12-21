@@ -11,15 +11,13 @@ import com.lauriethefish.betterportals.bukkit.BetterPortals;
 import com.lauriethefish.betterportals.bukkit.BlockRaycastData;
 import com.lauriethefish.betterportals.bukkit.network.BlockDataUpdateResult;
 import com.lauriethefish.betterportals.bukkit.network.GetBlockDataArrayRequest;
-import com.lauriethefish.betterportals.bukkit.portal.Portal;
-import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
 
 // Handles creating the array of blocks that aren't obscured by other solid blocks.
 public class PortalBlockArrayManager {
     private BetterPortals pl;
 
-    private Map<PortalPosition, CachedViewableBlocksArray> cachedArrays = new HashMap<>();
-    private Map<PortalPosition, ExternalUpdateWorker> externalUpdateWorkers = new HashMap<>();
+    private Map<GetBlockDataArrayRequest, CachedViewableBlocksArray> cachedArrays = new HashMap<>();
+    private Map<GetBlockDataArrayRequest, ExternalUpdateWorker> externalUpdateWorkers = new HashMap<>();
 
     public PortalBlockArrayManager(BetterPortals pl) {
         this.pl = pl;
@@ -27,32 +25,32 @@ public class PortalBlockArrayManager {
 
     // Gets the current block array for the specified portal
     // This will throw NullPointerException if no array exists
-    public Collection<BlockRaycastData> getBlockDataArray(Portal portal) {
-        return cachedArrays.get(portal.getDestPos()).getBlocks();
+    public Collection<BlockRaycastData> getBlockDataArray(GetBlockDataArrayRequest request) {
+        return cachedArrays.get(request).getBlocks();
     }
 
-    public CachedViewableBlocksArray getCachedArray(PortalPosition destPos) {
+    public CachedViewableBlocksArray getCachedArray(GetBlockDataArrayRequest request) {
         // Make a new cached array if one doesn't exist
-        if (!cachedArrays.containsKey(destPos)) {
-            cachedArrays.put(destPos, new CachedViewableBlocksArray(pl));
+        if (!cachedArrays.containsKey(request)) {
+            cachedArrays.put(request, new CachedViewableBlocksArray(pl));
         }
 
-        return cachedArrays.get(destPos);
+        return cachedArrays.get(request);
     }
 
     // Updates/creates the block array if it does not exist
     public void updateBlockArray(GetBlockDataArrayRequest request) {
         long timeBefore = System.nanoTime();
 
-        CachedViewableBlocksArray array = getCachedArray(request.getDestPos());
+        CachedViewableBlocksArray array = getCachedArray(request);
         
         // We still need to process changes here, even for an external portal, although for external portals only the origin gets processed
         if (request.getDestPos().isExternal()) {
             if(pl.getNetworkClient() != null && !pl.getNetworkClient().isConnected()) {return;}
 
             pl.logDebug("Updating blocks for external portal . . .");
-            if(!externalUpdateWorkers.containsKey(request.getDestPos())) {
-                externalUpdateWorkers.put(request.getDestPos(), new ExternalUpdateWorker(pl, request, array));
+            if(!externalUpdateWorkers.containsKey(request)) {
+                externalUpdateWorkers.put(request, new ExternalUpdateWorker(pl, request, array));
             }   else    {
                 pl.getLogger().warning("External portal update lagging behind, worker still processing next update attempt.");
             }
@@ -116,7 +114,7 @@ public class PortalBlockArrayManager {
     }
 
     private BlockDataUpdateResult handleGetBlockDataArrayRequestInternal(GetBlockDataArrayRequest request) {
-        CachedViewableBlocksArray array = getCachedArray(request.getDestPos());
+        CachedViewableBlocksArray array = getCachedArray(request);
         Set<Integer> changes = array.checkForChanges(request, false, true); // Check for the changes at the destination
 
         BlockDataUpdateResult nonObscuredChanges = array.processChanges(request, changes);

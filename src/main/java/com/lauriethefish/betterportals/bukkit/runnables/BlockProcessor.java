@@ -17,8 +17,6 @@ import org.bukkit.util.Vector;
 
 // An asynchronous task that handles sending block updates to the player
 public class BlockProcessor implements Runnable {
-    private BetterPortals pl;
-
     // Stores the information required to process the portal block update on another thread
     private class UpdateData {
         public PlayerData playerData;
@@ -31,7 +29,6 @@ public class BlockProcessor implements Runnable {
 
     private BlockingQueue<UpdateData> updateQueue = new LinkedBlockingQueue<>(); 
     public BlockProcessor(BetterPortals pl) {
-        this.pl = pl;
         pl.getServer().getScheduler().runTaskTimerAsynchronously(pl, this, 0, 1);
     }
 
@@ -61,7 +58,7 @@ public class BlockProcessor implements Runnable {
             return;
         }
 
-        CachedViewableBlocksArray blocksArray = pl.getBlockArrayProcessor().getCachedArray(data.portal.getDestPos());
+        CachedViewableBlocksArray blocksArray = data.portal.getCachedViewableBlocksArray();
         MultiBlockChangeManager changeManager = MultiBlockChangeManager.createInstance(player);
         Map<Vector, Object> blockStates = data.playerData.getSurroundingPortalBlockStates();
 

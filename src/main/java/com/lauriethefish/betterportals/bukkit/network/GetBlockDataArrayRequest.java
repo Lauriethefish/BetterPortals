@@ -1,5 +1,7 @@
 package com.lauriethefish.betterportals.bukkit.network;
 
+import java.util.Objects;
+
 import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
 import com.lauriethefish.betterportals.bukkit.portal.PortalTransformations;
 import com.lauriethefish.betterportals.network.Request;
@@ -23,5 +25,21 @@ public class GetBlockDataArrayRequest implements Request    {
     public PortalTransformations getTransformations() {
         if(transformations == null) {transformations = new PortalTransformations(originPos, destPos);}
         return transformations;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this)
+            return true;
+        if (!(o instanceof GetBlockDataArrayRequest)) {
+            return false;
+        }
+        GetBlockDataArrayRequest getBlockDataArrayRequest = (GetBlockDataArrayRequest) o;
+        return Objects.equals(originPos, getBlockDataArrayRequest.originPos) && Objects.equals(destPos, getBlockDataArrayRequest.destPos);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(originPos, destPos);
     }
 }

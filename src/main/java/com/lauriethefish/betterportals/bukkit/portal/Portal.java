@@ -13,6 +13,7 @@ import com.lauriethefish.betterportals.bukkit.config.RenderConfig;
 import com.lauriethefish.betterportals.bukkit.multiblockchange.ChunkCoordIntPair;
 import com.lauriethefish.betterportals.bukkit.multiblockchange.MultiBlockChangeManager;
 import com.lauriethefish.betterportals.bukkit.network.GetBlockDataArrayRequest;
+import com.lauriethefish.betterportals.bukkit.portal.blockarray.CachedViewableBlocksArray;
 import com.lauriethefish.betterportals.bukkit.portal.blockarray.SerializableBlockData;
 import com.lauriethefish.betterportals.bukkit.selection.PortalSelection;
 import com.lauriethefish.betterportals.network.TeleportPlayerRequest;
@@ -157,7 +158,7 @@ public class Portal implements ConfigurationSerializable    {
             updateNearbyEntities();
         }
         if(ticksSinceActivation % renderConfig.getBlockUpdateInterval() == 0)   {
-            findCurrentBlocks();
+            updateCurrentBlocks();
         }
         ticksSinceActivation++;
     }
@@ -310,7 +311,12 @@ public class Portal implements ConfigurationSerializable    {
         return destPos.isExternal();
     }
 
-    public void findCurrentBlocks() {
+    // Returns the currently fetched viewable blocks array. Update should be called before this point
+    public CachedViewableBlocksArray getCachedViewableBlocksArray() {
+        return pl.getBlockArrayProcessor().getCachedArray(new GetBlockDataArrayRequest(originPos, destPos));
+    }
+
+    private void updateCurrentBlocks() {
         // Send a request to the PortalBlockArrayProcessor
         GetBlockDataArrayRequest request = new GetBlockDataArrayRequest(originPos, destPos);
         pl.getBlockArrayProcessor().updateBlockArray(request);

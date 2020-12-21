@@ -91,7 +91,7 @@ public class PlayerData {
         if(sendPackets && lastActivePortal != null) {
             MultiBlockChangeManager changeManager = MultiBlockChangeManager.createInstance(player);
 
-            CachedViewableBlocksArray viewableBlocksArray = pl.getBlockArrayProcessor().getCachedArray(lastActivePortal.getDestPos());
+            CachedViewableBlocksArray viewableBlocksArray = lastActivePortal.getCachedViewableBlocksArray();
             viewableBlocksArray.lockWhileInUse();
             // Loop through all of the potential ghost blocks, and add to the change manager to change them back
             for(BlockRaycastData data : viewableBlocksArray.getBlocks())   {

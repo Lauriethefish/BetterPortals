@@ -179,7 +179,7 @@ public class MainUpdate implements Runnable {
                 // Create the portal's block state array if necessary
                 portal.update(currentTick);
 
-                if(pl.getBlockArrayProcessor().getBlockDataArray(portal) != null) { // Make sure that we don't run the update if fetching the data array failed
+                if(portal.getCachedViewableBlocksArray().getBlocks() != null) { // Make sure that we don't run the update if fetching the data array failed
                     // Set the player to be viewing the portal if they can see through portals
                     playerData.setViewingPortal(canSeeThroughPortals ? portal : null);
 
