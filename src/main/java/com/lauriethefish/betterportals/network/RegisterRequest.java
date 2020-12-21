@@ -25,4 +25,13 @@ public class RegisterRequest implements Request {
             super("No server was found with address " + address.toString());
         }
     }
+
+    // Called if the connecting server has the wrong plugin version
+    public static class PluginVersionMismatchException extends RequestException     {
+        private static final long serialVersionUID = 3473736369128055628L;
+
+        public PluginVersionMismatchException(String invalidVersion, String expectedVersion) {
+            super("BungeeCord plugin version (" + expectedVersion + ") did not match server plugin version of " + invalidVersion);
+        }
+    }
 }

@@ -17,6 +17,7 @@ import com.lauriethefish.betterportals.network.TeleportPlayerRequest;
 import com.lauriethefish.betterportals.network.ServerBoundRequestContainer.ServerNotFoundException;
 import com.lauriethefish.betterportals.network.encryption.EncryptionManager;
 import com.lauriethefish.betterportals.network.RegisterRequest.UnknownRegisterServerException;
+import com.lauriethefish.betterportals.network.RegisterRequest.PluginVersionMismatchException;
 import com.lauriethefish.betterportals.network.Response.RequestException;
 
 import net.md_5.bungee.api.config.ServerInfo;
@@ -95,7 +96,12 @@ public class ServerConnection {
 
     // Finds the correct ServerInfo that matches this RegisterRequest
     @SuppressWarnings("deprecation")
-    private void handleRegisterRequest(RegisterRequest registerRequest) throws UnknownRegisterServerException {
+    private void handleRegisterRequest(RegisterRequest registerRequest) throws RequestException {
+        // Check that the plugin versions are the same for safety
+        if(!registerRequest.getPluginVersion().equals(pl.getDescription().getVersion())) {
+            throw new PluginVersionMismatchException(registerRequest.getPluginVersion(), pl.getDescription().getVersion());
+        }
+
         InetSocketAddress claimedAddress = new InetSocketAddress(socket.getInetAddress(),
                 registerRequest.getServerPort());
 

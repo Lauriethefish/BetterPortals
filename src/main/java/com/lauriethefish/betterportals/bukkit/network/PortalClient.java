@@ -27,6 +27,7 @@ public class PortalClient {
 
     private Socket socket;
     @Getter private volatile boolean isConnected = false;
+    private volatile boolean attemptingDisconnection = false;
     private ProxyConfig config;
 
     private RequestStream objectStream;
@@ -150,7 +151,7 @@ public class PortalClient {
     // This shuts down the connection, so that later attempts to read or write will fail.
     // Methods that can throw exceptions other than RequestException should direct them here and then package them as RequestException to be sent back to the caller
     private void handleException(Throwable ex) {
-        if(!isConnected) {return;}
+        if(attemptingDisconnection) {return;}
 
         shutdown(); // Shut down the connection
 
@@ -167,8 +168,9 @@ public class PortalClient {
     }
 
     public void shutdown() {
-        if(!isConnected) {return;} // Return if the socket is already disconnected
-        
+        if(attemptingDisconnection) {return;} // Return if the socket is already disconnected
+        attemptingDisconnection = true;
+
         // Close the socket, and set isConnected to false so that the error handling code knows that the SocketException is intentional
         isConnected = false;
         try {
