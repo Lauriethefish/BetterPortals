@@ -5,11 +5,10 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.lauriethefish.betterportals</groupId>
-  <artifactId>BetterPortals</artifactId>
+  <artifactId>BetterPortals-bungee</artifactId>
   <version>0.59</version>
-  <packaging>pom</packaging>
 
-  <name>BetterPortals</name>
+  <name>BetterPortals-bungee</name>
   <url>https://github.com/Lauriethefish/BetterPortals</url>
 
   <properties>
@@ -18,12 +17,21 @@
     <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
 
-  <modules>
-    <module>shared</module>
-    <module>bukkit</module>
-    <module>bungee</module>
-  </modules>
-
+  <repositories>
+    <repository>
+      <id>enginehub-maven</id>
+      <url>http://maven.enginehub.org/repo/</url>
+    </repository>
+    <repository>
+      <id>bungeecord-repo</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </repository>
+    <repository>
+      <id>CodeMC</id>
+      <url>https://repo.codemc.org/repository/maven-public</url>
+    </repository>
+  </repositories>
+  
   <dependencies>
     <dependency>
       <groupId>com.lauriethefish.betterportals</groupId>
@@ -31,14 +39,30 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.lauriethefish.betterportals</groupId>
-      <artifactId>BetterPortals-bukkit</artifactId>
-      <version>${project.version}</version>
+      <groupId>net.md-5</groupId>
+      <artifactId>bungeecord-api</artifactId>
+      <version>1.16-R0.4-SNAPSHOT</version>
+      <type>jar</type>
+      <scope>provided</scope>
+	  </dependency>
+    <dependency>
+      <groupId>net.md-5</groupId>
+      <artifactId>bungeecord-api</artifactId>
+      <version>1.16-R0.4-SNAPSHOT</version>
+      <type>javadoc</type>
+      <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.lauriethefish.betterportals</groupId>
-      <artifactId>BetterPortals-bungee</artifactId>
-      <version>${project.version}</version>
+      <groupId>org.bstats</groupId>
+      <artifactId>bstats-bukkit</artifactId>
+      <version>1.7</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.18.12</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 
@@ -46,23 +70,27 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.1.0</version>
         <configuration>
-            <descriptorRefs>
-                <descriptorRef>jar-with-dependencies</descriptorRef>
-            </descriptorRefs>
+          <relocations>
+            <relocation>
+              <pattern>org.bstats</pattern>
+              <shadedPattern>com.lauriethefish.util</shadedPattern>
+            </relocation>
+          </relocations>
         </configuration>
         <executions>
-            <execution>
-                <id>make-assembly</id>
-                <phase>package</phase>
-                <goals>
-                    <goal>single</goal>
-                </goals>
-            </execution>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+          </execution>
         </executions>
-    </plugin>
+      </plugin>
     </plugins>
+
     <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
       <plugins>
         <!-- clean lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#clean_Lifecycle -->
