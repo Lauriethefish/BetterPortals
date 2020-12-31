@@ -37,6 +37,7 @@
       <groupId>com.lauriethefish.betterportals</groupId>
       <artifactId>BetterPortals-shared</artifactId>
       <version>${project.version}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.spigotmc</groupId>
