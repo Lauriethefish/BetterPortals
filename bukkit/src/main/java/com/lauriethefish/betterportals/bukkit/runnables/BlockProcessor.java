@@ -68,13 +68,18 @@ public class BlockProcessor implements Runnable {
             // Check if the block is visible
             boolean visible = data.checker.checkIfVisibleThroughPortal(originPos);
 
-            Object oldState = blockStates.get(originPos); // Find if it was visible last tick
-            Object newState = visible ? raycastData.getDestData().getNmsData() : raycastData.getOriginData().getNmsData();
+            Object originData = raycastData.getOriginData().getNmsData();
+            Object destData = raycastData.getDestData().getNmsData();
 
-            // If we are overwriting the block, change it in the player's block array and send them a block update
-            if(!newState.equals(oldState)) {
-                blockStates.put(originPos, newState);
-                changeManager.addChange(originPos, newState);
+            if(visible) { // If the block is visible through the portal
+                // Update the origin data in the map, and if it hadn't been sent already, sent it to the player
+                if(blockStates.put(originPos, originData) == null) {
+                    changeManager.addChange(originPos, destData);
+                }
+            }   else if(blockStates.containsKey(originPos)) { // If the block is no longer visible through the portal, and was sent to the player
+                // Reset the block back to normal
+                blockStates.remove(originPos);
+                changeManager.addChange(originPos, originData);
             }
         }
         blocksArray.unlockAfterUse();

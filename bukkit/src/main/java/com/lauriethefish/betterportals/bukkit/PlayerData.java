@@ -29,7 +29,7 @@ public class PlayerData {
     // The last portal that had the portal effect active.
     // If this changes, then the ghost blocks sent to the player are reset to avoid phantom blocks breaking the illusion
     private Portal lastActivePortal = null;
-    // Store the surrouding blocks that have been sent to the player
+    // Store the original states of the surrounding blocks that have been sent to the player
     @Getter private Map<Vector, Object> surroundingPortalBlockStates = new HashMap<>();
 
     // Deals with hiding and showing entities
@@ -86,18 +86,15 @@ public class PlayerData {
     }
 
     // Resets all of the ghost block updates that have been set to the player
-    // This also has the effect of changing surroundingPortalBlockStates to be all null
     public void resetSurroundingBlockStates(boolean sendPackets)   {
         if(sendPackets && lastActivePortal != null) {
             MultiBlockChangeManager changeManager = MultiBlockChangeManager.createInstance(player);
 
-            CachedViewableBlocksArray viewableBlocksArray = lastActivePortal.getCachedViewableBlocksArray();
-            viewableBlocksArray.lockWhileInUse();
-            // Loop through all of the potential ghost blocks, and add to the change manager to change them back
-            for(BlockRaycastData data : viewableBlocksArray.getBlocks())   {
-                changeManager.addChange(data.getOriginVec(), data.getOriginData().getNmsData());
+            // Change all blocks back to their original state
+            for(Map.Entry<Vector, Object> entry : surroundingPortalBlockStates.entrySet()) {
+                changeManager.addChange(entry.getKey(), entry.getValue());
             }
-            viewableBlocksArray.unlockAfterUse();
+
             changeManager.sendChanges();
         }
         surroundingPortalBlockStates = new HashMap<>();
