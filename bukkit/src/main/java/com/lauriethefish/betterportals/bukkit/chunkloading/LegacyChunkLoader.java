@@ -31,6 +31,7 @@ public class LegacyChunkLoader implements ChunkLoader, Listener {
     @Override
     public void setForceLoaded(Chunk chunk) {
         loadedChunks.add(new ChunkCoordIntPair(chunk));
+        chunk.load();
     }
 
     @Override
