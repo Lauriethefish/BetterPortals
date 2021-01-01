@@ -6,9 +6,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 
+import com.lauriethefish.betterportals.bukkit.chunkloading.ChunkLoader;
 import com.lauriethefish.betterportals.bukkit.commands.MainCommand;
 import com.lauriethefish.betterportals.bukkit.config.Config;
 import com.lauriethefish.betterportals.bukkit.events.ChunkUnload;
@@ -27,7 +27,6 @@ import com.lauriethefish.betterportals.bukkit.portal.blockarray.PortalBlockArray
 import com.lauriethefish.betterportals.bukkit.runnables.MainUpdate;
 import com.lauriethefish.betterportals.bukkit.selection.WandInteract;
 
-import org.bstats.bukkit.Metrics;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -44,16 +43,13 @@ import lombok.Setter;
 
 // Main class for the plugin
 public class BetterPortals extends JavaPlugin {
-    // Plugin ID for bStats
-    private static final int pluginId = 8669;
-    private Metrics metrics;
-
     // All PlayerData is stored in this map
     private Map<UUID, PlayerData> players = new HashMap<>();
     private Map<Location, Portal> portals = new HashMap<>();
 
     @Getter private PortalSpawnSystem portalSpawnSystem = new PortalSpawnSystem(this);
     @Getter private PortalBlockArrayManager blockArrayProcessor;
+    @Getter private ChunkLoader chunkLoader;
 
     @Getter private MainUpdate portalUpdator;
     @Getter private Config loadedConfig;
@@ -68,11 +64,17 @@ public class BetterPortals extends JavaPlugin {
     // Used to connect to bungeecord/velocity for cross-server portals
     @Getter private PortalClient networkClient;
 
+    // When a player is moved to this server when going through a portal, we need to teleport them to the destination of the portal when they join
     private Map<UUID, Location> teleportOnJoin = new HashMap<>();
+
+    // Gives me cool info about the plugin on bstats
+    private MetricsManager metrics;
 
     // This method is called once when our plugin is enabled
     @Override
     public void onEnable() {
+        chunkLoader = ChunkLoader.newInstance(this);
+        
         registerSerializableTypes();
 
         // If any errors occur while loading the config/portal data, we return from this function
@@ -110,7 +112,7 @@ public class BetterPortals extends JavaPlugin {
             addPlayer(player);
         }
 
-        initialiseStatistics();
+        metrics = new MetricsManager(this);
         connectToProxy();
     }
 
@@ -161,7 +163,11 @@ public class BetterPortals extends JavaPlugin {
     }
 
     public void unregisterPortal(Location originPos)    {
-        portals.remove(originPos);
+        Portal removedPortal = portals.remove(originPos);
+        logDebug("Unregistering portal at origin pos %s", originPos);
+        if(removedPortal != null && removedPortal.getUpdateManager().isActivatedByPlayer()) {
+            removedPortal.getUpdateManager().onDeactivate();
+        }
     }
 
     public Collection<Portal> getPortals()  {
@@ -231,39 +237,6 @@ public class BetterPortals extends JavaPlugin {
 
     public void disablePlugin() {
         getServer().getPluginManager().disablePlugin(this);
-    }
-
-    // Initiailises bStats, and adds the various custom charts
-    public void initialiseStatistics()  {
-        metrics = new Metrics(this, pluginId); // Initialise bStats
-        metrics.addCustomChart(new Metrics.SingleLineChart("portals_active", new Callable<Integer>()  {
-            @Override
-            public Integer call() throws Exception  {
-                return portals.size() / 2; // Divide by 2, since each portal is 2 list items
-            }
-        }));
-        metrics.addCustomChart(new Metrics.SimplePie("render_distance_xz", new Callable<String>() {
-            @Override
-            public String call() throws Exception  {
-                return String.valueOf(loadedConfig.getRendering().getMaxXZ());
-            }
-        }));
-        metrics.addCustomChart(new Metrics.SimplePie("render_distance_y", new Callable<String>() {
-            @Override
-            public String call() throws Exception  {
-                return String.valueOf(loadedConfig.getRendering().getMaxY());
-            }
-        }));
-        metrics.addCustomChart(new Metrics.SimplePie("entities_enabled", new Callable<String>() {
-            @Override
-            public String call() throws Exception   {
-                if(loadedConfig.isEntitySupportEnabled())  {
-                    return "Entities";
-                }   else    {
-                    return "No Entities";
-                }
-            }
-        }));
     }
 
     // This method is called when the plugin is disabled

@@ -8,12 +8,11 @@ import java.util.function.Predicate;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
 import com.lauriethefish.betterportals.bukkit.PlayerData;
-import com.lauriethefish.betterportals.bukkit.ReflectUtils;
 import com.lauriethefish.betterportals.bukkit.config.Config;
 import com.lauriethefish.betterportals.bukkit.entitymanipulation.EntityManipulator;
 import com.lauriethefish.betterportals.bukkit.math.PlaneIntersectionChecker;
-import com.lauriethefish.betterportals.bukkit.multiblockchange.ChunkCoordIntPair;
 import com.lauriethefish.betterportals.bukkit.portal.Portal;
+import com.lauriethefish.betterportals.bukkit.portal.PortalUpdateManager;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -24,12 +23,11 @@ import org.bukkit.util.Vector;
 public class MainUpdate implements Runnable {
     private BetterPortals pl;
 
-    private int currentTick = 0;
     private Config config;
 
-    private Set<ChunkCoordIntPair> newForceLoadedChunks = new HashSet<>();
-
     private BlockProcessor blockRenderer;
+    private HashSet<Portal> activePortals = new HashSet<>();
+
     public MainUpdate(BetterPortals pl) {
         blockRenderer = new BlockProcessor(pl);
         this.pl = pl;
@@ -39,22 +37,14 @@ public class MainUpdate implements Runnable {
         pl.getServer().getScheduler().scheduleSyncRepeatingTask(pl, this, 0, 1);
     }
 
-    // Called by portals while they are active to keep chunks loaded
-    public void keepChunksForceLoaded(Set<ChunkCoordIntPair> chunks)  {
-        newForceLoadedChunks.addAll(chunks);
-    }
 
     // Finds the closest portal to the given player,
     // this also deletes portals if they have been broken amongst other things
     // Will return null if not portals can be found within the portal activation distance
     private Portal findClosestPortal(Player player)   {
-        Predicate<Portal> isValidPortal = new Predicate<Portal>() {
-            @Override
-            public boolean test(Portal portal) {
-                // If the portal goes across servers, and we aren't connected to bungeecord, we can't activate it.
-                if(portal.isCrossServer() && !pl.getNetworkClient().isConnected()) {return false;}
-                return true;
-            }
+        Predicate<Portal> isValidPortal = portal -> {
+            // If the portal goes across servers, and we aren't connected to bungeecord, we can't activate it.
+            return !portal.isCrossServer() || pl.getNetworkClient().isConnected();
         };
 
         // Loop through all active portals and find the closest one to be activated
@@ -154,10 +144,32 @@ public class MainUpdate implements Runnable {
         manipulator.swapReplicatedEntities(replicatedEntities, portal);
     }
 
+    private void activatePortal(Portal portal) {
+        // Verify that the portal isn't active already
+        if(activePortals.contains(portal)) {
+            throw new IllegalStateException("Tried to activate already active portal");
+        }
+
+        portal.getUpdateManager().onActivate();
+        activePortals.add(portal);
+    }
+
+    private void deactivatePortal(Portal portal) {
+        // Verify that the portal is actually active
+        if(!activePortals.contains(portal)) {
+            throw new IllegalStateException("Tried to deactivate non-active portal");
+        }
+
+        portal.getUpdateManager().onDeactivate();
+        activePortals.remove(portal);
+    }
+
     @Override
     public void run() {
         // Process any requests from the network that must go on the main thread
         pl.getBlockArrayProcessor().processPendingExternalUpdates();
+
+        Set<Portal> nonUpdatedActivePortals = new HashSet<>(activePortals);
 
         // Loop through every online player
         for (Player player : pl.getServer().getOnlinePlayers()) {
@@ -176,10 +188,16 @@ public class MainUpdate implements Runnable {
 
             // If no portals were found, don't update anything
             if(portal != null) {
-                // Create the portal's block state array if necessary
-                portal.update(currentTick);
+                // If a portal is gonna be used and wasn't active, call onActivate
+                if(!activePortals.contains(portal)) {
+                    activatePortal(portal);
+                }
+                nonUpdatedActivePortals.remove(portal); // Show that the portal has been used this tick and shouldn't be deactivated
 
-                if(portal.getCachedViewableBlocksArray().getBlocks() != null) { // Make sure that we don't run the update if fetching the data array failed
+                portal.getUpdateManager().playerUpdate();
+
+                // If the block array hasn't been fetched yet, due to it being external and the worker still processing, or some other reason, don't use the portal
+                if(portal.getCachedViewableBlocksArray().getBlocks() != null) {
                     // Set the player to be viewing the portal if they can see through portals
                     playerData.setViewingPortal(canSeeThroughPortals ? portal : null);
 
@@ -200,18 +218,9 @@ public class MainUpdate implements Runnable {
             playerData.setLastPosition(player.getLocation().toVector());
         }
 
-        currentTick++;
-
-        // If we are using the force loading method, unforceload any chunks that are no longer loaded by portals
-        if(ReflectUtils.useNewChunkLoadingImpl) {
-            for(ChunkCoordIntPair chunk : pl.getForceLoadedChunks()) {
-                if(!newForceLoadedChunks.contains(chunk))   {
-                    chunk.getChunk().setForceLoaded(false);
-                }
-            }
+        // If an active portal was not removed from this set, then it must be deactivated
+        for(Portal portal : nonUpdatedActivePortals) {
+            deactivatePortal(portal);
         }
-
-        pl.setForceLoadedChunks(newForceLoadedChunks);
-        newForceLoadedChunks = new HashSet<>();
     }
 }

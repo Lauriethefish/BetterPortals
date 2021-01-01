@@ -3,6 +3,7 @@ package com.lauriethefish.betterportals.bukkit.portal;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -10,6 +11,7 @@ import java.util.UUID;
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
 import com.lauriethefish.betterportals.bukkit.ReflectUtils;
 import com.lauriethefish.betterportals.bukkit.config.RenderConfig;
+import com.lauriethefish.betterportals.bukkit.math.PlaneIntersectionChecker;
 import com.lauriethefish.betterportals.bukkit.multiblockchange.ChunkCoordIntPair;
 import com.lauriethefish.betterportals.bukkit.multiblockchange.MultiBlockChangeManager;
 import com.lauriethefish.betterportals.bukkit.network.GetBlockDataArrayRequest;
@@ -21,6 +23,7 @@ import com.lauriethefish.betterportals.network.Response.RequestException;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.WorldBorder;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Entity;
@@ -40,15 +43,13 @@ public class Portal implements ConfigurationSerializable    {
     @Getter private PortalPosition destPos;
 
     @Getter private PortalTransformations locTransformer;
+    @Getter private PortalUpdateManager updateManager;
 
     // Size of the plane the makes up the portal radius from the centerpoint of the portal
     @Getter private Vector planeRadius;
 
     // The size of the portal's gateway on the X and Y
     private Vector portalSize;
-
-    private int lastActive = -2;
-    private int ticksSinceActivation = 0;
 
     @Getter private Map<Entity, Vector> nearbyEntitiesOrigin = null;
     @Getter private Collection<Entity> nearbyEntitiesDestination = null;
@@ -69,7 +70,8 @@ public class Portal implements ConfigurationSerializable    {
         this.portalSize = portalSize;
         this.anchored = anchored;
         this.owner = owner;
-        locTransformer = new PortalTransformations(originPos, destPos);
+        this.locTransformer = new PortalTransformations(originPos, destPos);
+        this.updateManager = new PortalUpdateManager(pl, this);
 
         // Find the chunks around the destination of the portal
         Vector boxSize = new Vector(renderConfig.getMaxXZ(), renderConfig.getMaxY(), renderConfig.getMaxXZ());
@@ -115,56 +117,8 @@ public class Portal implements ConfigurationSerializable    {
         return result;
     }
 
-    // Called every tick when the portal is in a loaded chunk
-    private boolean pendingPlayerUpdate;
-    public void mainUpdate() {
-
-        pendingPlayerUpdate = true;
-    }
-
-    // Called every tick whenever a player is within the activation distance
-    public void activatedByPlayerUpdate() {
-        if(!pendingPlayerUpdate) {return;}
-        pendingPlayerUpdate = false;
-
-        
-    }
-
-    public void update(int currentTick)    {
-        // If it has been longer than one tick since the portal was active, set the activation time to now
-        int timeSinceLastActive = currentTick - lastActive;
-        if(timeSinceLastActive > 1)    {
-            // Load the chunks on the other side when the portal is activated
-            for(ChunkCoordIntPair chunk : destinationChunks)    {
-                // Force load the chunk if this is supported in the current minecraft version
-                if(ReflectUtils.useNewChunkLoadingImpl) {
-                    chunk.getChunk().setForceLoaded(true);
-                }   else    {
-                    chunk.getChunk().load();
-                }
-            }
-
-            ticksSinceActivation = 0;
-        }   else if(timeSinceLastActive == 0)   {
-            return;
-        }
-        lastActive = currentTick;
-
-        // Since this portal is active, add it to the new force loaded chunks
-        pl.getPortalUpdator().keepChunksForceLoaded(destinationChunks);
-
-        // Update the entities and blocks if we need to
-        if(ticksSinceActivation % pl.getLoadedConfig().getEntityCheckInterval() == 0)   {
-            updateNearbyEntities();
-        }
-        if(ticksSinceActivation % renderConfig.getBlockUpdateInterval() == 0)   {
-            updateCurrentBlocks();
-        }
-        ticksSinceActivation++;
-    }
-
     // Updates the two lists of neaby entities
-    private void updateNearbyEntities()   {
+    void updateNearbyEntities()   {
         Collection<Entity> nearbyEntities = originPos.getWorld()
                     .getNearbyEntities(originPos.getLocation(), renderConfig.getMaxXZ(), renderConfig.getMaxY(), renderConfig.getMaxXZ());
 
@@ -180,6 +134,36 @@ public class Portal implements ConfigurationSerializable    {
         if(pl.getLoadedConfig().isEntitySupportEnabled())   {
             nearbyEntitiesDestination = destPos.getWorld()
                         .getNearbyEntities(destPos.getLocation(), renderConfig.getMaxXZ(), renderConfig.getMaxY(), renderConfig.getMaxXZ());
+        }
+    }
+
+    // Teleports entities through the portal if they walk through
+    void checkEntityTeleportation() {
+        Iterator<Map.Entry<Entity, Vector>> iter = nearbyEntitiesOrigin.entrySet().iterator();
+        World originWorld = originPos.getWorld();
+        while(iter.hasNext())   {
+            Map.Entry<Entity, Vector> entry = iter.next();
+
+            Entity entity = entry.getKey();
+            Vector lastKnownLocation = entry.getValue();
+
+            // If the entity isn't in the same world, we skip it
+            if(entity.getWorld() != originWorld)   {
+                iter.remove();
+                continue;
+            }
+
+            Vector actualLocation = entity.getLocation().toVector();
+            // Teleport the entity if it walked through a portal
+            PlaneIntersectionChecker teleportChecker = new PlaneIntersectionChecker(actualLocation, this);
+            if(!(entity instanceof Player) && lastKnownLocation != null && teleportChecker.checkIfVisibleThroughPortal(lastKnownLocation))  {
+                teleportEntity(entity);
+                getNearbyEntitiesDestination().add(entity);
+                iter.remove();
+            }
+
+            // Set the location back to the actual location
+            entry.setValue(actualLocation);
         }
     }
 
@@ -311,14 +295,27 @@ public class Portal implements ConfigurationSerializable    {
         return destPos.isExternal();
     }
 
-    // Returns the currently fetched viewable blocks array. Update should be called before this point
-    public CachedViewableBlocksArray getCachedViewableBlocksArray() {
-        return pl.getBlockArrayProcessor().getCachedArray(new GetBlockDataArrayRequest(originPos, destPos));
+    GetBlockDataArrayRequest createBlockDataRequest() {
+        return new GetBlockDataArrayRequest(originPos, destPos);
     }
 
-    private void updateCurrentBlocks() {
+    // Returns the currently fetched viewable blocks array. Update should be called before this point
+    public CachedViewableBlocksArray getCachedViewableBlocksArray() {
+        return pl.getBlockArrayProcessor().getCachedArray(createBlockDataRequest());
+    }
+
+    void updateCurrentBlocks() {
         // Send a request to the PortalBlockArrayProcessor
-        GetBlockDataArrayRequest request = new GetBlockDataArrayRequest(originPos, destPos);
-        pl.getBlockArrayProcessor().updateBlockArray(request);
+        pl.getBlockArrayProcessor().updateBlockArray(createBlockDataRequest());
+    }
+
+    void forceloadDestinationChunks() {
+        pl.logDebug("Forceloading destination chunks");
+        pl.getChunkLoader().forceLoadAllPos(destinationChunks.iterator());
+    }
+
+    void unforceloadDestinationChunks() {
+        pl.logDebug("Unforceloading destination chunks");
+        pl.getChunkLoader().unForceLoadAllPos(destinationChunks.iterator());
     }
 }
