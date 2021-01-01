@@ -2,22 +2,18 @@ package com.lauriethefish.betterportals.bukkit;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
 
 import com.lauriethefish.betterportals.bukkit.chunkloading.ChunkLoader;
 import com.lauriethefish.betterportals.bukkit.commands.MainCommand;
 import com.lauriethefish.betterportals.bukkit.config.Config;
-import com.lauriethefish.betterportals.bukkit.events.ChunkUnload;
 import com.lauriethefish.betterportals.bukkit.events.EntityPortal;
 import com.lauriethefish.betterportals.bukkit.events.EntityReplicationEvents;
 import com.lauriethefish.betterportals.bukkit.events.JoinLeave;
 import com.lauriethefish.betterportals.bukkit.events.PlayerTeleport;
 import com.lauriethefish.betterportals.bukkit.events.PortalCreate;
-import com.lauriethefish.betterportals.bukkit.multiblockchange.ChunkCoordIntPair;
 import com.lauriethefish.betterportals.bukkit.network.PortalClient;
 import com.lauriethefish.betterportals.bukkit.portal.Portal;
 import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
@@ -27,19 +23,16 @@ import com.lauriethefish.betterportals.bukkit.portal.blockarray.PortalBlockArray
 import com.lauriethefish.betterportals.bukkit.runnables.MainUpdate;
 import com.lauriethefish.betterportals.bukkit.selection.WandInteract;
 
-import org.bukkit.ChatColor;
-import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import lombok.Getter;
-import lombok.Setter;
 
 // Main class for the plugin
 public class BetterPortals extends JavaPlugin {
@@ -67,11 +60,11 @@ public class BetterPortals extends JavaPlugin {
     // Gives me cool info about the plugin on bstats
     private MetricsManager metrics;
 
-    // This method is called once when our plugin is enabled
     @Override
     public void onEnable() {
-        chunkLoader = ChunkLoader.newInstance(this);
+        teleportOnJoin = new HashMap<>();
         portalSpawnSystem = new PortalSpawnSystem(this);
+        chunkLoader = ChunkLoader.newInstance(this);
         
         registerSerializableTypes();
 
@@ -99,9 +92,9 @@ public class BetterPortals extends JavaPlugin {
         try {
             portals = storage.loadPortals();
             portalUpdator = new MainUpdate(this);
-        }   catch(Exception e)  {
+        }   catch(Exception ex)  {
             getLogger().warning(ChatColor.RED + "Error parsing portal data file, this is likely because it is invalid yaml");
-            e.printStackTrace();
+            ex.printStackTrace();
             disablePlugin(); return;
         }
 
@@ -248,10 +241,13 @@ public class BetterPortals extends JavaPlugin {
         // Save all of the portals to disk
         try {
             storage.savePortals(portals);
-        }   catch(Exception e)    {
+        }   catch(Exception ex)    {
             getLogger().warning(ChatColor.RED + "Error saving portal data. This could be due to lack of write file access");
-            e.printStackTrace();
+            ex.printStackTrace();
         }
+
+        logDebug("Unregistering events");
+        HandlerList.unregisterAll(this);
     }
 
     private void registerCommands() {
@@ -272,10 +268,6 @@ public class BetterPortals extends JavaPlugin {
 
     private void registerEvents() {
         PluginManager pm = getServer().getPluginManager();
-        // If we are catching the ChunkUnloadEvent to forceload chunks, then register it
-        if(!ReflectUtils.useNewChunkLoadingImpl)    {
-            pm.registerEvents(new ChunkUnload(this), this);
-        }
         pm.registerEvents(new EntityReplicationEvents(this), this);
         pm.registerEvents(new JoinLeave(this), this);
         pm.registerEvents(new PortalCreate(this), this);
