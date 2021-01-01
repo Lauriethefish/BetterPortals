@@ -38,6 +38,13 @@ public class PortalBlockArrayManager {
         return cachedArrays.get(request);
     }
 
+    // Clears the cached array to free memory when a portal is unloaded
+    public void clearCachedArray(GetBlockDataArrayRequest request) {
+        pl.logDebug("Clearing cached array");
+        cachedArrays.remove(request);
+        externalUpdateWorkers.remove(request);
+    }
+
     // Updates/creates the block array if it does not exist
     public void updateBlockArray(GetBlockDataArrayRequest request) {
         long timeBefore = System.nanoTime();
