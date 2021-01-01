@@ -47,7 +47,7 @@ public class BetterPortals extends JavaPlugin {
     private Map<UUID, PlayerData> players = new HashMap<>();
     private Map<Location, Portal> portals = new HashMap<>();
 
-    @Getter private PortalSpawnSystem portalSpawnSystem = new PortalSpawnSystem(this);
+    @Getter private PortalSpawnSystem portalSpawnSystem;
     @Getter private PortalBlockArrayManager blockArrayProcessor;
     @Getter private ChunkLoader chunkLoader;
 
@@ -57,9 +57,6 @@ public class BetterPortals extends JavaPlugin {
 
     // Item given to the player to select portals
     @Getter private ItemStack portalWand;
-
-    // Used if on a version where you can cancel ChunkUnloadEvent
-    @Getter @Setter private Set<ChunkCoordIntPair> forceLoadedChunks = new HashSet<>();
 
     // Used to connect to bungeecord/velocity for cross-server portals
     @Getter private PortalClient networkClient;
@@ -74,6 +71,7 @@ public class BetterPortals extends JavaPlugin {
     @Override
     public void onEnable() {
         chunkLoader = ChunkLoader.newInstance(this);
+        portalSpawnSystem = new PortalSpawnSystem(this);
         
         registerSerializableTypes();
 
@@ -188,10 +186,6 @@ public class BetterPortals extends JavaPlugin {
 
     public Collection<PlayerData> getPlayers()  {
         return players.values();
-    }
-
-    public boolean isChunkForceLoaded(Chunk chunk)  {
-        return forceLoadedChunks.contains(new ChunkCoordIntPair(chunk));
     }
 
     public void addPlayer(Player player)  {
