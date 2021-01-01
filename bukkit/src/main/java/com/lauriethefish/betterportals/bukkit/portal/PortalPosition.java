@@ -103,6 +103,8 @@ public class PortalPosition implements Serializable, ConfigurationSerializable {
 
     // Returns if this location is in line with the plane of this portal position
     public boolean isInLine(Location location) {
+        if(isExternal()) {throw new IllegalStateException("Cannot check if in line with an external position");}
+
         return direction.swapVector(getVector()).getBlockZ() ==
             direction.swapLocation(location).getBlockZ();
     }
@@ -113,12 +115,25 @@ public class PortalPosition implements Serializable, ConfigurationSerializable {
 
     // Convenience function for getting the block at this location
     public Block getBlock() {
+        if(isExternal()) {throw new IllegalStateException("Cannot get the block of an external position");}
         return getLocation().getBlock();
     }
 
     // Returns true if this PortalPosition is actually on another server
     public boolean isExternal() {
         return serverName != null;
+    }
+
+    // Returns true if the chunk at this position is currently loaded
+    public boolean isChunkLoaded() {
+        if(isExternal()) {throw new IllegalStateException("Cannot check if an external position is loaded");}
+        return getWorld().isChunkLoaded((int) x >> 4, (int) z >> 4);    
+    }
+
+
+    public void unload() {
+        if(isExternal()) {throw new IllegalStateException("Cannot check if an external position is loaded");}
+        getWorld().unloadChunk((int) x >> 4, (int) z >> 4);    
     }
 
     // Saves this portal position to a config section
