@@ -12,7 +12,6 @@ import com.lauriethefish.betterportals.bukkit.config.Config;
 import com.lauriethefish.betterportals.bukkit.entitymanipulation.EntityManipulator;
 import com.lauriethefish.betterportals.bukkit.math.PlaneIntersectionChecker;
 import com.lauriethefish.betterportals.bukkit.portal.Portal;
-import com.lauriethefish.betterportals.bukkit.portal.PortalUpdateManager;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
