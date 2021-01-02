@@ -5,6 +5,7 @@ import com.lauriethefish.betterportals.bukkit.ReflectUtils;
 import com.lauriethefish.betterportals.bukkit.WorldLink;
 import com.lauriethefish.betterportals.bukkit.chunkloading.chunkpos.ChunkPosition;
 
+import com.lauriethefish.betterportals.bukkit.chunkloading.chunkpos.SpiralChunkAreaIterator;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.WorldBorder;
@@ -107,7 +108,10 @@ public class PortalSpawnSystem {
         pl.logDebug("Looping through surrounding chunks to look for an existing portal: ");
         // Loop through each chunk around the portal to search for existing portals
         SpawnPosition closestExistingPortal = null;
-        for(ChunkPosition chunkPos : ChunkPosition.areaIterator(a, b))  {
+        SpiralChunkAreaIterator iterator = new SpiralChunkAreaIterator(a, b);
+        while(iterator.hasNext())   {
+            ChunkPosition chunkPos = iterator.next();
+
             // Only check for existing portals in chunks that have already been generated
             if(chunkPos.isGenerated())  {
                 closestExistingPortal = checkForExistingFrameInChunk(prefferedLocation, closestExistingPortal, chunkPos, portalSize);
@@ -122,43 +126,18 @@ public class PortalSpawnSystem {
 
         pl.logDebug("No existing portal found, searching for a suitable new portal location . . .");
 
-        // Variables for storing the current closestSuitableLocation
-        Location closestSuitableLocation = null;
-        // Set the current closest distance to infinity so that all numbers are less than it
-        double closestSuitableDistance = Double.POSITIVE_INFINITY;
-
-        // Loop through a few areas around the portal
-        for(double z = -128.0; z < 128.0; z += 1.0)  {
-            for(double y = link.minSpawnY; y <= link.maxSpawnY; y++) {
-                for(double x = -128.0; x < 128.0; x += 1.0)  {
-                    // Find the location of the current potential portal spawn
-                    Location newLoc = new Location(prefferedLocation.getWorld(), prefferedLocation.getX() + x, y, prefferedLocation.getZ() + z);
-
-                    // Check that both corners of the portal are inside the world border
-                    if(!border.isInside(newLoc) || !border.isInside(newLoc.clone().add(realPSize)))    {
-                        continue;
-                    }
-
-                    // Check if the distance is less than the closest distance first, for performance
-                    double distance = prefferedLocation.distance(newLoc);
-                    boolean isCloser = distance < closestSuitableDistance;
-
-                    // If the current closest portal is less suitable that this portal, or is equally as suitable AND is closer, then overrite the closest portal
-                    if(isCloser)    {
-                        boolean suitable = checkSuitableSpawnLocation(newLoc.clone(), direction, portalSize);
-                        if(suitable)    {
-                            closestSuitableLocation = newLoc;
-                            closestSuitableDistance = distance;
-                        }
-                    }
-                }  
-            }
+        // Loop through each chunk around the portal to search for valid spawn positions
+        SpawnPosition closestSuitableLocation = null;
+        iterator = new SpiralChunkAreaIterator(a, b);
+        while(iterator.hasNext())   {
+            ChunkPosition chunkPos = iterator.next();
+            closestSuitableLocation = checkForSpawnPositionsInChunk(prefferedLocation, closestSuitableLocation, chunkPos, portalSize);
         }
 
         // If a suitable location was found, return it
         if(closestSuitableLocation != null) {
             pl.logDebug("Returning location %s", closestSuitableLocation);
-            return new SpawnPosition(closestSuitableLocation, direction);
+            return closestSuitableLocation;
         }
         
         pl.logDebug("No suitable spawn location was found, returning the preferred locaiton. NOTE: This probably shouldn't happen!");
@@ -271,6 +250,8 @@ public class PortalSpawnSystem {
         Location chunkBottomLeft = chunkPos.getBottomLeft();
 
         double closestDistance = currentClosest == null ? Double.POSITIVE_INFINITY : currentClosest.distance(prefferedPos);
+        if(!canPosInChunkBeCloser(chunkPos, prefferedPos, closestDistance)) {return currentClosest;} // No need to check this chunk if no positions in it are any better than our current ones
+
         // Limit our Y coordinate so that we don't check areas above Y 255
         int maxY = 254 - portalSize.getBlockY();
         // Loop through each block of the chunk
@@ -295,6 +276,50 @@ public class PortalSpawnSystem {
 
                             // Check to see if there is an existing portal frame
                             if(checkForExistingFrame(checkPos, direction, portalSize.clone())) {
+                                currentClosest = new SpawnPosition(checkPos, direction);
+                                closestDistance = distance;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return currentClosest;
+    }
+
+    // Used to eliminate checking certain chunks by determining if any position in that chunk can be closer
+    private boolean canPosInChunkBeCloser(ChunkPosition chunk, Location prefferedPos, double currentDistance) {
+        double blChunkDistance = chunk.getBottomLeft().distance(prefferedPos);
+        return blChunkDistance + 22.7 < currentDistance;
+    }
+
+    public SpawnPosition checkForSpawnPositionsInChunk(Location prefferedPos, SpawnPosition currentClosest, ChunkPosition chunkPos, Vector portalSize) {
+        Location chunkBottomLeft = chunkPos.getBottomLeft();
+
+        double closestDistance = currentClosest == null ? Double.POSITIVE_INFINITY : currentClosest.distance(prefferedPos);
+        if(!canPosInChunkBeCloser(chunkPos, prefferedPos, closestDistance)) {
+            pl.logDebug("Skipping chunk");
+            return currentClosest;
+        } // No need to check this chunk if no positions in it are any better than our current ones
+
+            // Limit our Y coordinate so that we don't check areas above Y 255
+        int maxY = 254 - portalSize.getBlockY();
+        // Loop through each block of the chunk
+        for(int x = 0; x < 16; x++) {
+            for(int z = 0; z < 16; z++)    {
+                for(int y = 0; y < maxY; y++)    {
+                    Location checkPos = chunkBottomLeft.clone().add(x, y, z);
+
+                    // Find if this location is any closer than our current closest point
+                    double distance = prefferedPos.distance(checkPos);
+                    if(currentClosest == null || distance < closestDistance)  {
+                        for(PortalDirection direction : checkedDirections)  {
+                            // If this portal is too close to an existing portal, skip it
+                            if(checkPortalProximity(checkPos))  {continue;}
+
+                            // Check to see if this position is valid
+                            if(checkSuitableSpawnLocation(checkPos, direction, portalSize.clone())) {
                                 currentClosest = new SpawnPosition(checkPos, direction);
                                 closestDistance = distance;
                             }
