@@ -1,4 +1,4 @@
-package com.lauriethefish.betterportals.bukkit.multiblockchange;
+package com.lauriethefish.betterportals.bukkit.chunkloading.chunkpos;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;

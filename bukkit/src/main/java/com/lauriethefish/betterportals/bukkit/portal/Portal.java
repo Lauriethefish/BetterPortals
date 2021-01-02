@@ -12,7 +12,7 @@ import com.lauriethefish.betterportals.bukkit.BetterPortals;
 import com.lauriethefish.betterportals.bukkit.ReflectUtils;
 import com.lauriethefish.betterportals.bukkit.config.RenderConfig;
 import com.lauriethefish.betterportals.bukkit.math.PlaneIntersectionChecker;
-import com.lauriethefish.betterportals.bukkit.multiblockchange.ChunkPosition;
+import com.lauriethefish.betterportals.bukkit.chunkloading.chunkpos.ChunkPosition;
 import com.lauriethefish.betterportals.bukkit.multiblockchange.MultiBlockChangeManager;
 import com.lauriethefish.betterportals.bukkit.network.GetBlockDataArrayRequest;
 import com.lauriethefish.betterportals.bukkit.portal.blockarray.CachedViewableBlocksArray;

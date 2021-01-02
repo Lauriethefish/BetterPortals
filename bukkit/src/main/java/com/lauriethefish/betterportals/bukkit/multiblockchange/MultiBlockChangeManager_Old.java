@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.lauriethefish.betterportals.bukkit.ReflectUtils;
 
+import com.lauriethefish.betterportals.bukkit.chunkloading.chunkpos.ChunkPosition;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 

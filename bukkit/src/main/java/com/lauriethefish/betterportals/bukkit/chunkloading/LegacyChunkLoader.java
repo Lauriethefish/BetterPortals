@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
-import com.lauriethefish.betterportals.bukkit.multiblockchange.ChunkPosition;
+import com.lauriethefish.betterportals.bukkit.chunkloading.chunkpos.ChunkPosition;
 
 import org.bukkit.Chunk;
 import org.bukkit.event.EventHandler;
