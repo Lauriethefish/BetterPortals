@@ -20,7 +20,7 @@ import lombok.Setter;
 // Contains various utility functions for dealing with chunk coordinates
 @Getter 
 @Setter
-public class ChunkPosition {
+public class ChunkPosition implements Cloneable {
     public World world; // This can be null
     public int x;
     public int z;
@@ -52,7 +52,7 @@ public class ChunkPosition {
         return world.getChunkAt(x, z);
     }
 
-    public static class ChunkAreaIterator implements Iterator<ChunkPosition>, Iterable<ChunkPosition> {
+    public static class ChunkAreaIterator implements Iterator<ChunkPosition>, Iterable<ChunkPosition>, Cloneable {
         private ChunkPosition low;
         private ChunkPosition high;
         private ChunkPosition currentPos;
