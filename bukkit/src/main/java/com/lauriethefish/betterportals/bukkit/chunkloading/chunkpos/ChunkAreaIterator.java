@@ -1,18 +1,26 @@
 package com.lauriethefish.betterportals.bukkit.chunkloading.chunkpos;
 
+import org.bukkit.Location;
+
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-public class ChunkAreaIterator implements Iterator<ChunkPosition>, Iterable<ChunkPosition>, Cloneable {
+// ChunkAreaIterator that goes in a simple square
+public class ChunkAreaIterator implements Iterator<ChunkPosition>, Cloneable {
     private ChunkPosition low;
     private ChunkPosition high;
     private ChunkPosition currentPos;
 
-    ChunkAreaIterator(ChunkPosition low, ChunkPosition high) {
+    // Makes an inclusive spiral chunk iterator, starting at the midpoint of these two chunks
+    public ChunkAreaIterator(ChunkPosition low, ChunkPosition high) {
         this.low = low;
         this.high = high;
         currentPos = low.clone();
+    }
+
+    public ChunkAreaIterator(Location low, Location high) {
+        this(new ChunkPosition(low), new ChunkPosition(high));
     }
 
     @Override
@@ -48,15 +56,10 @@ public class ChunkAreaIterator implements Iterator<ChunkPosition>, Iterable<Chun
         }
     }
 
-    // Revoves all of the chunks in this area to a set
+    // Removes all of the chunks in this area from a set
     public void removeAll(Set<ChunkPosition> set) {
         while (this.hasNext()) {
             set.remove(this.next());
         }
-    }
-
-    @Override
-    public Iterator<ChunkPosition> iterator() {
-        return this;
     }
 }
