@@ -1,12 +1,11 @@
 package com.lauriethefish.betterportals.bukkit;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.lauriethefish.betterportals.bukkit.entitymanipulation.EntityManipulator;
 import com.lauriethefish.betterportals.bukkit.multiblockchange.MultiBlockChangeManager;
 import com.lauriethefish.betterportals.bukkit.portal.Portal;
-import com.lauriethefish.betterportals.bukkit.portal.blockarray.CachedViewableBlocksArray;
 import com.lauriethefish.betterportals.bukkit.selection.PortalSelection;
 
 import org.bukkit.Location;
@@ -30,7 +29,7 @@ public class PlayerData {
     // If this changes, then the ghost blocks sent to the player are reset to avoid phantom blocks breaking the illusion
     private Portal lastActivePortal = null;
     // Store the original states of the surrounding blocks that have been sent to the player
-    @Getter private Map<Vector, Object> surroundingPortalBlockStates = new HashMap<>();
+    @Getter private Map<Vector, Object> surroundingPortalBlockStates = new ConcurrentHashMap<>();
 
     // Deals with hiding and showing entities
     @Getter private EntityManipulator entityManipulator;
@@ -97,7 +96,7 @@ public class PlayerData {
 
             changeManager.sendChanges();
         }
-        surroundingPortalBlockStates = new HashMap<>();
+        surroundingPortalBlockStates = new ConcurrentHashMap<>();
     }
 
     public void makeSelection(Location location, Action hand)  {
