@@ -28,6 +28,11 @@ public class ChunkPosition implements Cloneable {
         z = chunkZ;
     }
 
+    public ChunkPosition(int chunkX, int chunkZ) {
+        x = chunkX;
+        z = chunkZ;
+    }
+
     public ChunkPosition(Location location) {
         x = location.getBlockX() >> 4;
         z = location.getBlockZ() >> 4;
@@ -91,7 +96,7 @@ public class ChunkPosition implements Cloneable {
             return false;
         }
         ChunkPosition chunkPosition = (ChunkPosition) o;
-        return x == chunkPosition.x && z == chunkPosition.z;
+        return x == chunkPosition.x && z == chunkPosition.z && world == chunkPosition.world;
     }
 
     @Override
