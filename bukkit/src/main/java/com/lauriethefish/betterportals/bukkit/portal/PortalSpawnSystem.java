@@ -99,11 +99,11 @@ public class PortalSpawnSystem {
         WorldBorder border = link.destinationWorld.getWorldBorder();
         
         // Convert the location to a block and back, this should floor the location so it is all whole numbers
-        Location prefferedLocation = destinationLoc.getBlock().getLocation();
+        Location preferredLocation = destinationLoc.getBlock().getLocation();
         pl.logDebug("Preferred destination location %s ", destinationLoc);
 
-        Location a = prefferedLocation.clone().subtract(128, 0, 128);
-        Location b = prefferedLocation.clone().add(128, 0, 128);
+        Location a = preferredLocation.clone().subtract(128, 0, 128);
+        Location b = preferredLocation.clone().add(128, 0, 128);
 
         pl.logDebug("Looping through surrounding chunks to look for an existing portal: ");
         // Loop through each chunk around the portal to search for existing portals
@@ -114,7 +114,7 @@ public class PortalSpawnSystem {
 
             // Only check for existing portals in chunks that have already been generated
             if(chunkPos.isGenerated())  {
-                closestExistingPortal = checkForExistingFrameInChunk(prefferedLocation, closestExistingPortal, chunkPos, portalSize);
+                closestExistingPortal = checkForExistingFrameInChunk(preferredLocation, closestExistingPortal, chunkPos, portalSize);
                 chunkPos.getChunk().unload();
             }
         }
@@ -131,7 +131,7 @@ public class PortalSpawnSystem {
         iterator = new SpiralChunkAreaIterator(a, b);
         while(iterator.hasNext())   {
             ChunkPosition chunkPos = iterator.next();
-            closestSuitableLocation = checkForSpawnPositionsInChunk(prefferedLocation, closestSuitableLocation, chunkPos, portalSize);
+            closestSuitableLocation = checkForSpawnPositionsInChunk(preferredLocation, closestSuitableLocation, chunkPos, portalSize);
         }
 
         // If a suitable location was found, return it
@@ -142,13 +142,13 @@ public class PortalSpawnSystem {
         
         pl.logDebug("No suitable spawn location was found, returning the preferred locaiton. NOTE: This probably shouldn't happen!");
         // Otherwise return the given location
-        return new SpawnPosition(prefferedLocation, direction);
+        return new SpawnPosition(preferredLocation, direction);
     }
 
     // Checks if the position is given is suitable for spawning a portal
     // See definition of a suitable location above
     public boolean checkSuitableSpawnLocation(Location location, PortalDirection direction, Vector portalSize) {
-        // Loop through the two colums of portal blocks
+        // Loop through the two columns of portal blocks
         for(double x = 0.0; x <= portalSize.getX() + 1.0; x++)  {
             Location currentPosX = location.clone().add(direction.swapVector(new Vector(x, 0.0, 0.0)));
         
@@ -170,8 +170,7 @@ public class PortalSpawnSystem {
             }
         }
 
-        if(checkPortalProximity(location))  {return false;}
-        return true;
+        return !checkPortalProximity(location); // Make sure the portal isn't too close to another portal
     }
 
     // Returns true if this position is too close to another portal to be used as a spawn location
@@ -246,6 +245,12 @@ public class PortalSpawnSystem {
         return true;
     }
 
+    // Used to eliminate checking certain chunks by determining if any position in that chunk can be closer
+    private boolean canPosInChunkBeCloser(ChunkPosition chunk, Location preferredPos, double currentDistance) {
+        double blChunkDistance = chunk.getBottomLeft().distance(preferredPos);
+        return blChunkDistance + 22.7 < currentDistance; // 22.6... is the diagonal length of a chunk. We round up for a conservative estimate
+    }
+
     public SpawnPosition checkForExistingFrameInChunk(Location prefferedPos, SpawnPosition currentClosest, ChunkPosition chunkPos, Vector portalSize) {
         Location chunkBottomLeft = chunkPos.getBottomLeft();
 
@@ -286,12 +291,6 @@ public class PortalSpawnSystem {
         }
 
         return currentClosest;
-    }
-
-    // Used to eliminate checking certain chunks by determining if any position in that chunk can be closer
-    private boolean canPosInChunkBeCloser(ChunkPosition chunk, Location prefferedPos, double currentDistance) {
-        double blChunkDistance = chunk.getBottomLeft().distance(prefferedPos);
-        return blChunkDistance + 22.7 < currentDistance;
     }
 
     public SpawnPosition checkForSpawnPositionsInChunk(Location prefferedPos, SpawnPosition currentClosest, ChunkPosition chunkPos, Vector portalSize) {
