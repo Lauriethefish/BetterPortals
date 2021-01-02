@@ -13,7 +13,7 @@ import org.bukkit.util.Vector;
 public class MultiBlockChangeManager_Old implements MultiBlockChangeManager {
     private Object playerConnection;
     // Stores the changes, separated out into chunks
-    private HashMap<ChunkCoordIntPair, HashMap<Vector, Object>> changes = new HashMap<>();
+    private HashMap<ChunkPosition, HashMap<Vector, Object>> changes = new HashMap<>();
 
     public MultiBlockChangeManager_Old(Player player)   {
         Object craftPlayer = ReflectUtils.runMethod(player, "getHandle");
@@ -23,8 +23,8 @@ public class MultiBlockChangeManager_Old implements MultiBlockChangeManager {
     // Adds a new block to the HashMap
     public void addChange(Vector location, Object newType)  {
         // Add a hashmap for this chunk if one doesn't already exist
-        ChunkCoordIntPair chunk = new ChunkCoordIntPair(location);
-        if(changes.get(chunk) == null)  {
+        ChunkPosition chunk = new ChunkPosition(location);
+        if(!changes.containsKey(chunk))  {
             changes.put(chunk, new HashMap<>());
         }
 
@@ -33,14 +33,14 @@ public class MultiBlockChangeManager_Old implements MultiBlockChangeManager {
 
     // Sends all the queued changes
     public void sendChanges()   {
-        for(Map.Entry<ChunkCoordIntPair, HashMap<Vector, Object>> entry : changes.entrySet())   {
+        for(Map.Entry<ChunkPosition, HashMap<Vector, Object>> entry : changes.entrySet())   {
             sendMultiBlockChange(entry.getValue(), entry.getKey());
         }
     }
 
     // Constructs a multiple block change packet from the given blocks, and sends it to the player
     // All the blocks MUST be in the same chunk
-    private void sendMultiBlockChange(Map<Vector, Object> blocks, ChunkCoordIntPair chunk) {
+    private void sendMultiBlockChange(Map<Vector, Object> blocks, ChunkPosition chunk) {
         // Make a new PacketPlayOutMultiBlockChange
         Class<?> packetClass = ReflectUtils.getMcClass("PacketPlayOutMultiBlockChange");
         Object packet = ReflectUtils.newInstance(packetClass);

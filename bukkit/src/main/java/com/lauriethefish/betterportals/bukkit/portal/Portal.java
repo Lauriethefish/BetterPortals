@@ -12,7 +12,7 @@ import com.lauriethefish.betterportals.bukkit.BetterPortals;
 import com.lauriethefish.betterportals.bukkit.ReflectUtils;
 import com.lauriethefish.betterportals.bukkit.config.RenderConfig;
 import com.lauriethefish.betterportals.bukkit.math.PlaneIntersectionChecker;
-import com.lauriethefish.betterportals.bukkit.multiblockchange.ChunkCoordIntPair;
+import com.lauriethefish.betterportals.bukkit.multiblockchange.ChunkPosition;
 import com.lauriethefish.betterportals.bukkit.multiblockchange.MultiBlockChangeManager;
 import com.lauriethefish.betterportals.bukkit.network.GetBlockDataArrayRequest;
 import com.lauriethefish.betterportals.bukkit.portal.blockarray.CachedViewableBlocksArray;
@@ -54,7 +54,7 @@ public class Portal implements ConfigurationSerializable    {
     @Getter private Map<Entity, Vector> nearbyEntitiesOrigin = null;
     @Getter private Collection<Entity> nearbyEntitiesDestination = null;
 
-    private Set<ChunkCoordIntPair> destinationChunks = new HashSet<>();
+    private Set<ChunkPosition> destinationChunks = new HashSet<>();
 
     private boolean anchored;
 
@@ -77,7 +77,7 @@ public class Portal implements ConfigurationSerializable    {
         Vector boxSize = new Vector(renderConfig.getMaxXZ(), renderConfig.getMaxY(), renderConfig.getMaxXZ());
         Location boxBL = destPos.getLocation().subtract(boxSize);
         Location boxTR = destPos.getLocation().add(boxSize);
-        ChunkCoordIntPair.areaIterator(boxBL, boxTR).addAll(destinationChunks);
+        ChunkPosition.areaIterator(boxBL, boxTR).addAll(destinationChunks);
         
         // Divide the size by 2 so it is the correct amount to subtract from the center to reach each corner
         // Then orient it so that is on the z if the portal is north/south

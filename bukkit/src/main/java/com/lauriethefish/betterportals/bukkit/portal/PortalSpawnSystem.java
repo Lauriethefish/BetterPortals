@@ -3,7 +3,7 @@ package com.lauriethefish.betterportals.bukkit.portal;
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
 import com.lauriethefish.betterportals.bukkit.ReflectUtils;
 import com.lauriethefish.betterportals.bukkit.WorldLink;
-import com.lauriethefish.betterportals.bukkit.multiblockchange.ChunkCoordIntPair;
+import com.lauriethefish.betterportals.bukkit.multiblockchange.ChunkPosition;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -107,7 +107,7 @@ public class PortalSpawnSystem {
         pl.logDebug("Looping through surrounding chunks to look for an existing portal: ");
         // Loop through each chunk around the portal to search for existing portals
         SpawnPosition closestExistingPortal = null;
-        for(ChunkCoordIntPair chunkPos : ChunkCoordIntPair.areaIterator(a, b))  {
+        for(ChunkPosition chunkPos : ChunkPosition.areaIterator(a, b))  {
             // Only check for existing portals in chunks that have already been generated
             if(chunkPos.isGenerated())  {
                 closestExistingPortal = checkForExistingFrameInChunk(prefferedLocation, closestExistingPortal, chunkPos, portalSize);
@@ -267,7 +267,7 @@ public class PortalSpawnSystem {
         return true;
     }
 
-    public SpawnPosition checkForExistingFrameInChunk(Location prefferedPos, SpawnPosition currentClosest, ChunkCoordIntPair chunkPos, Vector portalSize) {
+    public SpawnPosition checkForExistingFrameInChunk(Location prefferedPos, SpawnPosition currentClosest, ChunkPosition chunkPos, Vector portalSize) {
         Location chunkBottomLeft = chunkPos.getBottomLeft();
 
         double closestDistance = currentClosest == null ? Double.POSITIVE_INFINITY : currentClosest.distance(prefferedPos);

@@ -4,13 +4,13 @@ import java.util.Iterator;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
 import com.lauriethefish.betterportals.bukkit.ReflectUtils;
-import com.lauriethefish.betterportals.bukkit.multiblockchange.ChunkCoordIntPair;
+import com.lauriethefish.betterportals.bukkit.multiblockchange.ChunkPosition;
 
 import org.bukkit.Chunk;
 
 // Allows different implementations of chunk loading to be used
 public interface ChunkLoader {
-    public static ChunkLoader newInstance(BetterPortals pl) {
+    static ChunkLoader newInstance(BetterPortals pl) {
         if(ReflectUtils.isLegacy) {
             return new LegacyChunkLoader(pl);
         }   else    {
@@ -22,7 +22,7 @@ public interface ChunkLoader {
     void setForceLoaded(Chunk chunk);
 
     // Various methods for doing it with iterators
-    default void forceLoadAllPos(Iterator<? extends ChunkCoordIntPair> iterator) {
+    default void forceLoadAllPos(Iterator<? extends ChunkPosition> iterator) {
         while(iterator.hasNext()) {
             setForceLoaded(iterator.next().getChunk());
         }
@@ -35,13 +35,13 @@ public interface ChunkLoader {
     }
 
     // Unforceloading uses the ChunkCoordIntPair since otherwise you'd be forced to get the chunk, reloading the chunk in the case that it were unloaded
-    void setNotForceLoaded(ChunkCoordIntPair chunk);
+    void setNotForceLoaded(ChunkPosition chunk);
     default void setNotForceLoaded(Chunk chunk) {
-        setNotForceLoaded(new ChunkCoordIntPair(chunk));
+        setNotForceLoaded(new ChunkPosition(chunk));
     }
 
     // Various methods for doing it with iterators
-    default void unForceLoadAllPos(Iterator<? extends ChunkCoordIntPair> iterator) {
+    default void unForceLoadAllPos(Iterator<? extends ChunkPosition> iterator) {
         while(iterator.hasNext()) {
             setNotForceLoaded(iterator.next());
         }
@@ -49,13 +49,13 @@ public interface ChunkLoader {
 
     default void unForceLoadAll(Iterator<? extends Chunk> iterator) {
         while(iterator.hasNext()) {
-            setNotForceLoaded(new ChunkCoordIntPair(iterator.next()));
+            setNotForceLoaded(new ChunkPosition(iterator.next()));
         }
     }
 
     // Checks if the chunk is currently force loaded
-    boolean isForceLoaded(ChunkCoordIntPair chunk);
+    boolean isForceLoaded(ChunkPosition chunk);
     default boolean isForceLoaded(Chunk chunk) {
-        return isForceLoaded(new ChunkCoordIntPair(chunk));
+        return isForceLoaded(new ChunkPosition(chunk));
     }
 }

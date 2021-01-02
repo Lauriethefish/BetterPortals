@@ -20,29 +20,29 @@ import lombok.Setter;
 // Contains various utility functions for dealing with chunk coordinates
 @Getter 
 @Setter
-public class ChunkCoordIntPair {
+public class ChunkPosition {
     public World world; // This can be null
     public int x;
     public int z;
 
-    public ChunkCoordIntPair(World world, int chunkX, int chunkZ) {
+    public ChunkPosition(World world, int chunkX, int chunkZ) {
         this.world = world;
         x = chunkX;
         z = chunkZ;
     }
 
-    public ChunkCoordIntPair(Location location) {
+    public ChunkPosition(Location location) {
         x = location.getBlockX() >> 4;
         z = location.getBlockZ() >> 4;
         world = location.getWorld();
     }
 
-    public ChunkCoordIntPair(Vector location) {
+    public ChunkPosition(Vector location) {
         x = location.getBlockX() >> 4;
         z = location.getBlockZ() >> 4;
     }
 
-    public ChunkCoordIntPair(Chunk chunk)   {
+    public ChunkPosition(Chunk chunk)   {
         x = chunk.getX();
         z = chunk.getZ();
         world = chunk.getWorld();
@@ -52,12 +52,12 @@ public class ChunkCoordIntPair {
         return world.getChunkAt(x, z);
     }
 
-    public static class ChunkAreaIterator implements Iterator<ChunkCoordIntPair>, Iterable<ChunkCoordIntPair> {
-        private ChunkCoordIntPair low;
-        private ChunkCoordIntPair high;
-        private ChunkCoordIntPair currentPos;
+    public static class ChunkAreaIterator implements Iterator<ChunkPosition>, Iterable<ChunkPosition> {
+        private ChunkPosition low;
+        private ChunkPosition high;
+        private ChunkPosition currentPos;
 
-        private ChunkAreaIterator(ChunkCoordIntPair low, ChunkCoordIntPair high) {
+        private ChunkAreaIterator(ChunkPosition low, ChunkPosition high) {
             this.low = low; this.high = high;
             currentPos = low.clone();
         }
@@ -68,7 +68,7 @@ public class ChunkCoordIntPair {
         }
 
         @Override
-        public ChunkCoordIntPair next() {
+        public ChunkPosition next() {
             if(currentPos.x < high.x) {
                 currentPos.x++; // If we are not at the end of a row, move us 1 across
             }   else if(currentPos.z < high.z) { // If we are at the end of a row, but there a columns left
@@ -89,34 +89,34 @@ public class ChunkCoordIntPair {
         }
 
         // Adds all of the chunks in this area to a set
-        public void addAll(Set<ChunkCoordIntPair> set) {
+        public void addAll(Set<ChunkPosition> set) {
             while(this.hasNext()) {
                 set.add(this.next());
             }
         }
 
         // Revoves all of the chunks in this area to a set
-        public void removeAll(Set<ChunkCoordIntPair> set) {
+        public void removeAll(Set<ChunkPosition> set) {
             while(this.hasNext()) {
                 set.remove(this.next());
             }
         }
 
         @Override
-        public Iterator<ChunkCoordIntPair> iterator() {
+        public Iterator<ChunkPosition> iterator() {
             return this;
         }
     }
 
     public static ChunkAreaIterator areaIterator(Location a, Location b)   {
         // Find the coordinates of the two locations
-        ChunkCoordIntPair low = new ChunkCoordIntPair(a);
-        ChunkCoordIntPair high = new ChunkCoordIntPair(b);
+        ChunkPosition low = new ChunkPosition(a);
+        ChunkPosition high = new ChunkPosition(b);
 
         return areaIterator(low, high);
     }
 
-    public static ChunkAreaIterator areaIterator(ChunkCoordIntPair low, ChunkCoordIntPair high) {
+    public static ChunkAreaIterator areaIterator(ChunkPosition low, ChunkPosition high) {
         return new ChunkAreaIterator(low, high);
     }
 
@@ -146,11 +146,11 @@ public class ChunkCoordIntPair {
     public boolean equals(Object o) {
         if (o == this)
             return true;
-        if (!(o instanceof ChunkCoordIntPair)) {
+        if (!(o instanceof ChunkPosition)) {
             return false;
         }
-        ChunkCoordIntPair chunkCoordIntPair = (ChunkCoordIntPair) o;
-        return x == chunkCoordIntPair.x && z == chunkCoordIntPair.z;
+        ChunkPosition chunkPosition = (ChunkPosition) o;
+        return x == chunkPosition.x && z == chunkPosition.z;
     }
 
     @Override
@@ -164,7 +164,7 @@ public class ChunkCoordIntPair {
     }
 
     @Override
-    public ChunkCoordIntPair clone() {
-        return new ChunkCoordIntPair(world, x, z);
+    public ChunkPosition clone() {
+        return new ChunkPosition(world, x, z);
     }
 }

@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
-import com.lauriethefish.betterportals.bukkit.multiblockchange.ChunkCoordIntPair;
+import com.lauriethefish.betterportals.bukkit.multiblockchange.ChunkPosition;
 
 import org.bukkit.Chunk;
 import org.bukkit.event.EventHandler;
@@ -12,7 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.world.ChunkUnloadEvent;
 
 public class LegacyChunkLoader implements ChunkLoader, Listener {
-    private Set<ChunkCoordIntPair> loadedChunks = new HashSet<>();
+    private Set<ChunkPosition> loadedChunks = new HashSet<>();
 
     public LegacyChunkLoader(BetterPortals pl) {
         // Register listeners
@@ -22,7 +22,7 @@ public class LegacyChunkLoader implements ChunkLoader, Listener {
     @EventHandler
     public void onChunkUnload(ChunkUnloadEvent event) {
         // Cancel ChunkUnloadEvent if the chunk is force loaded
-        ChunkCoordIntPair chunkPos = new ChunkCoordIntPair(event.getChunk());
+        ChunkPosition chunkPos = new ChunkPosition(event.getChunk());
         if(loadedChunks.contains(chunkPos)) {
             event.setCancelled(true);
         }
@@ -30,17 +30,17 @@ public class LegacyChunkLoader implements ChunkLoader, Listener {
 
     @Override
     public void setForceLoaded(Chunk chunk) {
-        loadedChunks.add(new ChunkCoordIntPair(chunk));
+        loadedChunks.add(new ChunkPosition(chunk));
         chunk.load();
     }
 
     @Override
-    public void setNotForceLoaded(ChunkCoordIntPair chunk) {
+    public void setNotForceLoaded(ChunkPosition chunk) {
         loadedChunks.remove(chunk);
     }
 
     @Override
-    public boolean isForceLoaded(ChunkCoordIntPair chunk) {
+    public boolean isForceLoaded(ChunkPosition chunk) {
         return loadedChunks.contains(chunk);
     }
 }
