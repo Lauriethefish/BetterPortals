@@ -297,10 +297,7 @@ public class PortalSpawnSystem {
         Location chunkBottomLeft = chunkPos.getBottomLeft();
 
         double closestDistance = currentClosest == null ? Double.POSITIVE_INFINITY : currentClosest.distance(prefferedPos);
-        if(!canPosInChunkBeCloser(chunkPos, prefferedPos, closestDistance)) {
-            pl.logDebug("Skipping chunk");
-            return currentClosest;
-        } // No need to check this chunk if no positions in it are any better than our current ones
+        if(!canPosInChunkBeCloser(chunkPos, prefferedPos, closestDistance)) {return currentClosest;} // No need to check this chunk if no positions in it are any better than our current ones
 
             // Limit our Y coordinate so that we don't check areas above Y 255
         int maxY = 254 - portalSize.getBlockY();
