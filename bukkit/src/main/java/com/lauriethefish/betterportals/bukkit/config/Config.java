@@ -31,6 +31,8 @@ public class Config {
 
     @Getter private boolean debugLoggingEnabled;
 
+    @Getter private int teleportCooldown;
+
     // Loads the configuration from the given file, setting all the parameters of the class
     public Config(BetterPortals pl)   {
         this.pl = pl;
@@ -46,6 +48,7 @@ public class Config {
         entitySupportEnabled = file.getBoolean("enableEntitySupport");
         entityCheckInterval = file.getInt("entityCheckInterval");
         debugLoggingEnabled = file.getBoolean("enableDebugLogging");
+        teleportCooldown = file.getInt("teleportCooldown");
 
         // Load each of the sub-configs.
         messages = new MessageConfig(file);

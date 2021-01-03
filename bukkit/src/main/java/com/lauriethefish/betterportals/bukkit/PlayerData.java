@@ -22,8 +22,7 @@ public class PlayerData {
     private BetterPortals pl;
     @Getter private Player player;
     
-    // Setting this value will stop portals from being rendered for this player for the number of ticks
-    @Setter private int disableTime = 0;
+    private int ticksSinceTeleport = 0;
     
     // The last portal that had the portal effect active.
     // If this changes, then the ghost blocks sent to the player are reset to avoid phantom blocks breaking the illusion
@@ -74,14 +73,23 @@ public class PlayerData {
         lastPosition = null;
     }
 
-    // Ticks down the disabled time if it's greater than 0, and returns true if it is greater than 0
-    public boolean checkIfDisabled()    {
-        if(disableTime > 0) {
-            disableTime--;
-            return true;
-        }   else    {
-            return false;
-        }
+    // Increments the number of ticks since the player last teleported through a portal
+    public void onTick()    {
+        ticksSinceTeleport++;
+    }
+
+    public void onPortalTeleport() {
+        ticksSinceTeleport = 0;
+    }
+
+    // Enforce the rendering delay and permission
+    public boolean canSeeThroughPortals() {
+        return ticksSinceTeleport >= pl.getLoadedConfig().getRendering().getWorldSwitchWaitTime() && player.hasPermission("betterportals.see");
+    }
+
+    // Enforce the teleportation delay and permission
+    public boolean canBeTeleportedByPortal() {
+        return ticksSinceTeleport >= pl.getLoadedConfig().getTeleportCooldown();
     }
 
     // Resets all of the ghost block updates that have been set to the player

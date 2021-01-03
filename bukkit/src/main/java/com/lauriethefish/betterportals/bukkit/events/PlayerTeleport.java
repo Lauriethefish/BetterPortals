@@ -24,9 +24,6 @@ public class PlayerTeleport implements Listener {
 
         // Set the player's last position to null so that they won't get teleported
         player.setLastPosition(null);
-        // If the player switched worlds, set this option. This is used to wait a little bit before rendering portals
-        if(event.getFrom().getWorld() != event.getTo().getWorld())  {
-            player.setDisableTime(pl.getLoadedConfig().getRendering().getWorldSwitchWaitTime());
-        }
+        pl.logDebug("On player teleport");
     }
 }

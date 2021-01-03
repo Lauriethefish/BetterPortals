@@ -53,6 +53,8 @@ disabledWorlds:
 # Set to 0 to disable
 waitTimeAfterSwitchingWorlds: 1
 
+teleportCooldown: 5 # How long to wait before a player can go back after going through a portal (0 to disable)
+
 # Stores the links between worlds. By default this links the overworld and the nether with portals
 # There are two links for the overworld and the nether - one for each way.
 # This is to allow one way links between dimensions

@@ -17,8 +17,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-// Casts a ray from each player every tick
-// If it passes through the portal, set the end of it to a redstone block
 public class MainUpdate implements Runnable {
     private BetterPortals pl;
 
@@ -58,7 +56,10 @@ public class MainUpdate implements Runnable {
     }
 
     // Teleports the player using the given portal if the player is within the portal
+    // Returns true if the player was teleported, false otherwise
     public boolean performPlayerTeleport(PlayerData playerData, Portal portal, PlaneIntersectionChecker checker)  {
+        if(!playerData.canBeTeleportedByPortal()) {return false;} // Enforce teleportation cooldown
+
         Player player = playerData.getPlayer();
         
         Vector lastPos = playerData.getLastPosition();
@@ -69,6 +70,7 @@ public class MainUpdate implements Runnable {
         }
         
         portal.teleportEntity(player);
+        playerData.onPortalTeleport();
         return true;
     }
     
@@ -175,12 +177,9 @@ public class MainUpdate implements Runnable {
             PlayerData playerData = pl.getPlayerData(player);
             if(playerData == null) {return;} // Happens just after a player has joined
 
-            // If we changed worlds in the last tick, we wait to avoid chunks not being loaded while sending updates
-            if(playerData.checkIfDisabled())    {
-                continue;
-            }
+            playerData.onTick();
 
-            boolean canSeeThroughPortals = playerData.getPlayer().hasPermission("betterportals.see");
+            boolean canSeeThroughPortals = playerData.canSeeThroughPortals();
 
             // Find the closest portal to the player
             Portal portal = findClosestPortal(player);
