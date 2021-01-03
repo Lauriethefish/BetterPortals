@@ -63,12 +63,16 @@ public class MainUpdate implements Runnable {
         Player player = playerData.getPlayer();
         
         Vector lastPos = playerData.getLastPosition();
+        Vector currentPos = player.getLocation().toVector();
 
         // If the player's position the previous tick was on the other side of the portal window, then we should teleport the player, otherwise return
-        if(lastPos == null || !checker.checkIfVisibleThroughPortal(lastPos))   {
+        if(lastPos == null || !checker.checkIfVisibleThroughPortal(lastPos) || currentPos.equals(lastPos))   {
             return false;
         }
-        
+
+        pl.logDebug("Last Pos: %s", lastPos);
+        pl.logDebug("Current pos: %s", player.getLocation().toVector());
+
         portal.teleportEntity(player);
         playerData.onPortalTeleport();
         return true;
@@ -179,6 +183,7 @@ public class MainUpdate implements Runnable {
 
             playerData.onTick();
 
+            boolean canTeleport = playerData.canBeTeleportedByPortal();
             boolean canSeeThroughPortals = playerData.canSeeThroughPortals();
 
             // Find the closest portal to the player
@@ -212,8 +217,9 @@ public class MainUpdate implements Runnable {
             }   else    {
                 playerData.setViewingPortal(null);
             }
-            
-            playerData.setLastPosition(player.getLocation().toVector());
+
+            // Avoid repeated teleports by only setting the player's last position if they could've teleported this tick
+            if(canTeleport) {playerData.setLastPosition(player.getLocation().toVector());};
         }
 
         // If an active portal was not removed from this set, then it must be deactivated
