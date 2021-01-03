@@ -17,13 +17,16 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
+// Brings everything else together - sends updates to the block processor for processing on other threads
+// Also handles calling the methods in PortalUpdateManager for portal updating, activating and deactivating.
+// Player teleportation is handled here
 public class MainUpdate implements Runnable {
     private BetterPortals pl;
 
     private Config config;
 
     private BlockProcessor blockRenderer;
-    private HashSet<Portal> activePortals = new HashSet<>();
+    private Set<Portal> activePortals = new HashSet<>();
 
     public MainUpdate(BetterPortals pl) {
         blockRenderer = new BlockProcessor(pl);
@@ -219,7 +222,7 @@ public class MainUpdate implements Runnable {
             }
 
             // Avoid repeated teleports by only setting the player's last position if they could've teleported this tick
-            if(canTeleport) {playerData.setLastPosition(player.getLocation().toVector());};
+            if(canTeleport) {playerData.setLastPosition(player.getLocation().toVector());}
         }
 
         // If an active portal was not removed from this set, then it must be deactivated
