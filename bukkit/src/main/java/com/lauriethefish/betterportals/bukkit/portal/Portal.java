@@ -277,7 +277,7 @@ public class Portal implements ConfigurationSerializable    {
                 
                 // Add the changes to our manager
                 if(reset)   {
-                    manager.addChange(position, new SerializableBlockData(position.getBlock()));
+                    manager.addChange(position, new SerializableBlockData(position.getBlock()).getNmsData());
                 }   else    {
                     manager.addChange(position, nmsAirData);
                 }
