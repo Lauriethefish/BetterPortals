@@ -10,6 +10,8 @@ commands:
     description: Main plugin command
     aliases:
       - bp
+#  stresstest:
+#    description: Testing command used for performance testing
 
 permissions:
   betterportals.reload:
