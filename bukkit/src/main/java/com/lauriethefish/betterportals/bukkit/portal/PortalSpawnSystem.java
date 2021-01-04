@@ -89,7 +89,6 @@ public class PortalSpawnSystem {
         destinationLoc.multiply(link.coordinateRescalingFactor);
         // Reset the Y coordinate since it should not be effected by coordinate rescaling
         destinationLoc.setY(originLocation.getY());
-        destinationLoc.setWorld(link.destinationWorld);
 
         // Get the actual side of the portal, not just the size of the area of portal blocks
         Vector realPSize = portalSize.clone().add(new Vector(2.0, 2.0, 0.0));
@@ -99,7 +98,7 @@ public class PortalSpawnSystem {
         WorldBorder border = link.destinationWorld.getWorldBorder();
         
         // Convert the location to a block and back, this should floor the location so it is all whole numbers
-        Location preferredLocation = destinationLoc.getBlock().getLocation();
+        Location preferredLocation = destinationLoc.toVector().toBlockVector().toLocation(link.destinationWorld);
         pl.logDebug("Preferred destination location %s ", destinationLoc);
 
         Location a = preferredLocation.clone().subtract(128, 0, 128);
@@ -251,18 +250,29 @@ public class PortalSpawnSystem {
         return blChunkDistance + 22.7 < currentDistance; // 22.6... is the diagonal length of a chunk. We round up for a conservative estimate
     }
 
+    // Checks if this layer needs to be checked, or can be skipped
+    private boolean canPosInLayerBeCloser(Location layerPos, Location preferredPos, double currentDistance) {
+        double blDistance = layerPos.distance(preferredPos);
+        return blDistance + 22.7 < currentDistance; // Diagonal length of a layer
+    }
+
     public SpawnPosition checkForExistingFrameInChunk(Location prefferedPos, SpawnPosition currentClosest, ChunkPosition chunkPos, Vector portalSize) {
         Location chunkBottomLeft = chunkPos.getBottomLeft();
 
         double closestDistance = currentClosest == null ? Double.POSITIVE_INFINITY : currentClosest.distance(prefferedPos);
         if(!canPosInChunkBeCloser(chunkPos, prefferedPos, closestDistance)) {return currentClosest;} // No need to check this chunk if no positions in it are any better than our current ones
 
+        pl.logDebug("Checking existing positions in chunk");
         // Limit our Y coordinate so that we don't check areas above Y 255
         int maxY = 254 - portalSize.getBlockY();
         // Loop through each block of the chunk
-        for(int x = 0; x < 16; x++) {
-            for(int z = 0; z < 16; z++)    {
-                for(int y = 0; y < maxY; y++)    {
+        for(int y = 0; y < maxY; y++)    {
+            // Layers can be skipped when there's no chance that they could be any closer
+            Location layerBL = chunkBottomLeft.clone().add(0.0, y, 0.0);
+            if (!canPosInLayerBeCloser(layerBL, prefferedPos, closestDistance)) {continue;}
+
+            for(int x = 0; x < 16; x++) {
+                for(int z = 0; z < 16; z++)    {
                     Location checkPos = chunkBottomLeft.clone().add(x, y, z);
 
                     // Find if this location is any closer than our current closest point
@@ -299,29 +309,35 @@ public class PortalSpawnSystem {
         double closestDistance = currentClosest == null ? Double.POSITIVE_INFINITY : currentClosest.distance(prefferedPos);
         if(!canPosInChunkBeCloser(chunkPos, prefferedPos, closestDistance)) {return currentClosest;} // No need to check this chunk if no positions in it are any better than our current ones
 
-            // Limit our Y coordinate so that we don't check areas above Y 255
+        pl.logDebug("Checking spawn positions in chunk");
+        // Limit our Y coordinate so that we don't check areas above Y 255
         int maxY = 254 - portalSize.getBlockY();
         // Loop through each block of the chunk
-        for(int x = 0; x < 16; x++) {
+        for(int y = 0; y < maxY; y++)    {
+            // Layers can be skipped when there's no chance that they could be any closer
+            Location layerBL = chunkBottomLeft.clone().add(0.0, y, 0.0);
+            if (!canPosInLayerBeCloser(layerBL, prefferedPos, closestDistance)) {continue;}
+
             for(int z = 0; z < 16; z++)    {
-                for(int y = 0; y < maxY; y++)    {
-                    Location checkPos = chunkBottomLeft.clone().add(x, y, z);
+                for(int x = 0; x < 16; x++) {
 
-                    // Find if this location is any closer than our current closest point
-                    double distance = prefferedPos.distance(checkPos);
-                    if(currentClosest == null || distance < closestDistance)  {
-                        for(PortalDirection direction : checkedDirections)  {
-                            // If this portal is too close to an existing portal, skip it
-                            if(checkPortalProximity(checkPos))  {continue;}
+                Location checkPos = chunkBottomLeft.clone().add(x, y, z);
 
-                            // Check to see if this position is valid
-                            if(checkSuitableSpawnLocation(checkPos, direction, portalSize.clone())) {
-                                currentClosest = new SpawnPosition(checkPos, direction);
-                                closestDistance = distance;
-                            }
+                // Find if this location is any closer than our current closest point
+                double distance = prefferedPos.distance(checkPos);
+                if(currentClosest == null || distance < closestDistance)  {
+                    for(PortalDirection direction : checkedDirections)  {
+                        // If this portal is too close to an existing portal, skip it
+                        if(checkPortalProximity(checkPos))  {continue;}
+
+                        // Check to see if this position is valid
+                        if(checkSuitableSpawnLocation(checkPos, direction, portalSize.clone())) {
+                            currentClosest = new SpawnPosition(checkPos, direction);
+                            closestDistance = distance;
                         }
                     }
                 }
+            }
             }
         }
 
