@@ -7,7 +7,9 @@ import java.util.UUID;
 import java.util.function.Predicate;
 
 import com.lauriethefish.betterportals.bukkit.chunkloading.ChunkLoader;
+import com.lauriethefish.betterportals.bukkit.chunkloading.chunkpos.ChunkPosition;
 import com.lauriethefish.betterportals.bukkit.commands.MainCommand;
+import com.lauriethefish.betterportals.bukkit.commands.StressTestCommand;
 import com.lauriethefish.betterportals.bukkit.config.Config;
 import com.lauriethefish.betterportals.bukkit.events.EntityPortal;
 import com.lauriethefish.betterportals.bukkit.events.EntityReplicationEvents;
@@ -252,6 +254,7 @@ public class BetterPortals extends JavaPlugin {
 
     private void registerCommands() {
         getCommand("betterportals").setExecutor(new MainCommand(this));
+        // Testing command: getCommand("stresstest").setExecutor(new StressTestCommand(this));
     }
 
     public boolean loadConfig()   {
@@ -282,7 +285,7 @@ public class BetterPortals extends JavaPlugin {
     }
 
     public void logDebug(String message) {
-        if(loadedConfig.isEntitySupportEnabled())   { // Make sure debug logging is enabled first
+        if(loadedConfig.isDebugLoggingEnabled())   { // Make sure debug logging is enabled first
             getLogger().info("[DEBUG] " + message);
         }
     }
