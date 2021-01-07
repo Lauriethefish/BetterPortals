@@ -38,6 +38,11 @@ public class MessageConfig {
         return ChatColor.RED + getRawMessage(name);
     }
 
+    // Returns a message formatted as yellow for sending warnings
+    public String getWarningMessage(String name) {
+        return ChatColor.YELLOW + getRawMessage(name);
+    }
+
     // Returns a chat message without its prefix
     public String getRawMessage(String name) {
         return messageMap.get(name);
