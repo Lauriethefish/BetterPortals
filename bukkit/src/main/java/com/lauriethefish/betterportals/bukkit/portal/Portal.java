@@ -247,7 +247,7 @@ public class Portal implements ConfigurationSerializable    {
         pl.unregisterPortal(this);
         originPos.getBlock().setType(Material.AIR);
 
-        if(removeDestination)   {
+        if(removeDestination && !isCrossServer())   { // We cannot remove the destination block for cross-server portals
             pl.unregisterPortal(destPos);
             destPos.getBlock().setType(Material.AIR);
         }

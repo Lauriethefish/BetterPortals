@@ -103,8 +103,6 @@ public class PortalPosition implements Serializable, ConfigurationSerializable {
 
     // Returns if this location is in line with the plane of this portal position
     public boolean isInLine(Location location) {
-        if(isExternal()) {throw new IllegalStateException("Cannot check if in line with an external position");}
-
         return direction.swapVector(getVector()).getBlockZ() ==
             direction.swapLocation(location).getBlockZ();
     }

@@ -44,7 +44,7 @@ public class MainUpdate implements Runnable {
     private Portal findClosestPortal(Player player)   {
         Predicate<Portal> isValidPortal = portal -> {
             // If the portal goes across servers, and we aren't connected to bungeecord, we can't activate it.
-            return !portal.isCrossServer() || pl.getNetworkClient().isConnected();
+            return !portal.isCrossServer() || (pl.getNetworkClient() != null && pl.getNetworkClient().isConnected());
         };
 
         // Loop through all active portals and find the closest one to be activated
