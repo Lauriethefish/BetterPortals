@@ -53,7 +53,7 @@ disabledWorlds:
 # Set to 0 to disable
 waitTimeAfterSwitchingWorlds: 1
 
-teleportCooldown: 5 # How long to wait before a player can go back after going through a portal (0 to disable)
+teleportCooldown: 10 # How long to wait before a player can go back after going through a portal (0 to disable)
 
 # Stores the links between worlds. By default this links the overworld and the nether with portals
 # There are two links for the overworld and the nether - one for each way.
@@ -104,6 +104,7 @@ chatMessages:
   unknownCommand: "Unknown Command. For help, run /bp help"
   proxyDisabled: "Unable to reconnect to the proxy: it is not enabled!"
   alreadyConnected: "Unable to reconnect to the proxy: the server is already connected!"
+  horizontalInvertedIssues: "Warning: horizontal inverted portals can cause issues with the rotation of blocks (not all blocks can be inverted directly)."
 
   reload: "Reloaded plugin"
   originPortalSet: "Origin portal set"

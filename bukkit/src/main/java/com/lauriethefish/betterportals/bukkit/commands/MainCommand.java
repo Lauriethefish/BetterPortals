@@ -153,7 +153,7 @@ public class MainCommand implements CommandExecutor {
             // Swap around the portal if the user specified
             boolean invert = false;
             if(args.length >= 3)    {
-                invert = Boolean.valueOf(args[2]);
+                invert = Boolean.parseBoolean(args[2]);
             }
             if(invert)  {
                 destinationSelection.invertDirection();
@@ -164,15 +164,20 @@ public class MainCommand implements CommandExecutor {
             // Find if we also need to link the destination back to the origin
             boolean linkTwoWay = false;
             if(args.length >= 2)    {
-                linkTwoWay = Boolean.valueOf(args[1]);
+                linkTwoWay = Boolean.parseBoolean(args[1]);
             }
             
             if(linkTwoWay)  {
                 pl.registerPortal(new Portal(pl, destinationSelection, originSelection, player));
             }
 
+            // Send a warning message about horizontal inverted portals
+            if(originSelection.getPortalDirection().isHorizontal() && destinationSelection.getPortalDirection().isHorizontal() && invert) {
+                player.sendMessage(config.getWarningMessage("horizontalInvertedIssues"));
+            }
 
             player.sendMessage(config.getChatMessage("portalsLinked"));
+
             return true;
         }
 
@@ -185,7 +190,7 @@ public class MainCommand implements CommandExecutor {
 
             boolean removeOtherSide = true; // Whether or not we will remove any portals coming back to this portal
             if(args.length >= 2)    {
-                removeOtherSide = Boolean.valueOf(args[1]);
+                removeOtherSide = Boolean.parseBoolean(args[1]);
             }
 
             // Find the closest portal within 20 blocks
@@ -240,6 +245,13 @@ public class MainCommand implements CommandExecutor {
             }   catch(IllegalArgumentException ex) {
                 player.sendMessage(config.getErrorMessage("invalidArgs"));
                 return false;
+            }
+
+            PortalDirection originDir = originPos.getDirection();
+            PortalDirection destDir = destPos.getDirection();
+            // Send a warning message about horizontal inverted portals
+            if(originDir.isHorizontal() && destDir.isHorizontal() && originDir != destDir) {
+                player.sendMessage(ChatColor.YELLOW + config.getChatMessage("horizontalInvertedIssues"));
             }
             
             // Register the portal with the plugin
