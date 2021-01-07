@@ -93,11 +93,11 @@ public class MainUpdate implements Runnable {
 
     private void updateEntities(PlayerData playerData, Portal portal, PlaneIntersectionChecker checker, boolean viewEntitiesThroughPortals)  {
         // Entity processing, be that teleportation through portals or viewing entities through them, is not supported with portals across servers
+        if(!viewEntitiesThroughPortals)  {return;}
         if(portal.isCrossServer()) {return;}
 
         EntityManipulator manipulator = playerData.getEntityManipulator();
 
-        // We need to loop through the entities at the origin regardless of if entities are enabled, since we also need to teleport those going through portals
         Set<Entity> hiddenEntities = new HashSet<>();
 
         Iterator<Map.Entry<Entity, Vector>> iter = portal.getNearbyEntitiesOrigin().entrySet().iterator();
@@ -114,24 +114,15 @@ public class MainUpdate implements Runnable {
             }
 
             Vector actualLocation = entity.getLocation().toVector();
-            // Teleport the entity if it walked through a portal
-            PlaneIntersectionChecker teleportChecker = new PlaneIntersectionChecker(actualLocation, portal);
-            if(!(entity instanceof Player) && lastKnownLocation != null && teleportChecker.checkIfVisibleThroughPortal(lastKnownLocation))  {
-                portal.teleportEntity(entity);
-                portal.getNearbyEntitiesDestination().add(entity);
-                iter.remove();
-            }
 
             // Set the location back to the actual location
             entry.setValue(actualLocation);
 
             // If an entity is visible through the portal, then we hide it
-            if(viewEntitiesThroughPortals && checker.checkIfVisibleThroughPortal(entity.getLocation().toVector()) && entity != playerData.getPlayer())  {
+            if(checker.checkIfVisibleThroughPortal(entity.getLocation().toVector()) && entity != playerData.getPlayer())  {
                 hiddenEntities.add(entity);
             }
         }
-
-        if(!viewEntitiesThroughPortals)  {return;}
 
         Set<Entity> replicatedEntities = new HashSet<>();
         for(Entity entity : portal.getNearbyEntitiesDestination())   {
