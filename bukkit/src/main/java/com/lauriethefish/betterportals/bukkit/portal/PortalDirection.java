@@ -16,7 +16,7 @@ public enum PortalDirection {
     private final Vector direction;
     // This vector is used if we need to rotate the portal view round 180 degrees because the origin and destination are in exact opposite direction
     private final Vector inversionRotationAxis;
-    private PortalDirection(Vector direction, Vector inversionRotationAxis)   {
+    PortalDirection(Vector direction, Vector inversionRotationAxis)   {
         this.direction = direction;
         this.inversionRotationAxis = inversionRotationAxis;
     }
@@ -46,15 +46,12 @@ public enum PortalDirection {
     public Vector swapVector(Vector vec)    {
         switch(this)    {
             case EAST:
-                return new Vector(vec.getZ(), vec.getY(), vec.getX());
-            case UP:
-                return new Vector(vec.getX(), vec.getZ(), vec.getY());
-            case NORTH:
-                return vec.clone();
             case WEST:
                 return new Vector(vec.getZ(), vec.getY(), vec.getX());
+            case UP:
             case DOWN:
                 return new Vector(vec.getX(), vec.getZ(), vec.getY());
+            case NORTH:
             case SOUTH:
                 return vec.clone();
         }
@@ -63,6 +60,11 @@ public enum PortalDirection {
 
     public Location swapLocation(Location loc)  {
         return swapVector(loc.toVector()).toLocation(loc.getWorld());
+    }
+
+    // Returns true if a portal with this direction is oriented only on the X or Z
+    public boolean isHorizontal() {
+        return this == UP || this == DOWN;
     }
 
     // Returns the PortalDirection pointing the opposite way to this one
