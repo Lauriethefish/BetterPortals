@@ -19,7 +19,7 @@ public class PortalSelection {
     private Vector b;
 
     private Location portalPosition;
-    private PortalDirection portalDirection;
+    @Getter private PortalDirection portalDirection;
     @Getter private Vector portalSize;
 
     public PortalSelection(World world) {
