@@ -6,7 +6,7 @@ import com.lauriethefish.betterportals.bukkit.network.BlockDataArrayRequest;
 
 import lombok.Getter;
 
-public class ExternalUpdateWorker implements Runnable {
+public class BlockRequestWorker implements Runnable {
     private BetterPortals pl;
     @Getter private CachedViewableBlocksArray cachedArray;
     private BlockDataArrayRequest request;
@@ -14,7 +14,7 @@ public class ExternalUpdateWorker implements Runnable {
     private volatile BlockDataUpdateResult result = null;
     private volatile boolean failed = false;
 
-    public ExternalUpdateWorker(BetterPortals pl, BlockDataArrayRequest request, CachedViewableBlocksArray cachedArray) {
+    public BlockRequestWorker(BetterPortals pl, BlockDataArrayRequest request, CachedViewableBlocksArray cachedArray) {
         this.pl = pl;
         this.cachedArray = cachedArray;
         this.request = request;

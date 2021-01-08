@@ -17,7 +17,7 @@ public class PortalBlockArrayManager {
     private BetterPortals pl;
 
     private Map<BlockDataArrayRequest, CachedViewableBlocksArray> cachedArrays = new HashMap<>();
-    private Map<BlockDataArrayRequest, ExternalUpdateWorker> externalUpdateWorkers = new HashMap<>();
+    private Map<BlockDataArrayRequest, BlockRequestWorker> externalUpdateWorkers = new HashMap<>();
 
     public PortalBlockArrayManager(BetterPortals pl) {
         this.pl = pl;
@@ -57,7 +57,7 @@ public class PortalBlockArrayManager {
 
             pl.logDebug("Updating blocks for external portal . . .");
             if(!externalUpdateWorkers.containsKey(request)) {
-                externalUpdateWorkers.put(request, new ExternalUpdateWorker(pl, request, array));
+                externalUpdateWorkers.put(request, new BlockRequestWorker(pl, request, array));
             }   else    {
                 pl.getLogger().warning("External portal update lagging behind, worker still processing next update attempt.");
             }
@@ -104,9 +104,9 @@ public class PortalBlockArrayManager {
             pendingRequests.put(entry.getKey(), result);
         }
 
-        Iterator<ExternalUpdateWorker> iterator = externalUpdateWorkers.values().iterator();
+        Iterator<BlockRequestWorker> iterator = externalUpdateWorkers.values().iterator();
         while(iterator.hasNext()) {
-            ExternalUpdateWorker worker = iterator.next();
+            BlockRequestWorker worker = iterator.next();
             if(worker.hasFailed()) {
                 iterator.remove(); // Just remove the worker - the error has already been printed by the worker thread
             }
