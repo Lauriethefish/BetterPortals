@@ -13,8 +13,8 @@ class BlockStateArray {
     private RenderConfig config;
     
     @Getter private boolean[] occlusion = null; // Array of which blocks fully block out light
-    @Getter private Material[] materials = null; // Array of combined block IDs
-    @Getter private byte[] dataValues = null;
+    @Getter private Material[] materials = null; // Array of block materials
+    @Getter private byte[] dataValues = null; // Array of the data values
 
     public BlockStateArray(BetterPortals pl) {
         this.config = pl.getLoadedConfig().getRendering();
@@ -42,7 +42,7 @@ class BlockStateArray {
             // Update the occlusion and combined ID arrays
             materials[index] = material;
             dataValues[index] = data;
-            occlusion[index] = block.getType().isOccluding();
+            occlusion[index] = material.isOccluding();
             return true;
         }   else    {
             return false;
