@@ -6,7 +6,7 @@ import org.bukkit.block.BlockState;
 
 // Interface that allows you to use either implementation of BlockRotator
 public interface BlockRotator {
-    public static BlockRotator newInstance(BlockDataArrayRequest request)  {
+    static BlockRotator newInstance(BlockDataArrayRequest request)  {
         if(ReflectUtils.isLegacy)   {
             return new BlockRotator_Legacy(request);
         }   else    {
@@ -14,5 +14,5 @@ public interface BlockRotator {
         }
     }
 
-    public void rotateToOrigin(BlockState state);
+    void rotateToOrigin(BlockState state);
 }
