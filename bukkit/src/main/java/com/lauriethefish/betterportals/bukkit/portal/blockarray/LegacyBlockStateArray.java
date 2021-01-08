@@ -9,30 +9,32 @@ import org.bukkit.block.Block;
 
 import lombok.Getter;
 
-class BlockStateArray {
-    private RenderConfig config;
-    
+class LegacyBlockStateArray implements BlockStateArray {
+    private final RenderConfig renderConfig;
+
     @Getter private boolean[] occlusion = null; // Array of which blocks fully block out light
     @Getter private Material[] materials = null; // Array of block materials
     @Getter private byte[] dataValues = null; // Array of the data values
 
-    public BlockStateArray(BetterPortals pl) {
-        this.config = pl.getLoadedConfig().getRendering();
+    public LegacyBlockStateArray(BetterPortals pl) {
+        this.renderConfig = pl.getLoadedConfig().getRendering();
     }
 
-    boolean initialise() {
+    @Override
+    public boolean initialise() {
         if(occlusion != null) {return false;} // If we've already initialised both arrays, return false
         
         // Otherwise, initialise and return true
-        occlusion = new boolean[config.getTotalArrayLength()];
-        materials = new Material[config.getTotalArrayLength()];
-        dataValues = new byte[config.getTotalArrayLength()];
+        occlusion = new boolean[renderConfig.getTotalArrayLength()];
+        materials = new Material[renderConfig.getTotalArrayLength()];
+        dataValues = new byte[renderConfig.getTotalArrayLength()];
         return true;
     }
 
     // Updates the arrays at the location and index. Returns true if the block changed
     @SuppressWarnings("deprecation")
-    boolean update(Location loc, int index) {
+    @Override
+    public boolean update(Location loc, int index) {
         Block block = loc.getBlock();
 
         Material material = block.getType();
@@ -47,5 +49,15 @@ class BlockStateArray {
         }   else    {
             return false;
         }
+    }
+
+    @Override
+    public boolean isOccluding(int index) {
+        return occlusion[index];
+    }
+
+    @Override
+    public SerializableBlockData getBlockData(int index) {
+        return new SerializableBlockData(materials[index], dataValues[index]);
     }
 }

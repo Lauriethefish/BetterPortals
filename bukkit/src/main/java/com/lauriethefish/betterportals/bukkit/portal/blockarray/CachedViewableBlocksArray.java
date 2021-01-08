@@ -36,8 +36,8 @@ public class CachedViewableBlocksArray {
     public CachedViewableBlocksArray(BetterPortals pl) {
         this.config = pl.getLoadedConfig().getRendering();
         this.pl = pl;
-        blockStatesOrigin = new BlockStateArray(pl);
-        blockStatesDestination = new BlockStateArray(pl);
+        blockStatesOrigin = BlockStateArray.createInstance(pl);
+        blockStatesDestination = BlockStateArray.createInstance(pl);
     }
 
     // Returns teh current list of blocks
@@ -103,7 +103,7 @@ public class CachedViewableBlocksArray {
             boolean isEdge = isEdge(relativePos);
 
             // Find the data at the origin
-            SerializableBlockData originData = new SerializableBlockData(blockStatesOrigin.getMaterials()[index], blockStatesOrigin.getDataValues()[index]);
+            SerializableBlockData originData = blockStatesOrigin.getBlockData(index);
 
             // Use the data sent back from the remote server to create the BlockRaycastData
             BlockRaycastData newData = new BlockRaycastData(relativePos.add(originPos), originData, entry.getValue(), isEdge);
@@ -128,7 +128,7 @@ public class CachedViewableBlocksArray {
             // Check the surrounding block's occlusion values to see if it is fully covered
             boolean isFullySurrounded = true;
             for(int offset : config.getSurroundingOffsets()) {
-                if(!isOutOfBounds(index + offset) && !blockStatesDestination.getOcclusion()[index + offset]) {
+                if(!isOutOfBounds(index + offset) && !blockStatesDestination.isOccluding(index + offset)) {
                     isFullySurrounded = false;
                     break;
                 }

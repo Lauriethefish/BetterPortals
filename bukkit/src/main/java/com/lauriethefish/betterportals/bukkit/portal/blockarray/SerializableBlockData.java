@@ -12,6 +12,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 
 import lombok.Getter;
+import org.bukkit.block.data.BlockData;
 
 // Class for storing a material and data byte pair for easy serialization and passing.
 public class SerializableBlockData implements Serializable {
@@ -21,6 +22,10 @@ public class SerializableBlockData implements Serializable {
     
     public SerializableBlockData(BlockState state) {
         this.nmsData = ReflectUtils.getNMSData(state); 
+    }
+
+    public SerializableBlockData(BlockData blockData) {
+        this.nmsData = ReflectUtils.getNMSData(blockData);
     }
 
     public SerializableBlockData(Block block) {
