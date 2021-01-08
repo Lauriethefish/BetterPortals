@@ -7,9 +7,7 @@ import java.util.UUID;
 import java.util.function.Predicate;
 
 import com.lauriethefish.betterportals.bukkit.chunkloading.ChunkLoader;
-import com.lauriethefish.betterportals.bukkit.chunkloading.chunkpos.ChunkPosition;
 import com.lauriethefish.betterportals.bukkit.commands.MainCommand;
-import com.lauriethefish.betterportals.bukkit.commands.StressTestCommand;
 import com.lauriethefish.betterportals.bukkit.config.Config;
 import com.lauriethefish.betterportals.bukkit.events.EntityPortal;
 import com.lauriethefish.betterportals.bukkit.events.EntityReplicationEvents;
@@ -22,7 +20,7 @@ import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
 import com.lauriethefish.betterportals.bukkit.portal.PortalSpawnSystem;
 import com.lauriethefish.betterportals.bukkit.portal.PortalStorage;
 import com.lauriethefish.betterportals.bukkit.portal.blockarray.PortalBlockArrayManager;
-import com.lauriethefish.betterportals.bukkit.runnables.MainUpdate;
+import com.lauriethefish.betterportals.bukkit.tasks.MainUpdate;
 import com.lauriethefish.betterportals.bukkit.selection.WandInteract;
 
 import org.bukkit.*;

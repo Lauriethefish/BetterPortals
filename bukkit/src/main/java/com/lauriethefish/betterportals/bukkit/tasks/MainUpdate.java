@@ -1,4 +1,4 @@
-package com.lauriethefish.betterportals.bukkit.runnables;
+package com.lauriethefish.betterportals.bukkit.tasks;
 
 import java.util.HashSet;
 import java.util.Iterator;

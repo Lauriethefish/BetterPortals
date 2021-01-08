@@ -7,7 +7,7 @@ import java.security.GeneralSecurityException;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
 import com.lauriethefish.betterportals.bukkit.config.ProxyConfig;
-import com.lauriethefish.betterportals.bukkit.runnables.ClientReconnect;
+import com.lauriethefish.betterportals.bukkit.tasks.ClientReconnect;
 import com.lauriethefish.betterportals.network.RegisterRequest;
 import com.lauriethefish.betterportals.network.Request;
 import com.lauriethefish.betterportals.network.Response;
