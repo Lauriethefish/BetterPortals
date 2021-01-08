@@ -295,18 +295,18 @@ public class Portal implements ConfigurationSerializable    {
         return destPos.isExternal();
     }
 
-    BlockDataArrayRequest createBlockDataRequest() {
-        return new BlockDataArrayRequest(originPos, destPos);
+    BlockDataArrayRequest createBlockDataRequest(BlockDataArrayRequest.Mode mode) {
+        return new BlockDataArrayRequest(originPos, destPos, mode);
     }
 
     // Returns the currently fetched viewable blocks array. Update should be called before this point
     public CachedViewableBlocksArray getCachedViewableBlocksArray() {
-        return pl.getBlockArrayProcessor().getCachedArray(createBlockDataRequest());
+        return pl.getBlockArrayProcessor().getCachedArray(createBlockDataRequest(BlockDataArrayRequest.Mode.GET_OR_UPDATE));
     }
 
     void updateCurrentBlocks() {
         // Send a request to the PortalBlockArrayProcessor
-        pl.getBlockArrayProcessor().updateBlockArray(createBlockDataRequest());
+        pl.getBlockArrayProcessor().updateBlockDataArray(createBlockDataRequest(BlockDataArrayRequest.Mode.GET_OR_UPDATE));
     }
 
     void forceloadDestinationChunks() {

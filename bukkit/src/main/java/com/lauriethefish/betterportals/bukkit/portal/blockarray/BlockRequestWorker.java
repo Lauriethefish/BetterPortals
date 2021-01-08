@@ -30,8 +30,10 @@ public class BlockRequestWorker implements Runnable {
         return failed;
     }
 
-    // Called to process the BlockDataUpdateResult on the main thread once it has been fetched
+    // Called to process the BlockDataUpdateResult on the main thread once it has been fetched (only called for get/update block array requests)
     public void finishUpdate() {
+        if(request.getMode() != BlockDataArrayRequest.Mode.GET_OR_UPDATE) {throw new IllegalStateException("Non-get/update requests do not need finishing");}
+
         cachedArray.checkForChanges(request, true, false);
         cachedArray.processExternalUpdate(request, result);
     }
@@ -46,12 +48,36 @@ public class BlockRequestWorker implements Runnable {
             return;
         }
 
+        // Update with the right code
+        switch(request.getMode()) {
+            case GET_OR_UPDATE:
+                fetchUpdateResult();
+            case CLEAR:
+                fetchClearResult();
+        }
+    }
+
+    // Fetches a BlockDataUpdateResult in order to get the blocks at the destination
+    private void fetchUpdateResult() {
+        String destinationServer = request.getDestPos().getServerName();
         try {
             // Send the request to the destination server
             Object rawResult = pl.getNetworkClient().sendRequestToServer(request, destinationServer);
             result = (BlockDataUpdateResult) rawResult;
         } catch (Throwable ex) {
             pl.getLogger().warning("An error occurred while fetching the blocks for an external portal. This portal will not activate.");
+            failed = true;
+            ex.printStackTrace();
+        }
+    }
+
+    // Sends a request to just clear the block array
+    private void fetchClearResult() {
+        String destinationServer = request.getDestPos().getServerName();
+        try {
+            pl.getNetworkClient().sendRequestToServer(request, destinationServer);
+        }   catch(Throwable ex) {
+            pl.getLogger().warning("Failed to clear block array for an external portal when deactivated");
             failed = true;
             ex.printStackTrace();
         }

@@ -1,6 +1,7 @@
 package com.lauriethefish.betterportals.bukkit.portal;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
+import com.lauriethefish.betterportals.bukkit.network.BlockDataArrayRequest;
 
 public class PortalUpdateManager {
     private BetterPortals pl;
@@ -44,7 +45,7 @@ public class PortalUpdateManager {
         portal.unforceloadDestinationChunks();
 
         // Clear the cached array when the player no longer activates the portal to avoid leaking memory
-        pl.getBlockArrayProcessor().clearCachedArray(portal.createBlockDataRequest());
+        pl.getBlockArrayProcessor().clearCachedArray(portal.createBlockDataRequest(BlockDataArrayRequest.Mode.CLEAR));
     }
 
     public boolean isActivatedByPlayer() {

@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
 import com.lauriethefish.betterportals.bukkit.BlockRaycastData;
@@ -16,8 +17,8 @@ import com.lauriethefish.betterportals.bukkit.network.BlockDataArrayRequest;
 public class PortalBlockArrayManager {
     private BetterPortals pl;
 
-    private Map<BlockDataArrayRequest, CachedViewableBlocksArray> cachedArrays = new HashMap<>();
-    private Map<BlockDataArrayRequest, BlockRequestWorker> externalUpdateWorkers = new HashMap<>();
+    private Map<BlockDataArrayRequest, CachedViewableBlocksArray> cachedArrays = new ConcurrentHashMap<>();
+    private Map<BlockDataArrayRequest, BlockRequestWorker> externalUpdateWorkers = new ConcurrentHashMap<>();
 
     public PortalBlockArrayManager(BetterPortals pl) {
         this.pl = pl;
@@ -43,10 +44,16 @@ public class PortalBlockArrayManager {
         pl.logDebug("Clearing cached array");
         cachedArrays.remove(request);
         externalUpdateWorkers.remove(request);
+
+        if(request.getDestPos().isExternal()) {
+            pl.logDebug("Clearing cached array at destination");
+            // No need to pass a cached array - we're only clearing it. We also shouldn't add it to the external update workers as it doesn't need any kind of finishing
+            new BlockRequestWorker(pl, request, null);
+        }
     }
 
     // Updates/creates the block array if it does not exist
-    public void updateBlockArray(BlockDataArrayRequest request) {
+    public void updateBlockDataArray(BlockDataArrayRequest request) {
         long timeBefore = System.nanoTime();
 
         CachedViewableBlocksArray array = getCachedArray(request);
@@ -76,6 +83,13 @@ public class PortalBlockArrayManager {
     private Map<BlockDataArrayRequest, BlockDataUpdateResult> pendingRequests = Collections.synchronizedMap(new HashMap<>()); // We need null values, so can't use ConcurrentHashMap
     // Called whenever a GetBlockDataArrayRequest is received from another server.
     public BlockDataUpdateResult handleGetBlockDataArrayRequest(BlockDataArrayRequest request) {
+        // Clear the cached array if requested to
+        if(request.getMode() == BlockDataArrayRequest.Mode.CLEAR) {
+            pl.logDebug("Clearing array from external server");
+            cachedArrays.remove(request);
+            return null; // Return null if just clearing the array
+        }
+
         pendingRequests.put(request, null);
 
         // Wait until the request has been processed by the main thread
@@ -124,7 +138,6 @@ public class PortalBlockArrayManager {
         CachedViewableBlocksArray array = getCachedArray(request);
         Set<Integer> changes = array.checkForChanges(request, false, true); // Check for the changes at the destination
 
-        BlockDataUpdateResult nonObscuredChanges = array.processChanges(request, changes);
-        return nonObscuredChanges;
+        return array.processChanges(request, changes);
     }
 }
