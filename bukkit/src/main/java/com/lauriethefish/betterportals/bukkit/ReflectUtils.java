@@ -19,6 +19,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.ItemStack;
@@ -367,6 +368,11 @@ public class ReflectUtils {
     public static Object getNMSData(Material mat)  {
         Object block = ReflectUtils.runMethod(null, ReflectUtils.getBukkitClass("util.CraftMagicNumbers"), "getBlock", new Class[]{Material.class}, new Object[]{mat});
         return ReflectUtils.getField(block, "blockData");
+    }
+
+    // Uses the handle method of a CraftBlockData to get the NMS data
+    public static Object getNMSData(BlockData data) {
+        return ReflectUtils.runMethod(data, ReflectUtils.getBukkitClass("block.data.CraftBlockData"), "getHandle", new Class[]{}, new Object[]{});
     }
 
     // This won't work properly on non-legacy versions!
