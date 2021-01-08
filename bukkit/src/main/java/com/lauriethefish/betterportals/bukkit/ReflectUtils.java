@@ -372,7 +372,7 @@ public class ReflectUtils {
 
     // Uses the handle method of a CraftBlockData to get the NMS data
     public static Object getNMSData(BlockData data) {
-        return ReflectUtils.runMethod(data, ReflectUtils.getBukkitClass("block.data.CraftBlockData"), "getHandle", new Class[]{}, new Object[]{});
+        return ReflectUtils.runMethod(data, ReflectUtils.getBukkitClass("block.data.CraftBlockData"), "getState", new Class[]{}, new Object[]{});
     }
 
     // This won't work properly on non-legacy versions!
