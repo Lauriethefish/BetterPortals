@@ -2,19 +2,19 @@ package com.lauriethefish.betterportals.bukkit.portal.blockarray;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
 import com.lauriethefish.betterportals.bukkit.network.BlockDataUpdateResult;
-import com.lauriethefish.betterportals.bukkit.network.GetBlockDataArrayRequest;
+import com.lauriethefish.betterportals.bukkit.network.BlockDataArrayRequest;
 
 import lombok.Getter;
 
 public class ExternalUpdateWorker implements Runnable {
     private BetterPortals pl;
     @Getter private CachedViewableBlocksArray cachedArray;
-    private GetBlockDataArrayRequest request;
+    private BlockDataArrayRequest request;
 
     private volatile BlockDataUpdateResult result = null;
     private volatile boolean failed = false;
 
-    public ExternalUpdateWorker(BetterPortals pl, GetBlockDataArrayRequest request, CachedViewableBlocksArray cachedArray) {
+    public ExternalUpdateWorker(BetterPortals pl, BlockDataArrayRequest request, CachedViewableBlocksArray cachedArray) {
         this.pl = pl;
         this.cachedArray = cachedArray;
         this.request = request;
@@ -51,7 +51,7 @@ public class ExternalUpdateWorker implements Runnable {
             Object rawResult = pl.getNetworkClient().sendRequestToServer(request, destinationServer);
             result = (BlockDataUpdateResult) rawResult;
         } catch (Throwable ex) {
-            pl.getLogger().warning("An error occured while fetching the blocks for an external portal. This portal will not activate.");
+            pl.getLogger().warning("An error occurred while fetching the blocks for an external portal. This portal will not activate.");
             failed = true;
             ex.printStackTrace();
         }

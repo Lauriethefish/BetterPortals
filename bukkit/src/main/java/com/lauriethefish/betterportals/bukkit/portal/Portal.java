@@ -14,7 +14,7 @@ import com.lauriethefish.betterportals.bukkit.config.RenderConfig;
 import com.lauriethefish.betterportals.bukkit.math.PlaneIntersectionChecker;
 import com.lauriethefish.betterportals.bukkit.chunkloading.chunkpos.ChunkPosition;
 import com.lauriethefish.betterportals.bukkit.multiblockchange.MultiBlockChangeManager;
-import com.lauriethefish.betterportals.bukkit.network.GetBlockDataArrayRequest;
+import com.lauriethefish.betterportals.bukkit.network.BlockDataArrayRequest;
 import com.lauriethefish.betterportals.bukkit.portal.blockarray.CachedViewableBlocksArray;
 import com.lauriethefish.betterportals.bukkit.portal.blockarray.SerializableBlockData;
 import com.lauriethefish.betterportals.bukkit.selection.PortalSelection;
@@ -295,8 +295,8 @@ public class Portal implements ConfigurationSerializable    {
         return destPos.isExternal();
     }
 
-    GetBlockDataArrayRequest createBlockDataRequest() {
-        return new GetBlockDataArrayRequest(originPos, destPos);
+    BlockDataArrayRequest createBlockDataRequest() {
+        return new BlockDataArrayRequest(originPos, destPos);
     }
 
     // Returns the currently fetched viewable blocks array. Update should be called before this point

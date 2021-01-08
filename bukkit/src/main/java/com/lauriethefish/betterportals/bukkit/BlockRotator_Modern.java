@@ -1,7 +1,7 @@
 package com.lauriethefish.betterportals.bukkit;
 
 import com.lauriethefish.betterportals.bukkit.math.MathUtils;
-import com.lauriethefish.betterportals.bukkit.network.GetBlockDataArrayRequest;
+import com.lauriethefish.betterportals.bukkit.network.BlockDataArrayRequest;
 
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
@@ -10,8 +10,8 @@ import org.bukkit.util.Vector;
 
 // Handles rotating a BlockState in modern versions (those with BlockData)
 public class BlockRotator_Modern implements BlockRotator    {
-    private GetBlockDataArrayRequest request;
-    public BlockRotator_Modern(GetBlockDataArrayRequest request)  {
+    private BlockDataArrayRequest request;
+    public BlockRotator_Modern(BlockDataArrayRequest request)  {
         this.request = request;
     }
 

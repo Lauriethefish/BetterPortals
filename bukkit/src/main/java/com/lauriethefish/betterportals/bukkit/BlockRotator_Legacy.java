@@ -1,7 +1,7 @@
 package com.lauriethefish.betterportals.bukkit;
 
 import com.lauriethefish.betterportals.bukkit.math.MathUtils;
-import com.lauriethefish.betterportals.bukkit.network.GetBlockDataArrayRequest;
+import com.lauriethefish.betterportals.bukkit.network.BlockDataArrayRequest;
 
 import org.bukkit.block.BlockState;
 import org.bukkit.material.Directional;
@@ -9,8 +9,8 @@ import org.bukkit.util.Vector;
 
 // Alternative implementation that uses MaterialData, since BlockData doesn't exist in 1.12 and below
 public class BlockRotator_Legacy implements BlockRotator {
-    private GetBlockDataArrayRequest request;
-    public BlockRotator_Legacy(GetBlockDataArrayRequest request)  {
+    private BlockDataArrayRequest request;
+    public BlockRotator_Legacy(BlockDataArrayRequest request)  {
         this.request = request;
     }
 

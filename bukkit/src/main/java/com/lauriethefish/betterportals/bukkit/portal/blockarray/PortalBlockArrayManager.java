@@ -10,14 +10,14 @@ import java.util.Set;
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
 import com.lauriethefish.betterportals.bukkit.BlockRaycastData;
 import com.lauriethefish.betterportals.bukkit.network.BlockDataUpdateResult;
-import com.lauriethefish.betterportals.bukkit.network.GetBlockDataArrayRequest;
+import com.lauriethefish.betterportals.bukkit.network.BlockDataArrayRequest;
 
 // Handles creating the array of blocks that aren't obscured by other solid blocks.
 public class PortalBlockArrayManager {
     private BetterPortals pl;
 
-    private Map<GetBlockDataArrayRequest, CachedViewableBlocksArray> cachedArrays = new HashMap<>();
-    private Map<GetBlockDataArrayRequest, ExternalUpdateWorker> externalUpdateWorkers = new HashMap<>();
+    private Map<BlockDataArrayRequest, CachedViewableBlocksArray> cachedArrays = new HashMap<>();
+    private Map<BlockDataArrayRequest, ExternalUpdateWorker> externalUpdateWorkers = new HashMap<>();
 
     public PortalBlockArrayManager(BetterPortals pl) {
         this.pl = pl;
@@ -25,11 +25,11 @@ public class PortalBlockArrayManager {
 
     // Gets the current block array for the specified portal
     // This will throw NullPointerException if no array exists
-    public Collection<BlockRaycastData> getBlockDataArray(GetBlockDataArrayRequest request) {
+    public Collection<BlockRaycastData> getBlockDataArray(BlockDataArrayRequest request) {
         return cachedArrays.get(request).getBlocks();
     }
 
-    public CachedViewableBlocksArray getCachedArray(GetBlockDataArrayRequest request) {
+    public CachedViewableBlocksArray getCachedArray(BlockDataArrayRequest request) {
         // Make a new cached array if one doesn't exist
         if (!cachedArrays.containsKey(request)) {
             cachedArrays.put(request, new CachedViewableBlocksArray(pl));
@@ -39,14 +39,14 @@ public class PortalBlockArrayManager {
     }
 
     // Clears the cached array to free memory when a portal is unloaded
-    public void clearCachedArray(GetBlockDataArrayRequest request) {
+    public void clearCachedArray(BlockDataArrayRequest request) {
         pl.logDebug("Clearing cached array");
         cachedArrays.remove(request);
         externalUpdateWorkers.remove(request);
     }
 
     // Updates/creates the block array if it does not exist
-    public void updateBlockArray(GetBlockDataArrayRequest request) {
+    public void updateBlockArray(BlockDataArrayRequest request) {
         long timeBefore = System.nanoTime();
 
         CachedViewableBlocksArray array = getCachedArray(request);
@@ -73,9 +73,9 @@ public class PortalBlockArrayManager {
         pl.logDebug("Time taken: %.03fms", ((double) timeTaken) / 1000000);
     }
 
-    private Map<GetBlockDataArrayRequest, BlockDataUpdateResult> pendingRequests = Collections.synchronizedMap(new HashMap<>()); // We need null values, so can't use ConcurrentHashMap
+    private Map<BlockDataArrayRequest, BlockDataUpdateResult> pendingRequests = Collections.synchronizedMap(new HashMap<>()); // We need null values, so can't use ConcurrentHashMap
     // Called whenever a GetBlockDataArrayRequest is received from another server.
-    public BlockDataUpdateResult handleGetBlockDataArrayRequest(GetBlockDataArrayRequest request) {
+    public BlockDataUpdateResult handleGetBlockDataArrayRequest(BlockDataArrayRequest request) {
         pendingRequests.put(request, null);
 
         // Wait until the request has been processed by the main thread
@@ -97,7 +97,7 @@ public class PortalBlockArrayManager {
             pl.logDebug("Processing %d external updates at destination . . .", pendingRequests.size());
         }
 
-        for(Map.Entry<GetBlockDataArrayRequest, BlockDataUpdateResult> entry : pendingRequests.entrySet()) {
+        for(Map.Entry<BlockDataArrayRequest, BlockDataUpdateResult> entry : pendingRequests.entrySet()) {
             if(entry.getValue() != null) {continue;} // Skip if already processed
 
             BlockDataUpdateResult result = handleGetBlockDataArrayRequestInternal(entry.getKey());
@@ -120,7 +120,7 @@ public class PortalBlockArrayManager {
         }
     }
 
-    private BlockDataUpdateResult handleGetBlockDataArrayRequestInternal(GetBlockDataArrayRequest request) {
+    private BlockDataUpdateResult handleGetBlockDataArrayRequestInternal(BlockDataArrayRequest request) {
         CachedViewableBlocksArray array = getCachedArray(request);
         Set<Integer> changes = array.checkForChanges(request, false, true); // Check for the changes at the destination
 

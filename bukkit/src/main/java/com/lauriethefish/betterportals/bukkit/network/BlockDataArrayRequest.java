@@ -9,14 +9,14 @@ import com.lauriethefish.betterportals.network.Request;
 import lombok.Getter;
 
 // Used to fetch the array of block data from another server for cross-server portals
-public class GetBlockDataArrayRequest implements Request    {
+public class BlockDataArrayRequest implements Request    {
     private static final long serialVersionUID = 933279153991293225L;
     
     @Getter private PortalPosition originPos;
     @Getter private PortalPosition destPos;
     private transient PortalTransformations transformations = null;
 
-    public GetBlockDataArrayRequest(PortalPosition originPos, PortalPosition destPos) {
+    public BlockDataArrayRequest(PortalPosition originPos, PortalPosition destPos) {
         this.originPos = originPos;
         this.destPos = destPos;
     }
@@ -31,10 +31,10 @@ public class GetBlockDataArrayRequest implements Request    {
     public boolean equals(Object o) {
         if (o == this)
             return true;
-        if (!(o instanceof GetBlockDataArrayRequest)) {
+        if (!(o instanceof BlockDataArrayRequest)) {
             return false;
         }
-        GetBlockDataArrayRequest getBlockDataArrayRequest = (GetBlockDataArrayRequest) o;
+        BlockDataArrayRequest getBlockDataArrayRequest = (BlockDataArrayRequest) o;
         return Objects.equals(originPos, getBlockDataArrayRequest.originPos) && Objects.equals(destPos, getBlockDataArrayRequest.destPos);
     }
 

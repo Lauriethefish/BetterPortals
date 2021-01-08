@@ -83,8 +83,8 @@ public class PortalClient {
             // Send the request to the correct handler
             if(request instanceof ServerBoundRequestContainer) {
                 result = handleServerBoundRequestContainer((ServerBoundRequestContainer) request);
-            } else if(request instanceof GetBlockDataArrayRequest) {
-                result = handleGetBlockDataArrayRequest((GetBlockDataArrayRequest) request);
+            } else if(request instanceof BlockDataArrayRequest) {
+                result = handleGetBlockDataArrayRequest((BlockDataArrayRequest) request);
             } else if(request instanceof TeleportPlayerRequest) {
                 handleTeleportPlayerRequest((TeleportPlayerRequest) request);
             }
@@ -99,7 +99,7 @@ public class PortalClient {
         return Response.success(result);
     }
 
-    private Object handleGetBlockDataArrayRequest(GetBlockDataArrayRequest request) {
+    private Object handleGetBlockDataArrayRequest(BlockDataArrayRequest request) {
         return pl.getBlockArrayProcessor().handleGetBlockDataArrayRequest(request);
     }
 

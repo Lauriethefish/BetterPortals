@@ -13,7 +13,7 @@ import com.lauriethefish.betterportals.bukkit.BlockRotator;
 import com.lauriethefish.betterportals.bukkit.config.RenderConfig;
 import com.lauriethefish.betterportals.bukkit.math.MathUtils;
 import com.lauriethefish.betterportals.bukkit.network.BlockDataUpdateResult;
-import com.lauriethefish.betterportals.bukkit.network.GetBlockDataArrayRequest;
+import com.lauriethefish.betterportals.bukkit.network.BlockDataArrayRequest;
 
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -45,7 +45,7 @@ public class CachedViewableBlocksArray {
         return blocks.values();
     }
 
-    public Set<Integer> checkForChanges(GetBlockDataArrayRequest request, boolean updateOrigin, boolean updateDestination) {
+    public Set<Integer> checkForChanges(BlockDataArrayRequest request, boolean updateOrigin, boolean updateDestination) {
         // If this is the first update, then we have to update all blocks.
         boolean updateAll = (updateOrigin && blockStatesOrigin.initialise()) | (updateDestination && blockStatesDestination.initialise());
 
@@ -88,7 +88,7 @@ public class CachedViewableBlocksArray {
         }
     }
 
-    public void processExternalUpdate(GetBlockDataArrayRequest request, BlockDataUpdateResult result) {
+    public void processExternalUpdate(BlockDataArrayRequest request, BlockDataUpdateResult result) {
         lockWhileInUse();
         // Remove any blocks that are now fully obscured
         for(int index : result.getRemovedBlocks()) {
@@ -114,7 +114,7 @@ public class CachedViewableBlocksArray {
 
     // This is either called on the external server whenever an update is required, or on the local server for local portals
     // If it's called locally, null will be returned, otherwise the result will be returned to be sent back to the origin server
-    public BlockDataUpdateResult processChanges(GetBlockDataArrayRequest request, Set<Integer> changes) {
+    public BlockDataUpdateResult processChanges(BlockDataArrayRequest request, Set<Integer> changes) {
         boolean external = request.getDestPos().isExternal();
         BlockDataUpdateResult result = new BlockDataUpdateResult();
 
