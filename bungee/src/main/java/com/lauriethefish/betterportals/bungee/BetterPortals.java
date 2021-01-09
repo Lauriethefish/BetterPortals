@@ -17,6 +17,7 @@ public class BetterPortals extends Plugin {
 
     @Getter private PortalServer portalServer;
     @Getter private Configuration config;
+    private MetricsManager metricsManager;
 
     @Override
     public void onEnable() {
@@ -30,6 +31,7 @@ public class BetterPortals extends Plugin {
             return;
         }
 
+        metricsManager = new MetricsManager(this); // Initialise bstats metrics
         portalServer = new PortalServer(this);
     }
 
