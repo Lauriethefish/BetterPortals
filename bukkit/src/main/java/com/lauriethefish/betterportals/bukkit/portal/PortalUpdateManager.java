@@ -35,14 +35,20 @@ public class PortalUpdateManager {
     public void onActivate() {
         pl.logDebug("Portal activated by player");
         ticksSinceActivated = 0;
-        portal.forceloadDestinationChunks();
+        // Destination forceloading is not performed for cross-server portals.
+        if(!portal.isCrossServer()) {
+            portal.forceloadDestinationChunks();
+        }
     }
 
     public void onDeactivate() {
         pl.logDebug("Portal no longer activated by player");
         ticksSinceActivated = -1;
 
-        portal.unforceloadDestinationChunks();
+        // Destination forceloading is not performed for cross-server portals.
+        if(!portal.isCrossServer()) {
+            portal.unforceloadDestinationChunks();
+        }
 
         // Clear the cached array when the player no longer activates the portal to avoid leaking memory
         pl.getBlockArrayProcessor().clearCachedArray(portal.createBlockDataRequest(BlockDataArrayRequest.Mode.CLEAR));

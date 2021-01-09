@@ -73,11 +73,13 @@ public class Portal implements ConfigurationSerializable    {
         this.locTransformer = new PortalTransformations(originPos, destPos);
         this.updateManager = new PortalUpdateManager(pl, this);
 
-        // Find the chunks around the destination of the portal
-        Vector boxSize = new Vector(renderConfig.getMaxXZ(), renderConfig.getMaxY(), renderConfig.getMaxXZ());
-        Location boxBL = destPos.getLocation().subtract(boxSize);
-        Location boxTR = destPos.getLocation().add(boxSize);
-        ChunkPosition.areaIterator(boxBL, boxTR).addAll(destinationChunks);
+        // Find the chunks around the destination of the portal (used for loading the destination chunks, this is not done on cross-server portals)
+        if(!isCrossServer()) {
+            Vector boxSize = new Vector(renderConfig.getMaxXZ(), renderConfig.getMaxY(), renderConfig.getMaxXZ());
+            Location boxBL = destPos.getLocation().subtract(boxSize);
+            Location boxTR = destPos.getLocation().add(boxSize);
+            ChunkPosition.areaIterator(boxBL, boxTR).addAll(destinationChunks);
+        }
         
         // Divide the size by 2 so it is the correct amount to subtract from the center to reach each corner
         // Then orient it so that is on the z if the portal is north/south
