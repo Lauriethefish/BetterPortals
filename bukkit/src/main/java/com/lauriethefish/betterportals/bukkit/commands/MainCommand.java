@@ -171,9 +171,11 @@ public class MainCommand implements CommandExecutor {
                 pl.registerPortal(new Portal(pl, destinationSelection, originSelection, player));
             }
 
-            // Send a warning message about horizontal inverted portals
-            if(originSelection.getPortalDirection().isHorizontal() && destinationSelection.getPortalDirection().isHorizontal() && invert) {
-                player.sendMessage(config.getWarningMessage("horizontalInvertedIssues"));
+            PortalDirection originDir = originSelection.getPortalDirection();
+            PortalDirection destDir = destinationSelection.getPortalDirection();
+            // Send a warning message about horizontal portals with different origin/destination directions
+            if((originDir.isHorizontal() || destDir.isHorizontal()) && destDir != originDir) {
+                player.sendMessage(config.getWarningMessage("horizontalIssues"));
             }
 
             player.sendMessage(config.getChatMessage("portalsLinked"));
@@ -250,8 +252,8 @@ public class MainCommand implements CommandExecutor {
             PortalDirection originDir = originPos.getDirection();
             PortalDirection destDir = destPos.getDirection();
             // Send a warning message about horizontal inverted portals
-            if(originDir.isHorizontal() && destDir.isHorizontal() && originDir != destDir) {
-                player.sendMessage(ChatColor.YELLOW + config.getChatMessage("horizontalInvertedIssues"));
+            if((originDir.isHorizontal() || destDir.isHorizontal()) && destDir != originDir) {
+                player.sendMessage(ChatColor.YELLOW + config.getChatMessage("horizontalIssues"));
             }
             
             // Register the portal with the plugin

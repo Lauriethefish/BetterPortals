@@ -104,7 +104,7 @@ chatMessages:
   unknownCommand: "Unknown Command. For help, run /bp help"
   proxyDisabled: "Unable to reconnect to the proxy: it is not enabled!"
   alreadyConnected: "Unable to reconnect to the proxy: the server is already connected!"
-  horizontalInvertedIssues: "Warning: horizontal inverted portals can cause issues with the rotation of blocks (not all blocks can be inverted directly)."
+  horizontalIssues: "Warning: horizontal portals with different origin/destination directions can cause issues with block rotations - not all blocks can be rotated in every direction"
 
   reload: "Reloaded plugin"
   originPortalSet: "Origin portal set"
