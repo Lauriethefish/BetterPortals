@@ -54,13 +54,18 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
+      <groupId>org.bstats</groupId>
+      <artifactId>bstats-bungeecord</artifactId>
+      <version>1.8</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <version>1.18.12</version>
+      <version>1.18.16</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>
-
   <build>
     <plugins>
       <plugin>
@@ -85,7 +90,6 @@
         </executions>
       </plugin>
     </plugins>
-
     <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
       <plugins>
         <!-- clean lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#clean_Lifecycle -->
