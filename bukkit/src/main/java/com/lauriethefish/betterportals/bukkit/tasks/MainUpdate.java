@@ -94,7 +94,6 @@ public class MainUpdate implements Runnable {
     private void updateEntities(PlayerData playerData, Portal portal, PlaneIntersectionChecker checker, boolean viewEntitiesThroughPortals)  {
         // Entity processing, be that teleportation through portals or viewing entities through them, is not supported with portals across servers
         if(!viewEntitiesThroughPortals)  {return;}
-        if(portal.isCrossServer()) {return;}
 
         EntityManipulator manipulator = playerData.getEntityManipulator();
 
@@ -123,24 +122,27 @@ public class MainUpdate implements Runnable {
                 hiddenEntities.add(entity);
             }
         }
-
-        Set<Entity> replicatedEntities = new HashSet<>();
-        for(Entity entity : portal.getNearbyEntitiesDestination())   {
-            // Don't replicate entities almost exactly in line 
-            if(portal.getDestPos().isInLine(entity.getLocation())) {
-                continue;
-            }
-
-            Vector originPos = portal.getLocTransformer().moveToOrigin(entity.getLocation().toVector());
-            // If an entity is visible through the portal, then we replicate it
-            if(checker.checkIfVisibleThroughPortal(originPos))  {
-                replicatedEntities.add(entity);
-            }
-        }
-
-        manipulator.updateFakeEntities();
         manipulator.swapHiddenEntities(hiddenEntities);
-        manipulator.swapReplicatedEntities(replicatedEntities, portal);
+
+        // Cross server portals cannot process entities from the other side
+        if(!portal.isCrossServer()) {
+            Set<Entity> replicatedEntities = new HashSet<>();
+            for (Entity entity : portal.getNearbyEntitiesDestination()) {
+                // Don't replicate entities almost exactly in line
+                if (portal.getDestPos().isInLine(entity.getLocation())) {
+                    continue;
+                }
+
+                Vector originPos = portal.getLocTransformer().moveToOrigin(entity.getLocation().toVector());
+                // If an entity is visible through the portal, then we replicate it
+                if (checker.checkIfVisibleThroughPortal(originPos)) {
+                    replicatedEntities.add(entity);
+                }
+            }
+
+            manipulator.updateFakeEntities();
+            manipulator.swapReplicatedEntities(replicatedEntities, portal);
+        }
     }
 
     private void activatePortal(Portal portal) {

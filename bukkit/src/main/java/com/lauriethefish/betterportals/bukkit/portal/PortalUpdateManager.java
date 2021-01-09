@@ -15,11 +15,13 @@ public class PortalUpdateManager {
     }
 
     public void playerUpdate() {
+        // Update the entity list if need need to - for cross-server portals this will only update the origin entities
+        if (ticksSinceActivated % pl.getLoadedConfig().getEntityCheckInterval() == 0) {
+            portal.updateNearbyEntities();
+        }
+
         // Entities aren't processed for cross-server portals
-        if(!portal.isCrossServer()) {// Update the entity list if need need to
-            if (ticksSinceActivated % pl.getLoadedConfig().getEntityCheckInterval() == 0) {
-                portal.updateNearbyEntities();
-            }
+        if(!portal.isCrossServer()) {
             portal.checkEntityTeleportation(); // Teleport entities through the portal if they have crossed in the last tick
         }
 

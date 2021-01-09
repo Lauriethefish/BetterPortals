@@ -119,7 +119,7 @@ public class Portal implements ConfigurationSerializable    {
         return result;
     }
 
-    // Updates the two lists of neaby entities
+    // Updates the two lists of nearby entities
     void updateNearbyEntities()   {
         Collection<Entity> nearbyEntities = originPos.getWorld()
                     .getNearbyEntities(originPos.getLocation(), renderConfig.getMaxXZ(), renderConfig.getMaxY(), renderConfig.getMaxXZ());
@@ -133,7 +133,7 @@ public class Portal implements ConfigurationSerializable    {
         }
         nearbyEntitiesOrigin = newOriginEntites;
 
-        if(pl.getLoadedConfig().isEntitySupportEnabled())   {
+        if(pl.getLoadedConfig().isEntitySupportEnabled() && !isCrossServer())   {
             nearbyEntitiesDestination = destPos.getWorld()
                         .getNearbyEntities(destPos.getLocation(), renderConfig.getMaxXZ(), renderConfig.getMaxY(), renderConfig.getMaxXZ());
         }
