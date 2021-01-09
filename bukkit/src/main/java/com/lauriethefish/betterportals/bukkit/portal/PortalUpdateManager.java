@@ -51,7 +51,7 @@ public class PortalUpdateManager {
         }
 
         // Clear the cached array when the player no longer activates the portal to avoid leaking memory
-        pl.getBlockArrayProcessor().clearCachedArray(portal.createBlockDataRequest(BlockDataArrayRequest.Mode.CLEAR));
+        pl.getBlockArrayProcessor().clearCachedArray(portal.createBlockDataRequest(BlockDataArrayRequest.Mode.CLEAR), false);
     }
 
     public boolean isActivatedByPlayer() {

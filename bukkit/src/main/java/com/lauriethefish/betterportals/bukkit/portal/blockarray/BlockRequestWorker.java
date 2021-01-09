@@ -14,12 +14,17 @@ public class BlockRequestWorker implements Runnable {
     private volatile BlockDataUpdateResult result = null;
     private volatile boolean failed = false;
 
-    public BlockRequestWorker(BetterPortals pl, BlockDataArrayRequest request, CachedViewableBlocksArray cachedArray) {
+    public BlockRequestWorker(BetterPortals pl, BlockDataArrayRequest request, CachedViewableBlocksArray cachedArray, boolean runAsync) {
         this.pl = pl;
         this.cachedArray = cachedArray;
         this.request = request;
 
-        new Thread(this).start();
+        // Choose whether on not to run asynchronously
+        if(runAsync) {
+            new Thread(this).start();
+        }   else    {
+            run();
+        }
     }
 
     public boolean hasFinished() {

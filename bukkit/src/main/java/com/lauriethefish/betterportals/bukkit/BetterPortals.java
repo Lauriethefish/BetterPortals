@@ -229,6 +229,8 @@ public class BetterPortals extends JavaPlugin {
     // This method is called when the plugin is disabled
     @Override
     public void onDisable() {
+        blockArrayProcessor.cleanUp(); // Remove block arrays on external servers
+
         if(loadedConfig.getProxy().isEnabled()) { // Don't shut down the server if the proxy is disabled
             networkClient.shutdown();
         }

@@ -40,7 +40,8 @@ public class PortalBlockArrayManager {
     }
 
     // Clears the cached array to free memory when a portal is unloaded
-    public void clearCachedArray(BlockDataArrayRequest request) {
+    // If waitForFinish is true, this will block on clearing external block arrays
+    public void clearCachedArray(BlockDataArrayRequest request, boolean waitForFinish) {
         pl.logDebug("Clearing cached array");
         cachedArrays.remove(request);
         externalUpdateWorkers.remove(request);
@@ -48,7 +49,17 @@ public class PortalBlockArrayManager {
         if(request.getDestPos().isExternal()) {
             pl.logDebug("Clearing cached array at destination");
             // No need to pass a cached array - we're only clearing it. We also shouldn't add it to the external update workers as it doesn't need any kind of finishing
-            new BlockRequestWorker(pl, request, null);
+            new BlockRequestWorker(pl, request, null, !waitForFinish);
+        }
+    }
+
+    // Called on plugin disable, cleans up external block arrays
+    public void cleanUp() {
+        pl.logDebug("Clearing up leftover block arrays");
+        for(BlockDataArrayRequest request : cachedArrays.keySet()) {
+            BlockDataArrayRequest clearRequest = new BlockDataArrayRequest(request.getOriginPos(), request.getDestPos(), BlockDataArrayRequest.Mode.CLEAR);
+
+            clearCachedArray(clearRequest, true);
         }
     }
 
@@ -64,7 +75,7 @@ public class PortalBlockArrayManager {
 
             pl.logDebug("Updating blocks for external portal . . .");
             if(!externalUpdateWorkers.containsKey(request)) {
-                externalUpdateWorkers.put(request, new BlockRequestWorker(pl, request, array));
+                externalUpdateWorkers.put(request, new BlockRequestWorker(pl, request, array, true));
             }   else    {
                 pl.getLogger().warning("External portal update lagging behind, worker still processing next update attempt.");
             }
