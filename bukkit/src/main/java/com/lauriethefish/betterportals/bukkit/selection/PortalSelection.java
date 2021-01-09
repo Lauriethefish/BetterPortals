@@ -18,7 +18,7 @@ public class PortalSelection {
     private Vector a;
     private Vector b;
 
-    private Location portalPosition;
+    @Getter private Location portalLocation;
     @Getter private PortalDirection portalDirection;
     @Getter private Vector portalSize;
 
@@ -48,7 +48,7 @@ public class PortalSelection {
         // If the portal direction was null, due to the two positions not being in a portal's shape, return
         if(portalDirection == null) {return;}
         findPortalSize();
-        findPortalPosition();
+        findPortalLocation();
     }
 
     // Makes it so that A is the exact bottom left of the portal window, while B is the exact top right
@@ -80,8 +80,8 @@ public class PortalSelection {
     }
 
     // Finds the center position of this portal
-    public void findPortalPosition() {
-        portalPosition = a.clone().add(b).add(new Vector(1.0, 1.0, 1.0)).multiply(0.5).toLocation(world);
+    public void findPortalLocation() {
+        portalLocation = a.clone().add(b).add(new Vector(1.0, 1.0, 1.0)).multiply(0.5).toLocation(world);
     }
 
     // Swaps the direction of this portal
@@ -90,6 +90,6 @@ public class PortalSelection {
     }
     
     public PortalPosition getPortalPosition() {
-        return new PortalPosition(portalPosition, portalDirection);
+        return new PortalPosition(portalLocation, portalDirection);
     }
 }

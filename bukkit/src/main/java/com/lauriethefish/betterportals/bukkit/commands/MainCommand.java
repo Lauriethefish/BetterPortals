@@ -9,6 +9,7 @@ import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
 import com.lauriethefish.betterportals.bukkit.selection.PortalSelection;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -117,13 +118,18 @@ public class MainCommand implements CommandExecutor {
                 return false;
             }
 
+            // Format the coordinates/direction nicely to fit with the set message
+            Location selectedLoc = selection.getPortalLocation();
+            String coordinates = String.format(" (X: %.01f, Y: %.01f, Z: %.01f, World: %s, Direction: %s)",
+                    selectedLoc.getX(), selectedLoc.getY(), selectedLoc.getZ(), selectedLoc.getWorld().getName(), selection.getPortalDirection());
+
             // Set either the origin or destination selection
             if(setOrigin)   {
                 playerData.setOriginSelection(selection);
-                player.sendMessage(config.getChatMessage("originPortalSet"));
+                player.sendMessage(config.getChatMessage("originPortalSet") + coordinates);
             }   else    {
                 playerData.setDestinationSelection(selection);
-                player.sendMessage(config.getChatMessage("destPortalSet"));
+                player.sendMessage(config.getChatMessage("destPortalSet") + coordinates);
             }
             // Reset the selection to null, since it is now used as the origin/destination
             playerData.setSelection(null);

@@ -88,7 +88,7 @@ public class Portal implements ConfigurationSerializable    {
     
     // Constructor to make a portal link between two selections
     public Portal(BetterPortals pl, PortalSelection origin, PortalSelection destination, Player creator)  {
-        this(pl, origin.getPortalPosition(), destination.getPortalPosition(), 
+        this(pl, origin.getPortalPosition(), destination.getPortalPosition(),
                  origin.getPortalSize(), true, creator.getUniqueId());
     }
 
