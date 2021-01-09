@@ -92,7 +92,7 @@ public class MainUpdate implements Runnable {
     }
 
     private void updateEntities(PlayerData playerData, Portal portal, PlaneIntersectionChecker checker, boolean viewEntitiesThroughPortals)  {
-        // Entity processing, be that teleportation through portals or viewing entities through them, is not supported with portals across servers
+        // If entity processing is disabled, return
         if(!viewEntitiesThroughPortals)  {return;}
 
         EntityManipulator manipulator = playerData.getEntityManipulator();
