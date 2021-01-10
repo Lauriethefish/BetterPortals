@@ -21,8 +21,17 @@ public class TeleportPlayerRequest implements Request   {
     @Getter private float destYaw;
     @Getter private float destPitch;
     @Getter private boolean isFlying;
+    @Getter private boolean isGliding;
 
-    public TeleportPlayerRequest(UUID playerId, String destServer, String destWorldName, double destX, double destY, double destZ, float destYaw, float destPitch, boolean isFlying) {
+    @Getter private double velX;
+    @Getter private double velY;
+    @Getter private double velZ;
+
+    public TeleportPlayerRequest(UUID playerId, String destServer, String destWorldName,
+                                 double destX, double destY, double destZ,
+                                 float destYaw, float destPitch,
+                                 boolean isFlying, boolean isGliding,
+                                 double velX, double velY, double velZ) {
         this.playerId = playerId;
         this.destServer = destServer;
         this.destWorldName = destWorldName;
@@ -32,5 +41,9 @@ public class TeleportPlayerRequest implements Request   {
         this.destYaw = destYaw;
         this.destPitch = destPitch;
         this.isFlying = isFlying;
+        this.isGliding = isGliding;
+        this.velX = velX;
+        this.velY = velY;
+        this.velZ = velZ;
     }
 }

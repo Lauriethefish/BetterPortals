@@ -10,6 +10,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.util.Vector;
 
 // Deals with creating a player's PlayerData when they join the game
 public class JoinLeave implements Listener {
@@ -35,7 +36,11 @@ public class JoinLeave implements Listener {
                     request.getDestYaw(), request.getDestPitch());
 
             player.teleport(requestLoc);
+            // Make sure to preserve other velocity related parameters
             player.setFlying(request.isFlying());
+            player.setGliding(request.isGliding());
+            player.setVelocity(new Vector(request.getVelX(), request.getVelY(), request.getVelZ()));
+
             playerData.onPortalTeleport(); // Enforce teleportation delay
         }
     }

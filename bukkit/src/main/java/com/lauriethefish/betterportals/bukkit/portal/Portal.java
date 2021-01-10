@@ -174,6 +174,7 @@ public class Portal implements ConfigurationSerializable    {
         pl.logDebug("Teleporting entity");
         // Save their velocity for later
         Vector entityVelocity = entity.getVelocity().clone();
+        entityVelocity = locTransformer.rotateToDestination(entityVelocity); // Make sure it is oriented correctly
         // Move them to the other portal
         Location newLoc = locTransformer.moveToDestination(entity.getLocation());
         newLoc.setDirection(locTransformer.rotateToDestination(entity.getLocation().getDirection()));
@@ -181,22 +182,24 @@ public class Portal implements ConfigurationSerializable    {
         // If the portal is cross-server, call the teleportCrossServer function.
         // This function should only be called on cross-server portals with a player - never with an entity
         if(isCrossServer()) {
-            teleportCrossServer((Player) entity, newLoc);
+            teleportCrossServer((Player) entity, newLoc, entityVelocity);
         }   else    {
             entity.teleport(newLoc);
         
             // Set their velocity back to what it was
-            entity.setVelocity(locTransformer.rotateToDestination(entityVelocity));
+            entity.setVelocity(entityVelocity);
         }
     }
 
-    private void teleportCrossServer(Player player, Location newLoc) {
+    private void teleportCrossServer(Player player, Location newLoc, Vector newVelocity) {
+        Vector velocity = player.getVelocity();
         // Make a TeleportPlayerRequest to teleport the player to the right place on another server
         pl.logDebug("Requesting player to be teleported across servers!");
         TeleportPlayerRequest request = new TeleportPlayerRequest(player.getUniqueId(),
                     destPos.getServerName(), destPos.getWorldName(),
                     newLoc.getX(), newLoc.getY(), newLoc.getZ(),
-                    newLoc.getYaw(), newLoc.getPitch(), player.isFlying());
+                    newLoc.getYaw(), newLoc.getPitch(), player.isFlying(), player.isGliding(),
+                    newVelocity.getX(), newVelocity.getY(), newVelocity.getZ());
         
         // Send the correct request.
         try {
