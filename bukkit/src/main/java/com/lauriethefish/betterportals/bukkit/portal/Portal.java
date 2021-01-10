@@ -205,11 +205,12 @@ public class Portal implements ConfigurationSerializable    {
         try {
             pl.logDebug("Sending teleport player request for player %s", player.getUniqueId());
             pl.getNetworkClient().sendRequest(request);
+
+            pl.removePlayer(player); // Avoid the player being teleported multiple times
         } catch (RequestException ex) {
+            pl.getLogger().warning("Unable to teleport a player through a cross-server portal");
             ex.printStackTrace();
         }
-
-        pl.removePlayer(player); // Avoid the player being teleported multiple times
     }
 
     public boolean checkOriginAndDestination()  {
