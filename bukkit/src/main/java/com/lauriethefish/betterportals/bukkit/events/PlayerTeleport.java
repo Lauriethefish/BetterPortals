@@ -22,8 +22,10 @@ public class PlayerTeleport implements Listener {
         // To avoid NullPointerExceptions, we return if no PlayerData was found
         if(player == null) {return;}
 
-        // Set the player's last position to null so that they won't get teleported
-        player.setLastPosition(null);
-        pl.logDebug("On player teleport");
+        // Temporarily disabled to fix getting stuck between a portal
+
+        // Set the player's last position to their current position so that they don't get teleported by intersecting another unrelated portal
+        //player.updateLastPosition();
+        //pl.logDebug("On player teleport");
     }
 }

@@ -34,7 +34,7 @@ public class PlayerData {
     @Getter private EntityManipulator entityManipulator;
 
     // Last position of the player recorded by PlayerRayCast, used to decide whether or not to re-render to portal view
-    @Getter @Setter private Vector lastPosition = null;
+    @Getter private Vector lastPosition = null;
 
     @Getter @Setter private PortalSelection selection;
     @Getter @Setter private PortalSelection originSelection;
@@ -80,6 +80,13 @@ public class PlayerData {
 
     public void onPortalTeleport() {
         ticksSinceTeleport = 0;
+        // Set the last position to avoid getting stuck between the portals
+        updateLastPosition();
+    }
+
+    // Sets the players last position to their current position
+    public void updateLastPosition() {
+        lastPosition = player.getLocation().toVector();
     }
 
     // Enforce the rendering delay and permission

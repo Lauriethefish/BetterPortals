@@ -216,7 +216,7 @@ public class MainUpdate implements Runnable {
             }
 
             // Avoid repeated teleports by only setting the player's last position if they could've teleported this tick
-            if(canTeleport) {playerData.setLastPosition(player.getEyeLocation().toVector());}
+            if(canTeleport) {playerData.updateLastPosition();}
         }
 
         // If an active portal was not removed from this set, then it must be deactivated
