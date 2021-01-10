@@ -2,6 +2,8 @@ package com.lauriethefish.betterportals.bukkit.events;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
 
+import com.lauriethefish.betterportals.bukkit.PlayerData;
+import com.lauriethefish.betterportals.network.TeleportPlayerRequest;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -20,16 +22,22 @@ public class JoinLeave implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
+        PlayerData playerData = pl.addPlayer(player);
 
         // Find if we need to teleport the player while joining, since they went through a portal
-        Location teleportPos = pl.getTeleportPosOnJoin(player);
+        TeleportPlayerRequest request = pl.getTeleportPosOnJoin(player);
         pl.logDebug("Checking teleport on join for player %s", player.getUniqueId());
-        if(teleportPos != null) {
+        if(request != null) {
             pl.logDebug("Teleporting player %s on join", player.getUniqueId());
-            player.teleport(teleportPos);
-        }
+            // Construct the location specified by the other server
+            Location requestLoc = new Location(pl.getServer().getWorld(request.getDestWorldName()),
+                    request.getDestX(), request.getDestY(), request.getDestZ(),
+                    request.getDestYaw(), request.getDestPitch());
 
-        pl.addPlayer(player);
+            player.teleport(requestLoc);
+            player.setFlying(request.isFlying());
+            playerData.onPortalTeleport(); // Enforce teleportation delay
+        }
     }
 
     // Remove any players leaving the game

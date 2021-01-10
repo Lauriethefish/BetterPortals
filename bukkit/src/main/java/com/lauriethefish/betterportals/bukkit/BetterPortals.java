@@ -23,6 +23,7 @@ import com.lauriethefish.betterportals.bukkit.portal.blockarray.PortalBlockArray
 import com.lauriethefish.betterportals.bukkit.tasks.MainUpdate;
 import com.lauriethefish.betterportals.bukkit.selection.WandInteract;
 
+import com.lauriethefish.betterportals.network.TeleportPlayerRequest;
 import org.bukkit.*;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Player;
@@ -55,7 +56,7 @@ public class BetterPortals extends JavaPlugin {
     @Getter private PortalClient networkClient;
 
     // When a player is moved to this server when going through a portal, we need to teleport them to the destination of the portal when they join
-    private Map<UUID, Location> teleportOnJoin = new HashMap<>();
+    private Map<UUID, TeleportPlayerRequest> teleportOnJoin = new HashMap<>();
 
     // Gives me cool info about the plugin on bstats
     private MetricsManager metrics;
@@ -181,8 +182,8 @@ public class BetterPortals extends JavaPlugin {
         return players.values();
     }
 
-    public void addPlayer(Player player)  {
-        players.put(player.getUniqueId(), new PlayerData(this, player));
+    public PlayerData addPlayer(Player player)  {
+        return players.put(player.getUniqueId(), new PlayerData(this, player));
     }
 
     public void removePlayer(Player player)  {
@@ -291,12 +292,12 @@ public class BetterPortals extends JavaPlugin {
     }
 
     // Functions for manipulating the teleportOnJoin map
-    public void setToTeleportOnJoin(UUID playerId, Location location) {
-        teleportOnJoin.put(playerId, location);
+    public void setToTeleportOnJoin(UUID playerId, TeleportPlayerRequest request) {
+        teleportOnJoin.put(playerId, request);
     }
 
     // Remove the teleport pos from the map, since the player has now been teleported
-    public Location getTeleportPosOnJoin(Player player) {
+    public TeleportPlayerRequest getTeleportPosOnJoin(Player player) {
         return teleportOnJoin.remove(player.getUniqueId());
     }
 }

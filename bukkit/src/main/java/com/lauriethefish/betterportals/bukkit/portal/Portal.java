@@ -196,7 +196,7 @@ public class Portal implements ConfigurationSerializable    {
         TeleportPlayerRequest request = new TeleportPlayerRequest(player.getUniqueId(),
                     destPos.getServerName(), destPos.getWorldName(),
                     newLoc.getX(), newLoc.getY(), newLoc.getZ(),
-                    newLoc.getYaw(), newLoc.getPitch());
+                    newLoc.getYaw(), newLoc.getPitch(), player.isFlying());
         
         // Send the correct request.
         try {
