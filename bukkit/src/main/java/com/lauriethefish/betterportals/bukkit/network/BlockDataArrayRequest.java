@@ -1,12 +1,14 @@
 package com.lauriethefish.betterportals.bukkit.network;
 
 import java.util.Objects;
+import java.util.UUID;
 
 import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
 import com.lauriethefish.betterportals.bukkit.portal.PortalTransformations;
 import com.lauriethefish.betterportals.network.Request;
 
 import lombok.Getter;
+import lombok.Setter;
 
 // Used to fetch the array (or delete it) of block data from another server for cross-server portals
 public class BlockDataArrayRequest implements Request    {
@@ -20,6 +22,7 @@ public class BlockDataArrayRequest implements Request    {
     @Getter private final PortalPosition originPos;
     @Getter private final PortalPosition destPos;
     @Getter private final Mode mode;
+    @Getter @Setter private UUID originStateArrayId;
     private transient PortalTransformations transformations = null;
 
     public BlockDataArrayRequest(PortalPosition originPos, PortalPosition destPos, Mode mode) {

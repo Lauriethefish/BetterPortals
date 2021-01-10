@@ -1,10 +1,6 @@
 package com.lauriethefish.betterportals.bukkit.portal.blockarray;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
@@ -15,6 +11,7 @@ import com.lauriethefish.betterportals.bukkit.math.MathUtils;
 import com.lauriethefish.betterportals.bukkit.network.BlockDataUpdateResult;
 import com.lauriethefish.betterportals.bukkit.network.BlockDataArrayRequest;
 
+import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -23,6 +20,7 @@ import org.bukkit.util.Vector;
 public class CachedViewableBlocksArray {
     // Contains a mapping of the index in the block occlusion array to the BlockRaycastData
     private Map<Integer, BlockRaycastData> blocks = new HashMap<>();
+    @Getter private UUID arrayId; // Used to guarantee a different array when multiple servers request it, since only changes are sent
 
     private BlockStateArray blockStatesOrigin;
     private BlockStateArray blockStatesDestination;
@@ -33,14 +31,19 @@ public class CachedViewableBlocksArray {
     private ReentrantLock lock = new ReentrantLock();
 
     // Initial constructor, called when a new Cached array is created
-    public CachedViewableBlocksArray(BetterPortals pl) {
+    public CachedViewableBlocksArray(BetterPortals pl, UUID id) {
         this.config = pl.getLoadedConfig().getRendering();
         this.pl = pl;
+        this.arrayId = id;
         blockStatesOrigin = BlockStateArray.createInstance(pl);
         blockStatesDestination = BlockStateArray.createInstance(pl);
     }
 
-    // Returns teh current list of blocks
+    public CachedViewableBlocksArray(BetterPortals pl) {
+        this(pl, UUID.randomUUID());
+    }
+
+    // Returns the current list of blocks
     public Collection<BlockRaycastData> getBlocks() {
         return blocks.values();
     }

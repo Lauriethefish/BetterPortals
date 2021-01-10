@@ -1,11 +1,6 @@
 package com.lauriethefish.betterportals.bukkit.portal.blockarray;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.lauriethefish.betterportals.bukkit.BetterPortals;
@@ -31,12 +26,21 @@ public class PortalBlockArrayManager {
     }
 
     public CachedViewableBlocksArray getCachedArray(BlockDataArrayRequest request) {
-        // Make a new cached array if one doesn't exist
+        // Make a new cached array if one doesn't exist, or if the origin state array ID is different
         if (!cachedArrays.containsKey(request)) {
             cachedArrays.put(request, new CachedViewableBlocksArray(pl));
         }
 
-        return cachedArrays.get(request);
+        CachedViewableBlocksArray array = cachedArrays.get(request);
+
+        // If the stated array ID on the origin server does not match the one in our current array, wipe the array and return a new one
+        UUID arrayId = request.getOriginStateArrayId();
+        if(arrayId != null && !array.getArrayId().equals(arrayId)) {
+            pl.logDebug("Invalidating array due to invalid ID");
+            return cachedArrays.put(request, new CachedViewableBlocksArray(pl, arrayId));
+        }
+
+        return array;
     }
 
     // Clears the cached array to free memory when a portal is unloaded
@@ -68,6 +72,7 @@ public class PortalBlockArrayManager {
         long timeBefore = System.nanoTime();
 
         CachedViewableBlocksArray array = getCachedArray(request);
+        request.setOriginStateArrayId(array.getArrayId()); // Guarantee that we get a new array from the destination server, not non-existing updates from an existing one
         
         // We still need to process changes here, even for an external portal, although for external portals only the origin gets processed
         if (request.getDestPos().isExternal()) {
@@ -147,6 +152,7 @@ public class PortalBlockArrayManager {
 
     private BlockDataUpdateResult handleGetBlockDataArrayRequestInternal(BlockDataArrayRequest request) {
         CachedViewableBlocksArray array = getCachedArray(request);
+
         Set<Integer> changes = array.checkForChanges(request, false, true); // Check for the changes at the destination
 
         return array.processChanges(request, changes);
