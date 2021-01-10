@@ -62,7 +62,11 @@ public class PortalServer {
     }
 
     public ServerConnection getConnection(String serverName) {
-        return getConnection(pl.getProxy().getServerInfo(serverName));
+        ServerInfo serverInfo = pl.getProxy().getServerInfo(serverName);
+        // Return null instead of throwing a NullPointerException
+        if(serverInfo == null) {return null;}
+
+        return getConnection(serverInfo);
     }
 
     public void startServer() throws IOException {
