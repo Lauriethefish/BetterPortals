@@ -27,7 +27,9 @@ public class RequestStream {
 
     private EncryptionManager encryptionManager; // Handles encrypting/decrypting requests
 
-    private List<Object> skippedList = Collections.synchronizedList(new ArrayList<>());
+    private ReentrantLock skippedListLock = new ReentrantLock(true);
+    private List<Object> skippedList = new ArrayList<>();
+
 
     public RequestStream(InputStream inputStream, OutputStream outputStream, EncryptionManager encryptionManager) throws GeneralSecurityException {
         this.inputStream = new DataInputStream(inputStream);
@@ -44,6 +46,7 @@ public class RequestStream {
         while(true) {
             boolean breakOnFinish = inputLock.tryLock();
 
+            skippedListLock.lock();
             // Loop through any objects that were skipped because they weren't of the right type
             Iterator<Object> iterator = skippedList.iterator();
             while (iterator.hasNext()) {
@@ -57,6 +60,7 @@ public class RequestStream {
                     return obj;
                 }
             }
+            skippedListLock.unlock();
 
             if(breakOnFinish) {break;}
 
@@ -75,7 +79,9 @@ public class RequestStream {
                 inputLock.unlock();
                 return obj;
             }   else    {
+                skippedListLock.lock();
                 skippedList.add(obj); // Otherwise add it to the skipped list
+                skippedListLock.unlock();
             }
         }
     }

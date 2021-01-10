@@ -241,6 +241,7 @@ public class MainCommand implements CommandExecutor {
             // Find the origin pos and size from the player's selection
             PortalPosition originPos = playerData.getOriginSelection().getPortalPosition();
             Vector size = playerData.getOriginSelection().getPortalSize();
+            pl.logDebug("%s, %s", originPos.getLocation(), size);
 
             // Find all the various parameters of the destination
             PortalPosition destPos;
