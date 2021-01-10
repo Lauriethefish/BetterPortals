@@ -37,10 +37,10 @@ public class PortalBlockArrayManager {
         UUID arrayId = request.getOriginStateArrayId();
         if(arrayId != null && !array.getArrayId().equals(arrayId)) {
             pl.logDebug("Invalidating array due to invalid ID");
-            return cachedArrays.put(request, new CachedViewableBlocksArray(pl, arrayId));
+            cachedArrays.put(request, new CachedViewableBlocksArray(pl, arrayId));
         }
 
-        return array;
+        return cachedArrays.get(request);
     }
 
     // Clears the cached array to free memory when a portal is unloaded
