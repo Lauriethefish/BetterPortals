@@ -101,7 +101,7 @@ public class PortalServer {
 
     // Called when a ServerConnection fails to remove it from the map
     public void onServerDisconnect(ServerInfo server) {
-        pl.logDebug("Unregistering server " + server.getName());
+        pl.logDebug("Unregistering server " + (server == null ? "<unregistered>" : server.getName()));
         connectedServers.remove(server);
     }
 }
