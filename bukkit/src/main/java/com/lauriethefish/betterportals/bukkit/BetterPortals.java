@@ -282,7 +282,7 @@ public class BetterPortals extends JavaPlugin {
         pm.registerEvents(new PortalCreate(this), this);
         pm.registerEvents(new EntityPortal(this), this);
         pm.registerEvents(new WandInteract(this), this);
-        pm.registerEvents(new PlayerTeleport(this), this);
+        //pm.registerEvents(new PlayerTeleport(this), this); // Now unused
     }
 
     // Methods for conveniently logging debug messages
