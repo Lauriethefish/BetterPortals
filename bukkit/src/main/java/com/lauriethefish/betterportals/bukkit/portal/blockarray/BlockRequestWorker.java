@@ -57,6 +57,7 @@ public class BlockRequestWorker implements Runnable {
         switch(request.getMode()) {
             case GET_OR_UPDATE:
                 fetchUpdateResult();
+                return;
             case CLEAR:
                 fetchClearResult();
         }
