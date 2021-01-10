@@ -23,8 +23,11 @@ public class BlockRotator_Legacy implements BlockRotator {
 
         if(data instanceof Directional) {
             Directional rotatable = (Directional) data;
+
+            Vector currentDir = ReflectUtils.getDirection(rotatable.getFacing());
+            Vector finalDir = MathUtils.round(request.getTransformations().rotateToOrigin(currentDir));
+
             // Get the face as a vector, and rotate it with the portals matrix, then set the direction to the new one
-            Vector finalDir = MathUtils.round(request.getTransformations().rotateToOrigin(ReflectUtils.getDirection(rotatable.getFacing())));
             rotatable.setFacingDirection(ReflectUtils.getBlockFace(finalDir));
             state.setData(data);
         }
