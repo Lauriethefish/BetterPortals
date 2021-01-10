@@ -60,13 +60,14 @@ public class MainUpdate implements Runnable {
 
     // Teleports the player using the given portal if the player is within the portal
     // Returns true if the player was teleported, false otherwise
-    public boolean performPlayerTeleport(PlayerData playerData, Portal portal, PlaneIntersectionChecker checker)  {
+    public boolean performPlayerTeleport(PlayerData playerData, Portal portal)  {
         if(!playerData.canBeTeleportedByPortal()) {return false;} // Enforce teleportation cooldown
 
         Player player = playerData.getPlayer();
         
         Vector lastPos = playerData.getLastPosition();
         Vector currentPos = player.getLocation().toVector();
+        PlaneIntersectionChecker checker = new PlaneIntersectionChecker(currentPos, portal); // Create a new intersection player using the feet positions, not the eye positions
 
         // If the player's position the previous tick was on the other side of the portal window, then we should teleport the player, otherwise return
         if(lastPos == null || !checker.checkIfVisibleThroughPortal(lastPos) || currentPos.equals(lastPos))   {
@@ -206,7 +207,7 @@ public class MainUpdate implements Runnable {
                     if(canSeeThroughPortals) {updatePortal(playerData, portal, intersectionChecker);}
 
                     // Teleport the player if they cross through a portal
-                    performPlayerTeleport(playerData, portal, intersectionChecker);
+                    performPlayerTeleport(playerData, portal);
                 }   else    {
                     playerData.setViewingPortal(null);
                 }
