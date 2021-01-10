@@ -66,7 +66,7 @@ public class MainUpdate implements Runnable {
         Player player = playerData.getPlayer();
         
         Vector lastPos = playerData.getLastPosition();
-        Vector currentPos = player.getLocation().toVector();
+        Vector currentPos = player.getEyeLocation().toVector();
         PlaneIntersectionChecker checker = new PlaneIntersectionChecker(currentPos, portal); // Create a new intersection player using the feet positions, not the eye positions
 
         // If the player's position the previous tick was on the other side of the portal window, then we should teleport the player, otherwise return
@@ -216,7 +216,7 @@ public class MainUpdate implements Runnable {
             }
 
             // Avoid repeated teleports by only setting the player's last position if they could've teleported this tick
-            if(canTeleport) {playerData.setLastPosition(player.getLocation().toVector());}
+            if(canTeleport) {playerData.setLastPosition(player.getEyeLocation().toVector());}
         }
 
         // If an active portal was not removed from this set, then it must be deactivated
