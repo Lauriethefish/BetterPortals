@@ -73,7 +73,6 @@ public class PortalSelection {
     public void findPortalSize() {
         portalSize = portalDirection.swapVector(b.clone().subtract(a));
         portalSize.subtract(new Vector(1.0, 1.0, 0.0)); // Subtract it by 1 so it is the size of the gateway, not the frame
-        Bukkit.getLogger().info(String.format("%s", portalSize));
     }
 
     // Checks if this selection is actually a valid portal
