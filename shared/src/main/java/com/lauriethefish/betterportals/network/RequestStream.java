@@ -56,6 +56,7 @@ public class RequestStream {
                     if(inputLock.isHeldByCurrentThread()) {inputLock.unlock();}
 
                     iterator.remove();
+                    skippedListLock.unlock();
                     //out.println("Found in skipped objects");
                     return obj;
                 }
