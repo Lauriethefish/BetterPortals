@@ -184,7 +184,6 @@ public class ServerConnection {
             ex.printStackTrace();
         }
 
-        if(server != null) {pl.getPortalServer().unregisterConnection(server);}; // Unregister the server if it has registered
         pl.getLogger().info("Server " + socket.getInetAddress() + " disconnected");
     }
     
@@ -193,6 +192,7 @@ public class ServerConnection {
         if(!isConnected) {return;} // Return if the socket is already disconnected
 
         isConnected = false;
+        pl.getPortalServer().onServerDisconnect(server); // Unregister us
         try {
             socket.close();
         } catch (IOException ex) {

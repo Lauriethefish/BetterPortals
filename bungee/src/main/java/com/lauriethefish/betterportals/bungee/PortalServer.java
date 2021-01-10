@@ -53,10 +53,6 @@ public class PortalServer {
         connectedServers.put(server, connection);
     }
 
-    public void unregisterConnection(ServerInfo server) {
-        connectedServers.remove(server);
-    }
-
     public ServerConnection getConnection(ServerInfo server) {
         return connectedServers.get(server);
     }
@@ -101,5 +97,11 @@ public class PortalServer {
         for(ServerConnection server : connectedServers.values()) {
             server.shutdown();
         }
+    }
+
+    // Called when a ServerConnection fails to remove it from the map
+    public void onServerDisconnect(ServerInfo server) {
+        pl.logDebug("Unregistering server " + server.getName());
+        connectedServers.remove(server);
     }
 }

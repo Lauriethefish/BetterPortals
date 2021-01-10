@@ -182,8 +182,13 @@ public class BetterPortals extends JavaPlugin {
         return players.values();
     }
 
+    // Adds the player to the PlayerData map, returning the newly added data
     public PlayerData addPlayer(Player player)  {
-        return players.put(player.getUniqueId(), new PlayerData(this, player));
+        // Add the new player to the players map
+        PlayerData newPlayerData = new PlayerData(this, player);
+        players.put(player.getUniqueId(), newPlayerData);
+
+        return newPlayerData;
     }
 
     public void removePlayer(Player player)  {
