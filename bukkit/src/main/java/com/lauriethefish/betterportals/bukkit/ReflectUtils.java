@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.lauriethefish.betterportals.bukkit.math.MathUtils;
 import com.lauriethefish.betterportals.bukkit.multiblockchange.MultiBlockChangeManager_1_16_2;
@@ -29,9 +30,9 @@ public class ReflectUtils {
     private static String minecraftClassPath = null;
     private static String craftbukkitClassPath = null;
     // To increase performance, store fields, classes and methods for later
-    private static Map<String, Class<?>> classCache = new HashMap<>();
-    private static Map<String, Field> fieldCache = new HashMap<>();
-    private static Map<String, Method> methodCache = new HashMap<>();
+    private static Map<String, Class<?>> classCache = new ConcurrentHashMap<>();
+    private static Map<String, Field> fieldCache = new ConcurrentHashMap<>();
+    private static Map<String, Method> methodCache = new ConcurrentHashMap<>();
 
     public static boolean isLegacy = getIfLegacy();
     public static Material portalMaterial = getPortalMaterial();
