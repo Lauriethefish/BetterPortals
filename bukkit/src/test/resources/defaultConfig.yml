@@ -1,0 +1,126 @@
+# This is the BetterPortals configuration file
+# Many of these values should not be changed unless you know what you are doing
+
+# WARNING: The portal effect size is the biggest performance sink, higher numbers can cause tons of lag!
+# The number of blocks that the portal effect will render
+# to the up, down, forwards and backwards of the portal
+# (the total width of the effect is twice this)
+portalEffectSizeXZ: 13
+
+# Same as the previous, but up/down instead
+portalEffectSizeY: 7
+
+# The closest portal in this range will be activated
+# All others are discarded
+portalActivationDistance: 20
+
+portalBlockUpdateInterval: 20 # How often the portal will re-check for the blocks around it
+blockStateRefreshInterval: 40 # How often modified block states are resent to the player
+
+enableEntitySupport: true
+
+# If this is true, the below is always treated like it is 1
+checkForEntitiesEveryTick: true
+entityCheckInterval: 5 # How often the portal will check for surrounding entities
+
+# Setting this to true will allow you to see straight through a portal
+# NOTE: This generally makes it look a bit less convincing, since it's easier to see when the player's client doesn't quite keep up
+hidePortalBlocks: false
+
+# How close portals can spawn to each other, in blocks
+minimumPortalSpawnDistance: 6
+
+# Change this to FINE, FINER or FINEST to enable debug logging
+logLevel: INFO
+
+# The maximum size of portals in blocks. The x is width and y is height
+# This should never be larger than twice the portal effect size
+# Larger portals tend to look less good, so the default values work well
+maxPortalSize:
+  x: 5
+  y: 5
+
+# Stores the offset from the corners of the portal where the collision box will be
+# This collision box is how the portal effect is calculated
+# (if the ray from the player's view to the block being tested intersects this box it will be considered visible through the portal)
+# The default values are tuned to work fairly well, so I don't recommend changing these
+portalCollisionBox:
+  x: 0.50
+  y: 0.50
+  z: 0.25
+
+# Worlds where the plugin will fall back to the vanilla portal logic
+disabledWorlds:
+  - 'some_world'
+
+# How long the plugin waits before rendering portals after switching worlds.
+# Useful to deal with lag that some players get just after switching worlds.
+# Set to 0 to disable
+waitTimeAfterSwitchingWorlds: 1
+
+teleportCooldown: 2 # How long to wait before a player can go back after going through a portal (0 to disable)
+
+# Stores the links between worlds. By default this links the overworld and the nether with portals
+# There are two links for the overworld and the nether - one for each way.
+# This is to allow one way links between dimensions
+# The x and z coordinates of the portals are multiplied by the coordinateRescalingFactor to spawn portals
+# The min and max spawn y limit where portals can spawn - for instance you should not be able to spawn portals above the nether ceiling
+worldConnections:
+  '0':
+    originWorld: 'world'
+    destinationWorld: 'world_nether'
+    minSpawnY: 5
+    maxSpawnY: 122
+    coordinateRescalingFactor: 0.125
+  '1':
+    originWorld: 'world_nether'
+    destinationWorld: 'world'
+    minSpawnY: 5
+    maxSpawnY: 250
+    coordinateRescalingFactor: 8.0
+
+# Allows for setting a proxy server to allow cross-server portals
+proxy:
+  enableProxy: false
+  proxyAddress: ""
+  proxyPort: 25510
+  key: "" # A UUID used for encrypted communication with the proxy. You should set this to the UUID in the BetterPortals config on the bungee side.
+  reconnectionDelay: 300 # Delay in ticks before attempting a reconnection to the proxy if disconnected (default 30 seconds) Set to -1 to disable.
+
+# Will randomly swap some blocks between the two ends of a nether portal when it's made, makes a cool effect.
+dimensionBlend:
+  enable: false
+  fallOffRate: 0.15 # Low values mean a greater distance
+
+chatMessages:
+  prefix: "&7[&aBetterPortals&7]&a "
+  messageColor: "&a" # One colour that chat messages without a full prefix use
+
+  notEnoughPerms: "You do not have permission to use this command!"
+  mustBePlayer: "You must be a player to use this command"
+  mustMakeSelection: "You must make a selection first"
+  invalidSelection: "Invalid selection! Portal selections must be on the two corners of a portal"
+  mustSelectBothSides: "You must select both sides of a portal first. For info, run /bp help"
+  mustSelectOrigin: "You must select the origin of the portal on this server"
+  wrongNumberOfArgs: "Wrong number of arguments. Run /bp help for help."
+  invalidArgs: "One of your arguments was invalid. Run /bp help for help."
+  differentSizes: "The origin and destination portal must be of the same size"
+  noPortalCloseEnough: "No portal close enough found"
+  portalNotOwnedByPlayer: "You do not have permission to remove portals created by other people"
+  unknownCommand: "Unknown Command. For help, run /bp help"
+  proxyDisabled: "Unable to reconnect to the proxy: it is not enabled!"
+  alreadyConnected: "Unable to reconnect to the proxy: the server is already connected!"
+  horizontalIssues: "Warning: horizontal portals with different origin/destination directions can cause issues with block rotations - not all blocks can be rotated in every direction"
+
+  reload: "Reloaded plugin"
+  originPortalSet: "Origin portal set"
+  destPortalSet: "Destination portal set"
+  portalsLinked: "Portals linked successfully"
+  portalRemoved: "Portal removed"
+  startedReconnection: "Started reconnecting to the proxy. See console for details."
+  help: "Sub Commands"
+
+  setPosA: "Set position A"
+  setPosB: "Set position B"
+
+portalWandName: "&aPortal Wand"

@@ -15,8 +15,12 @@ portalEffectSizeY: 7
 portalActivationDistance: 20
 
 portalBlockUpdateInterval: 20 # How often the portal will re-check for the blocks around it
+blockStateRefreshInterval: 40 # How often modified block states are resent to the player
 
 enableEntitySupport: true
+
+# If this is true, the below is always treated like it is 1
+checkForEntitiesEveryTick: true
 entityCheckInterval: 5 # How often the portal will check for surrounding entities
 
 # Setting this to true will allow you to see straight through a portal
@@ -26,7 +30,14 @@ hidePortalBlocks: false
 # How close portals can spawn to each other, in blocks
 minimumPortalSpawnDistance: 6
 
-enableDebugLogging: false # Setting this to true will make the plugin print much more detailed info about what is happenning. Useful for finding issues.
+# Change this to FINE, FINER or FINEST to enable debug logging
+logLevel: INFO
+
+# The update check nags you to update if you're not on latest
+enableUpdateCheck: true
+
+# Enables the /bp test ... commands. These shouldn't be used in normal plugin use.
+enableTestingCommands: false
 
 # The maximum size of portals in blocks. The x is width and y is height
 # This should never be larger than twice the portal effect size
@@ -40,8 +51,8 @@ maxPortalSize:
 # (if the ray from the player's view to the block being tested intersects this box it will be considered visible through the portal)
 # The default values are tuned to work fairly well, so I don't recommend changing these
 portalCollisionBox:
-  x: 0.38
-  y: 0.38
+  x: 0.50
+  y: 0.50
   z: 0.25
 
 # Worlds where the plugin will fall back to the vanilla portal logic
@@ -74,6 +85,10 @@ worldConnections:
     maxSpawnY: 250
     coordinateRescalingFactor: 8.0
 
+# While a portal is finding a destination position, it checks the chunks over multiple ticks to avoid completely freezing the server
+# This specifies the amount of time allowed per-tick (in milliseconds)
+allowedSpawnTimePerTick: 35
+
 # Allows for setting a proxy server to allow cross-server portals
 proxy:
   enableProxy: false
@@ -89,6 +104,7 @@ dimensionBlend:
 
 chatMessages:
   prefix: "&7[&aBetterPortals&7]&a "
+  messageColor: "&a" # One colour that chat messages without a full prefix use
 
   notEnoughPerms: "You do not have permission to use this command!"
   mustBePlayer: "You must be a player to use this command"
@@ -100,11 +116,26 @@ chatMessages:
   invalidArgs: "One of your arguments was invalid. Run /bp help for help."
   differentSizes: "The origin and destination portal must be of the same size"
   noPortalCloseEnough: "No portal close enough found"
-  portalNotOwnedByPlayer: "You do not have permission to remove portals created by other people"
+  removeNotOwnedByPlayer: "You do not have permission to remove portals created by other people"
+  nameNotOwnedbyPlayer: "You don't have permission to set the name of portals created by other people"
   unknownCommand: "Unknown Command. For help, run /bp help"
   proxyDisabled: "Unable to reconnect to the proxy: it is not enabled!"
   alreadyConnected: "Unable to reconnect to the proxy: the server is already connected!"
   horizontalIssues: "Warning: horizontal portals with different origin/destination directions can cause issues with block rotations - not all blocks can be rotated in every direction"
+  noName: "This portal has no name"
+  nameNetherPortal: "You can't set the name of a nether portal"
+
+  # Printed if a player lights a portal in an unlinked world
+  # To disable, just remove all the text inside the quotes
+  noWorldLink: "Unfortunately, this portal will not be lit since the world that you are in is not linked.
+                If you believe this to be a mistake, contact an admin and link this wiki page for adding a world link: https://github.com/Lauriethefish/BetterPortals/wiki/Editing-the-Config-file#world-connections
+                BetterPortals overrides the behaviour of plugins like MultiverseNetherPortals, so these should be uninstalled unless you're in a world that is manually excluded in the config.
+                This message can be disabled in config.yml"
+
+  portalTooBig: "This portal is too big. The current size limit is {size}. You can increase it in the config.
+                Please contact an admin if you want this changed."
+
+  outOfDate: "Your version of BetterPortals is out of date. ({current} vs {new}). You can download the latest release from {url}"
 
   reload: "Reloaded plugin"
   originPortalSet: "Origin portal set"
@@ -112,7 +143,10 @@ chatMessages:
   portalsLinked: "Portals linked successfully"
   portalRemoved: "Portal removed"
   startedReconnection: "Started reconnecting to the proxy. See console for details."
-  
+  changedName: "Successfully changed the portal name"
+  currentName: "The name for this portal is: {name}"
+  help: "Sub Commands"
+
   setPosA: "Set position A"
   setPosB: "Set position B"
 

@@ -1,53 +1,51 @@
 package com.lauriethefish.betterportals.bukkit.math;
 
-import com.lauriethefish.betterportals.bukkit.portal.Portal;
-
-import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
+/**
+ * Handles checking if a ray intersects a specific plane
+ * Used for portal view checking, since the plane can be the portal's view plane
+ */
 public class PlaneIntersectionChecker {
-    private Vector planeCenter;
-    private Vector planeNormal;
-    private Vector maxDev;
+    private final Vector planeCenter;
+    private final Vector planeNormal;
+    private final Vector maxDev;
+    private final Vector rayOrigin;
 
-    private Vector rayOrigin;
-
-    public PlaneIntersectionChecker(Player player, Portal portal)   {
-        this(player.getEyeLocation().toVector(), portal);
-    }
-
-    public PlaneIntersectionChecker(Vector location, Portal portal)    {
-        this.planeCenter = portal.getOriginPos().getVector();
-        this.planeNormal = portal.getOriginPos().getDirection().toVector();
-        this.maxDev = portal.getPlaneRadius();    
-
-        this.rayOrigin = location;
-    }
-
-    // Contrustor used for testing
-    public PlaneIntersectionChecker(Vector planeCenter, Vector planeNormal, Vector planeOrigin)   {
+    /**
+     * Creates a new {@link PlaneIntersectionChecker} with the specified options.
+     * @param planeCenter The center position of the plane.
+     * @param planeNormal The direction of the plane, this should be normalised.
+     * @param rayOrigin Where the rays that this instance checks start
+     * @param maxDev Represents the size of the plane. This can be treated like a radius
+     */
+    public PlaneIntersectionChecker(Vector planeCenter, Vector planeNormal, Vector rayOrigin, Vector maxDev)   {
         this.planeCenter = planeCenter;
         this.planeNormal = planeNormal;
-        this.rayOrigin = planeOrigin;
-        this.maxDev = new Vector(1.5, 2.5, 0.5);
+        this.rayOrigin = rayOrigin;
+        this.maxDev = maxDev;
     }
 
-    // Checks if the given ray intersects this plane
-    public boolean checkIfVisibleThroughPortal(Vector pos)    {
+    /**
+     * Finds if the line from <code>pos</code> to {@link PlaneIntersectionChecker#rayOrigin} intersects the plane.
+     * @param pos The destination of the ray
+     * @return Whether the ray intersects
+     */
+    public boolean checkIfIntersects(Vector pos)    {
         // Find the direction to this position from the player's location
         Vector direction = pos.clone().subtract(rayOrigin).normalize();
 
         // Find if we intersect the plane, and where
         double denominator = planeNormal.dot(direction);
-        if(Math.abs(denominator) > MathUtils.EPSILON) {
+        if(Math.abs(denominator) > MathUtil.EPSILON) {
             Vector difference = planeCenter.clone().subtract(rayOrigin);
             double t = difference.dot(planeNormal) / denominator;
             // If the block was before the portal, return false
             if(rayOrigin.distance(pos) < t)    {
                 return false;
-            }    
+            }
 
-            if(t > MathUtils.EPSILON) {
+            if(t > MathUtil.EPSILON) {
                 Vector portalIntersectPoint = rayOrigin.clone().add(direction.multiply(t));
                 Vector distCenter = portalIntersectPoint.subtract(planeCenter);
 

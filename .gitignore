@@ -1,9 +1,12 @@
 dependencies/
-target/
+build/
+.gradle/
 .settings/
 .VSCodeCounter/
-bin/
+gradle/
 dependency-reduced-pom.xml
 .classpath
 .factorypath
 .project
+gradlew
+gradlew.bat

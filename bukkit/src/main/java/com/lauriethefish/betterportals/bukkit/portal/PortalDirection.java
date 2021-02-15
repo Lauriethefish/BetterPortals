@@ -1,9 +1,13 @@
 package com.lauriethefish.betterportals.bukkit.portal;
 
+import com.lauriethefish.betterportals.bukkit.math.IntVector;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
-// Two directions of a portal, used for more ergonomic handling
+/**
+ * Represents a portal's direction
+ */
 public enum PortalDirection {
     UP(new Vector(0.0, 1.0, 0.0), new Vector(1.0, 0.0, 0.0)),
     DOWN(new Vector(0.0, -1.0, 0.0), new Vector(1.0, 0.0, 0.0)),
@@ -12,16 +16,14 @@ public enum PortalDirection {
     EAST(new Vector(1.0, 0.0, 0.0), new Vector(0.0, 1.0, 0.0)),
     WEST(new Vector(-1.0, 0.0, 0.0), new Vector(0.0, 1.0, 0.0));
 
-    // The direction vector is a normal facing out of the portal
     private final Vector direction;
-    // This vector is used if we need to rotate the portal view round 180 degrees because the origin and destination are in exact opposite direction
+
     private final Vector inversionRotationAxis;
     PortalDirection(Vector direction, Vector inversionRotationAxis)   {
         this.direction = direction;
         this.inversionRotationAxis = inversionRotationAxis;
     }
 
-    // Gets a PortalDirection from the given string, and converts the old EAST_WEST and NORTH_SOUTH directions into the new variants
     public static PortalDirection fromStorage(String string) {
         switch(string) {
             case "EAST_WEST":
@@ -33,17 +35,27 @@ public enum PortalDirection {
         }
     }
 
+    /**
+     * @return A normal facing out of a portal with this direction.
+     */
     public Vector toVector()    {
         return direction;
     }
 
+    /**
+     * Inverting requires using the correct axis to avoid weird rotation, like the player being flipped in 2 directions instead of one.
+     * @return The rotation axis to use for inversion with a matrix.
+     */
     public Vector getInversionRotationAxis()    {
         return inversionRotationAxis;
     }
 
-    // Swaps the coordinates of the given vector if this portal is on the NORTH_SOUTH or UP_DOWN axis
-    // This is used when changing blocks around portals, since we cannot just use the coordinates regularly
-    public Vector swapVector(Vector vec)    {
+    /**
+     * Used in areas where we need to iterate over blocks around a portal, and need it to work regardless of the direction
+     * @param vec The vector to swap
+     * @return The swapped vector
+     */
+    public @NotNull Vector swapVector(@NotNull Vector vec)    {
         switch(this)    {
             case EAST:
             case WEST:
@@ -55,10 +67,35 @@ public enum PortalDirection {
             case SOUTH:
                 return vec.clone();
         }
-        return null;
+        throw new IllegalStateException("This should never happen");
     }
 
-    public Location swapLocation(Location loc)  {
+    /**
+     * Used in areas where we need to iterate over blocks around a portal, and need it to work regardless of the direction
+     * @param vec The integer vector to swap
+     * @return The swapped vector
+     */
+    public @NotNull IntVector swapVector(@NotNull IntVector vec) {
+        switch(this)    {
+            case EAST:
+            case WEST:
+                return new IntVector(vec.getZ(), vec.getY(), vec.getX());
+            case UP:
+            case DOWN:
+                return new IntVector(vec.getX(), vec.getZ(), vec.getY());
+            case NORTH:
+            case SOUTH:
+                return vec.clone();
+        }
+        throw new IllegalStateException("This should never happen");
+    }
+
+    /**
+     * Used in areas where we need to iterate over blocks around a portal, and need it to work regardless of the direction
+     * @param loc The location to swap
+     * @return The swapped location
+     */
+    public Location swapLocation(@NotNull Location loc)  {
         return swapVector(loc.toVector()).toLocation(loc.getWorld());
     }
 
@@ -67,8 +104,10 @@ public enum PortalDirection {
         return this == UP || this == DOWN;
     }
 
-    // Returns the PortalDirection pointing the opposite way to this one
-    public PortalDirection getOpposite()    {
+    /**
+     * @return The opposite direction to this {@link PortalDirection}. e.g. {@link PortalDirection#NORTH} returns {@link PortalDirection#SOUTH}
+     */
+    public @NotNull PortalDirection getOpposite()    {
         switch(this) {
             case UP:
                 return DOWN;
@@ -83,6 +122,6 @@ public enum PortalDirection {
             case WEST:
                 return EAST;
         }
-        return null;
+        throw new IllegalStateException("This should never happen");
     }
 }
