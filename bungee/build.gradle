@@ -1,15 +1,3 @@
-plugins {
-    id 'java'
-    id 'com.github.johnrengelman.shadow' version '6.1.0'
-}
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
-archivesBaseName = "BetterPortals-bungee"
-version = '0.7.0'
-
-apply plugin: 'com.github.johnrengelman.shadow'
-
 repositories {
     mavenCentral()
     maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
@@ -18,12 +6,6 @@ repositories {
 
 dependencies {
     implementation 'org.bstats:bstats-bungeecord:2.1.0'
-    implementation 'org.jetbrains:annotations:20.1.0'
-    implementation 'com.google.inject:guice:5.0.0-BETA-1'
-    implementation 'com.google.inject.extensions:guice-assistedinject:5.0.0-BETA-1'
     compile project(':shared')
     compileOnly 'net.md-5:bungeecord-api:1.16-R0.5-SNAPSHOT'
-    implementation 'org.projectlombok:lombok:1.18.16'
-    annotationProcessor 'org.projectlombok:lombok:1.18.8'
-    testAnnotationProcessor('org.projectlombok:lombok:1.18.8')
 }

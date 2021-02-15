@@ -1,19 +1,11 @@
 plugins {
     id 'com.github.johnrengelman.shadow' version '6.1.0'
-    id 'java'
 }
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
 
 repositories {
     gradlePluginPortal()
     mavenCentral()
 }
-
-archivesBaseName = "BetterPortals-final"
-version = '0.7.0'
-
-apply plugin: 'com.github.johnrengelman.shadow'
 
 dependencies {
     implementation project(':shared')
