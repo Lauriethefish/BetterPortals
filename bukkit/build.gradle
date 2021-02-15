@@ -1,24 +1,5 @@
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '6.1.0'
-}
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
-repositories { jcenter() }
-
-archivesBaseName = "BetterPortals-bukkit"
-version = '0.7.0'
-
-sourceCompatibility = targetCompatibility = 1.8
-
-compileJava.options.encoding = 'UTF-8'
-
-apply plugin: 'java'
-apply plugin: 'com.github.johnrengelman.shadow'
-
-test {
-    useJUnitPlatform()
 }
 
 repositories {
@@ -30,10 +11,6 @@ repositories {
 
 dependencies {
     implementation 'org.bstats:bstats-bukkit:2.2.1'
-    implementation 'com.google.inject:guice:5.0.0-BETA-1'
-    implementation 'com.google.inject.extensions:guice-assistedinject:5.0.0-BETA-1'
-    implementation 'org.jetbrains:annotations:20.1.0'
-    implementation 'com.google.code.findbugs:jsr305:3.0.2'
     implementation 'org.projectlombok:lombok:1.18.16'
 
     testCompileOnly 'junit:junit:4.12'
@@ -46,7 +23,4 @@ dependencies {
 
     compileOnly 'org.spigotmc:spigot-api:1.16.2-R0.1-SNAPSHOT'
     compileOnly 'com.comphenix.protocol:ProtocolLib:4.6.0-SNAPSHOT'
-
-    annotationProcessor 'org.projectlombok:lombok:1.18.8'
-    testAnnotationProcessor('org.projectlombok:lombok:1.18.8')
 }
