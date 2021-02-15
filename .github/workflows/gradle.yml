@@ -20,4 +20,4 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: artifact
-          path: build/libs/*all.jar # This only uploads the shaded jars, can be changed to "*.jar" if required
+          path: final/build/libs/*all.jar # This only uploads the shaded jars, can be changed to "*.jar" if required
