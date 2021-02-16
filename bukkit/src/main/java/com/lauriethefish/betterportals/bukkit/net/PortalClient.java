@@ -193,9 +193,6 @@ public class PortalClient implements IPortalClient {
     public void shutDown() {
         if(!isRunning) {return;}
         isRunning = false;
-        if(hasHandshakeFinished) {
-            logger.info("Disconnecting from the proxy");
-        }
         hasHandshakeFinished = false;
         shouldReconnectIfFailed = false;
 
@@ -237,6 +234,10 @@ public class PortalClient implements IPortalClient {
      */
     private void disconnect(boolean force) {
         if(!isRunning && !force) {return;}
+        if(hasHandshakeFinished || force) {
+            logger.info("Disconnecting from the proxy");
+        }
+
         isRunning = false;
         hasHandshakeFinished = false;
 
