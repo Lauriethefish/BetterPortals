@@ -32,13 +32,15 @@ public class PortalClient implements IPortalClient {
     private final JavaPlugin pl;
     private final ProxyConfig proxyConfig;
     private final Logger logger;
-    private final CipherManager cipherManager;
     private final EncryptedObjectStreamFactory encryptedObjectStreamFactory;
     private final IRequestHandler requestHandler;
+    private final IClientReconnectHandler reconnectHandler;
 
     private Socket socket;
     private volatile boolean isRunning = false;
     private volatile boolean hasHandshakeFinished = false;
+
+    private volatile boolean shouldReconnectIfFailed;
 
     private IEncryptedObjectStream objectStream;
 
@@ -46,27 +48,27 @@ public class PortalClient implements IPortalClient {
     private final ConcurrentMap<Integer, Consumer<Response>> waitingRequests = new ConcurrentHashMap<>();
 
     @Inject
-    public PortalClient(JavaPlugin pl, ProxyConfig proxyConfig, Logger logger, CipherManager cipherManager, EncryptedObjectStreamFactory encryptedObjectStreamFactory, IRequestHandler requestHandler) {
+    public PortalClient(JavaPlugin pl, ProxyConfig proxyConfig, Logger logger, CipherManager cipherManager, EncryptedObjectStreamFactory encryptedObjectStreamFactory, IRequestHandler requestHandler, IClientReconnectHandler reconnectHandler) {
         this.pl = pl;
         this.proxyConfig = proxyConfig;
         this.logger = logger;
-        this.cipherManager = cipherManager;
         this.encryptedObjectStreamFactory = encryptedObjectStreamFactory;
         this.requestHandler = requestHandler;
-    }
-
-    @Override
-    public void connect() {
-        if(isRunning) {throw new IllegalStateException("Attempted to start connection when was was already established");}
-        isRunning = true;
+        this.reconnectHandler = reconnectHandler;
 
         try {
             cipherManager.init(proxyConfig.getEncryptionKey());
         }   catch(NoSuchAlgorithmException ex) {
             logger.severe("Unable to find algorithm to encrypt proxy connection");
             ex.printStackTrace();
-            return;
         }
+    }
+
+    @Override
+    public void connect(boolean printErrors) {
+        if(isRunning) {throw new IllegalStateException("Attempted to start connection when was was already established");}
+        isRunning = true;
+        shouldReconnectIfFailed = true;
 
         new Thread(() -> {
             try {
@@ -76,16 +78,22 @@ public class PortalClient implements IPortalClient {
                 if (!isRunning) {
                     return;
                 }
-
-                logger.warning("An IO error occurred while connected to the proxy");
-                ex.printStackTrace();
+                if(printErrors) {
+                    logger.warning("An IO error occurred while connected to the proxy");
+                    logger.warning("%s: %s", ex.getClass().getName(), ex.getMessage()); // Don't print the full stack trace - it's pretty long
+                }
             }   catch(AEADBadTagException ex) {
-                logger.warning("Failed to initialise encryption with the proxy");
-                logger.warning("Please make sure that your encryption key is valid!");
-                ex.printStackTrace();
+                shouldReconnectIfFailed = false;
+                if(printErrors) {
+                    logger.warning("Failed to initialise encryption with the proxy");
+                    logger.warning("Please make sure that your encryption key is valid!");
+                    ex.printStackTrace();
+                }
             }   catch(Throwable ex) {
-                logger.warning("An error occurred while connected to the proxy");
-                ex.printStackTrace();
+                if(printErrors) {
+                    logger.warning("An error occurred while connected to the proxy");
+                    ex.printStackTrace();
+                }
             }   finally     {
                 disconnect();
             }
@@ -100,7 +108,11 @@ public class PortalClient implements IPortalClient {
         logger.fine("Hello from client thread");
         objectStream = encryptedObjectStreamFactory.create(socket.getInputStream(), socket.getOutputStream());
 
-        if(!runHandshake()) {return;}
+        if(!runHandshake()) {
+            shouldReconnectIfFailed = false; // The handshake will just fail again if reconnecting, so don't
+            return;
+        }
+
         logger.info("Successfully connected to the proxy");
 
         while(true) {
@@ -181,7 +193,11 @@ public class PortalClient implements IPortalClient {
     public void shutDown() {
         if(!isRunning) {return;}
         isRunning = false;
+        if(hasHandshakeFinished) {
+            logger.info("Disconnecting from the proxy");
+        }
         hasHandshakeFinished = false;
+        shouldReconnectIfFailed = false;
 
         try {
             if(objectStream != null) {
@@ -205,6 +221,11 @@ public class PortalClient implements IPortalClient {
         return isRunning;
     }
 
+    @Override
+    public boolean getShouldReconnect() {
+        return shouldReconnectIfFailed;
+    }
+
     private void disconnect() {
         disconnect(false);
     }
@@ -219,7 +240,6 @@ public class PortalClient implements IPortalClient {
         isRunning = false;
         hasHandshakeFinished = false;
 
-        logger.info("Disconnecting from the proxy");
         try {
             if(socket != null) {
                 socket.close();
@@ -234,6 +254,8 @@ public class PortalClient implements IPortalClient {
         for(Consumer<Response> responseConsumer : waitingRequests.values()) {
             responseConsumer.accept(disconnectResponse);
         }
+
+        reconnectHandler.onClientDisconnect();
     }
 
     @Override

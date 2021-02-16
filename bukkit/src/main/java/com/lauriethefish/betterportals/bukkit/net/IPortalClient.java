@@ -11,9 +11,18 @@ public interface IPortalClient {
 
     /**
      * Starts a connection to the proxy stated in {@link ProxyConfig}
+     * @param printExceptions Whether to print IO or other exceptions that occurred while connecting.
      * @throws IllegalStateException if a connection is already open
      */
-    void connect();
+    void connect(boolean printExceptions);
+
+    /**
+     * Starts a connection to the proxy stated in {@link ProxyConfig}
+     * @throws IllegalStateException if a connection is already open
+     */
+    default void connect() {
+        connect(true);
+    }
 
     /**
      * Disconnects from the proxy safely, sending a disconnection notice.
@@ -30,6 +39,11 @@ public interface IPortalClient {
      * @return Whether a connection is currently open to the proxy. The handshake hasn't necessarily finished, even if this is true
      */
     boolean isConnectionOpen();
+
+    /**
+     * @return Whether or not the handshake failed in the last connection attempt. (false if merely an IO error)
+     */
+    boolean getShouldReconnect();
 
     /**
      * Sends <code>request</code> and calls <code>onReceive</code> once a response is read.

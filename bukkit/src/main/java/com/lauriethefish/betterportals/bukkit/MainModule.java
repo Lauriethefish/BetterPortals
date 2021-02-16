@@ -12,9 +12,7 @@ import com.lauriethefish.betterportals.bukkit.entity.*;
 import com.lauriethefish.betterportals.bukkit.entity.faking.*;
 import com.lauriethefish.betterportals.bukkit.events.EventsModule;
 import com.lauriethefish.betterportals.bukkit.math.PortalTransformationsFactory;
-import com.lauriethefish.betterportals.bukkit.net.ClientRequestHandler;
-import com.lauriethefish.betterportals.bukkit.net.IPortalClient;
-import com.lauriethefish.betterportals.bukkit.net.PortalClient;
+import com.lauriethefish.betterportals.bukkit.net.*;
 import com.lauriethefish.betterportals.bukkit.player.*;
 import com.lauriethefish.betterportals.bukkit.player.selection.*;
 import com.lauriethefish.betterportals.bukkit.player.view.IPlayerPortalView;
@@ -91,6 +89,7 @@ public class MainModule extends AbstractModule {
         bind(IPortalClient.class).to(PortalClient.class);
         bind(IRequestHandler.class).to(ClientRequestHandler.class);
         bind(IExternalBlockWatcherManager.class).to(ExternalBlockWatcherManager.class);
+        bind(IClientReconnectHandler.class).to(ClientReconnectHandler.class);
 
         // Portals need a PortalFactory for their serialization
         // Not really another way we can really get it over there, so gotta use static injection :/
