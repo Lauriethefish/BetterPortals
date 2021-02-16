@@ -8,6 +8,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -83,10 +84,9 @@ public class EntityUtil {
      * Getting a valid spawn packet that works correctly for a specific {@link Entity} is surprisingly difficult.
      * This method uses some NMS to get the correct spawn packet.
      * @param entity The entity to get the spawn packet of
-     * @return A container with the valid packet.
+     * @return A container with the valid packet, or <code>null</code> since some entities can't be spawned with a packet.
      */
-    @NotNull
-    public static PacketContainer getRawEntitySpawnPacket(@NotNull Entity entity) {
+    public static @Nullable PacketContainer getRawEntitySpawnPacket(@NotNull Entity entity) {
         try {
             Object nmsEntity = GET_HANDLE.invoke(entity);
             if(USE_DIRECT_ENTITY_PACKET) {
@@ -94,7 +94,10 @@ public class EntityUtil {
             }   else    {
                 // Create a dummy tracker entry
                 Object trackerEntry = ENTITY_TRACKER_ENTRY_NEW.newInstance(nmsEntity, 0, 0, 0, false);
-                return PacketContainer.fromPacket(GET_ENTITY_SPAWN_PACKET.invoke(trackerEntry));
+                Object nmsPacket = GET_ENTITY_SPAWN_PACKET.invoke(trackerEntry);
+                if(nmsPacket == null) {return null;}
+
+                return PacketContainer.fromPacket(nmsPacket);
             }
         }   catch(ReflectiveOperationException ex) {
             throw new RuntimeException(ex);
