@@ -8,10 +8,10 @@ repositories {
 dependencies {
     implementation 'org.bstats:bstats-bukkit:2.2.1'
     testCompile 'com.github.seeseemelk:MockBukkit-v1.16:0.21.0'
-    testImplementation 'com.comphenix.protocol:ProtocolLib:4.6.0-SNAPSHOT'
+    testImplementation 'com.comphenix.protocol:ProtocolLib:4.6.0'
 
     implementation project(':shared')
 
     compileOnly 'org.spigotmc:spigot-api:1.16.2-R0.1-SNAPSHOT'
-    compileOnly 'com.comphenix.protocol:ProtocolLib:4.6.0-SNAPSHOT'
+    compileOnly 'com.comphenix.protocol:ProtocolLib:4.6.0'
 }
