@@ -141,7 +141,6 @@ public class EntityPacketManipulator implements IEntityPacketManipulator {
             packet.getIntegers().write(4, RotationUtil.getPacketRotationInt(renderedPos.getYaw()));
             packet.getIntegers().write(5, RotationUtil.getPacketRotationInt(renderedPos.getPitch()));
         }   else if(packetType == PacketType.Play.Server.SPAWN_ENTITY_LIVING) {
-            // TODO: Bukkit's entity yaw for living entities is actually the head rotation, weird
             packet.getBytes().write(0, yaw);
             packet.getBytes().write(1, pitch);
             packet.getBytes().write(2, yaw);
@@ -330,7 +329,7 @@ public class EntityPacketManipulator implements IEntityPacketManipulator {
             for (Player player : players) {
                 protocolManager.sendServerPacket(player, packet);
             }
-        }   catch(InvocationTargetException ex) { // TODO: possibly bad to just box this error
+        }   catch(InvocationTargetException ex) {
             throw new RuntimeException("Failed to send packet", ex);
         }
     }

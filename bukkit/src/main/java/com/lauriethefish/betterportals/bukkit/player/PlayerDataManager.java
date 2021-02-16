@@ -32,7 +32,6 @@ public class PlayerDataManager implements IPlayerDataManager, Listener   {
     private final Map<UUID, GetSelectionRequest.ExternalSelectionInfo> pendingSelectionOnJoin = new HashMap<>();
     /**
      * Used to retain selections throughout logouts.
-     * TODO perhaps: This consumes memory when a player is offline - potentially bad.
      */
     private final Map<UUID, IPlayerSelectionManager> loggedOutPlayerSelections = new HashMap<>();
 
