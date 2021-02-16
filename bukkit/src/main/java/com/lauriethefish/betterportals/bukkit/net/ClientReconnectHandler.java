@@ -47,12 +47,6 @@ public class ClientReconnectHandler implements IClientReconnectHandler, Runnable
 
     @Override
     public void run() {
-        if(isFirstReconnectionAttempt) {
-            logger.info("Processing reconnection attempt to proxy");
-        }   else    {
-            logger.fine("Processing reconnection attempt to proxy");
-        }
-
         // If there was a successful handshake
         if(portalClient.canReceiveRequests()) {
             logger.fine("Proxy is now connected! Stopping . . .");
@@ -64,6 +58,12 @@ public class ClientReconnectHandler implements IClientReconnectHandler, Runnable
         if(portalClient.isConnectionOpen()) {
             logger.fine("Previous reconnection attempt still ongoing");
             return;
+        }
+
+        if(isFirstReconnectionAttempt) {
+            logger.info("Processing reconnection attempt to proxy");
+        }   else    {
+            logger.fine("Processing reconnection attempt to proxy");
         }
 
         portalClient.connect(isFirstReconnectionAttempt); // Only print exceptions on the first reconnection attempt
