@@ -2,6 +2,7 @@ package com.lauriethefish.betterportals.bukkit.player.view;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import com.lauriethefish.betterportals.bukkit.config.MiscConfig;
 import com.lauriethefish.betterportals.bukkit.config.RenderConfig;
 import com.lauriethefish.betterportals.bukkit.player.view.block.IPlayerBlockView;
 import com.lauriethefish.betterportals.bukkit.player.view.entity.IPlayerEntityView;
@@ -27,14 +28,14 @@ public class PlayerPortalView implements IPlayerPortalView  {
     private int ticksSinceStarted = 0;
 
     @Inject
-    public PlayerPortalView(@Assisted Player player, @Assisted IPortal viewedPortal, ViewFactory viewFactory, Logger logger, RenderConfig renderConfig, IPerformanceWatcher performanceWatcher) {
+    public PlayerPortalView(@Assisted Player player, @Assisted IPortal viewedPortal, ViewFactory viewFactory, Logger logger, RenderConfig renderConfig, IPerformanceWatcher performanceWatcher, MiscConfig miscConfig) {
         this.player = player;
         this.logger = logger;
         this.renderConfig = renderConfig;
         this.performanceWatcher = performanceWatcher;
 
         this.blockView = viewFactory.createBlockView(player, viewedPortal);
-        if(viewedPortal.isCrossServer()) {
+        if(viewedPortal.isCrossServer() || !miscConfig.isEntitySupportEnabled()) {
             this.entityView = null;
         }   else {
             this.entityView = viewFactory.createEntityView(player, viewedPortal);
