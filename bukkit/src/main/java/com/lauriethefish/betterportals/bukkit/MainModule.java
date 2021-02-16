@@ -101,6 +101,7 @@ public class MainModule extends AbstractModule {
 
         bind(IPlayerDataManager.class).to(PlayerDataManager.class).asEagerSingleton();
         bind(MainUpdate.class).asEagerSingleton();
+        bind(MetricsManager.class).asEagerSingleton();
 
         install(new EventsModule());
         install(new CommandsModule());

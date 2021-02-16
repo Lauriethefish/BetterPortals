@@ -30,6 +30,7 @@ public class BetterPortals extends Plugin {
 
         portalServer = injector.getInstance(PortalServer.class);
         injector.getInstance(ServerSwitch.class);
+        injector.getInstance(MetricsManager.class);
         portalServer.startUp();
     }
 
