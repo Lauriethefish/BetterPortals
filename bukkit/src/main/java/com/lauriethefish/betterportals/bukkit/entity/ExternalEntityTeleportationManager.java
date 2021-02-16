@@ -9,10 +9,13 @@ import com.lauriethefish.betterportals.shared.net.requests.TeleportRequest;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Sends requests to the proxy for teleporting players across servers.
@@ -21,13 +24,17 @@ import java.util.Map;
 public class ExternalEntityTeleportationManager implements IEntityTeleportationManager  {
     private final IPortal portal;
     private final Logger logger;
+    private final JavaPlugin pl;
     private final IPortalPredicateManager predicateManager;
     private final Map<Player, Location> lastPlayerPositions = new HashMap<>();
+    private final Set<Player> alreadyTeleporting = new HashSet<>();
+
     private final IPortalClient portalClient;
 
-    public ExternalEntityTeleportationManager(IPortal portal, Logger logger, IPortalPredicateManager predicateManager, IPortalClient portalClient) {
+    public ExternalEntityTeleportationManager(IPortal portal, Logger logger, JavaPlugin pl, IPortalPredicateManager predicateManager, IPortalClient portalClient) {
         this.portal = portal;
         this.logger = logger;
+        this.pl = pl;
         this.predicateManager = predicateManager;
         this.portalClient = portalClient;
     }
@@ -60,6 +67,12 @@ public class ExternalEntityTeleportationManager implements IEntityTeleportationM
     }
 
     private void sendTeleportRequest(Player player) {
+        if(alreadyTeleporting.contains(player)) {
+            return;
+        }
+
+        alreadyTeleporting.add(player);
+
         Location destPosition = portal.getTransformations().moveToDestination(player.getLocation());
         destPosition.setDirection(portal.getTransformations().rotateToDestination(player.getLocation().getDirection()));
         Vector destVelocity = portal.getTransformations().rotateToDestination(player.getVelocity());
@@ -87,7 +100,9 @@ public class ExternalEntityTeleportationManager implements IEntityTeleportationM
         portalClient.sendRequestToProxy(request, (response) -> {
             try {
                 response.checkForErrors();
+                alreadyTeleporting.remove(player);
             }   catch(RequestException ex) {
+                if(!pl.isEnabled()) {return;}
                 logger.warning("An error occurred while attempting to teleport a player across servers");
                 ex.printStackTrace();
             }

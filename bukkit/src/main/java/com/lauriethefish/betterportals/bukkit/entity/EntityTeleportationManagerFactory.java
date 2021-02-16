@@ -5,22 +5,25 @@ import com.lauriethefish.betterportals.bukkit.net.IPortalClient;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import com.lauriethefish.betterportals.bukkit.portal.predicate.IPortalPredicateManager;
 import com.lauriethefish.betterportals.shared.logging.Logger;
+import org.bukkit.plugin.java.JavaPlugin;
 
 public class EntityTeleportationManagerFactory    {
     private final Logger logger;
     private final IPortalPredicateManager predicateManager;
     private final IPortalClient portalClient;
+    private final JavaPlugin pl;
 
     @Inject
-    public EntityTeleportationManagerFactory(Logger logger, IPortalPredicateManager predicateManager, IPortalClient portalClient) {
+    public EntityTeleportationManagerFactory(Logger logger, IPortalPredicateManager predicateManager, IPortalClient portalClient, JavaPlugin pl) {
         this.logger = logger;
         this.predicateManager = predicateManager;
         this.portalClient = portalClient;
+        this.pl = pl;
     }
 
     public IEntityTeleportationManager create(IPortal portal) {
         if(portal.isCrossServer()) {
-            return new ExternalEntityTeleportationManager(portal, logger, predicateManager, portalClient);
+            return new ExternalEntityTeleportationManager(portal, logger, pl, predicateManager, portalClient);
         }   else    {
             return new LocalEntityTeleportationManager(portal, logger, predicateManager);
         }
