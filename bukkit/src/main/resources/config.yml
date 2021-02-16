@@ -127,7 +127,7 @@ chatMessages:
 
   # Printed if a player lights a portal in an unlinked world
   # To disable, just remove all the text inside the quotes
-  noWorldLink: "Unfortunately, this portal will not be lit since the world that you are in is not linked.
+  noWorldLink: "Unfortunately, this portal will not be lit since the world that you are in is not linked. (if you have changed the name of your world in server.properties, you need to change it in the config)
                 If you believe this to be a mistake, contact an admin and link this wiki page for adding a world link: https://github.com/Lauriethefish/BetterPortals/wiki/Editing-the-Config-file#world-connections
                 BetterPortals overrides the behaviour of plugins like MultiverseNetherPortals, so these should be uninstalled unless you're in a world that is manually excluded in the config.
                 This message can be disabled in config.yml"
