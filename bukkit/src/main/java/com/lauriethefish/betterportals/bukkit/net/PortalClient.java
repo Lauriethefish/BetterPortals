@@ -56,11 +56,13 @@ public class PortalClient implements IPortalClient {
         this.requestHandler = requestHandler;
         this.reconnectHandler = reconnectHandler;
 
-        try {
-            cipherManager.init(proxyConfig.getEncryptionKey());
-        }   catch(NoSuchAlgorithmException ex) {
-            logger.severe("Unable to find algorithm to encrypt proxy connection");
-            ex.printStackTrace();
+        if(proxyConfig.isEnabled()) {
+            try {
+                cipherManager.init(proxyConfig.getEncryptionKey());
+            } catch (NoSuchAlgorithmException ex) {
+                logger.severe("Unable to find algorithm to encrypt proxy connection");
+                ex.printStackTrace();
+            }
         }
     }
 
