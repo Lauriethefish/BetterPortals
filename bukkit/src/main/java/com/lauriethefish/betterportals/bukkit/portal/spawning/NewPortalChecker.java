@@ -7,6 +7,7 @@ import com.lauriethefish.betterportals.bukkit.config.PortalSpawnConfig;
 import com.lauriethefish.betterportals.bukkit.config.WorldLink;
 import com.lauriethefish.betterportals.bukkit.portal.IPortalManager;
 import com.lauriethefish.betterportals.bukkit.portal.PortalDirection;
+import com.lauriethefish.betterportals.bukkit.util.MaterialUtil;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
@@ -79,7 +80,7 @@ public class NewPortalChecker implements IChunkChecker  {
 
                     boolean isFrame = x == 0 || y == 0 || x == size.getX() || y == size.getY();
 
-                    if ((!isFrame) && !type.isAir()) { // Portal block positions must be air
+                    if ((!isFrame) && !MaterialUtil.isAir(type)) { // Portal block positions must be air
                         return false;
                     }
                     if (y == 0 && (!type.isSolid())) { // The floor blocks must be solid

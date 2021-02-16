@@ -78,6 +78,7 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
      * @param start Start position of the flood fill
      */
     private void searchFromBlock(IntVector start) {
+        // TODO fix
         IntVector[] stack = new IntVector[renderConfig.getTotalArrayLength() * 2];
         stack[0] =start;
         int i = 0;
