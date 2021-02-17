@@ -6,6 +6,8 @@ import com.lauriethefish.betterportals.bukkit.math.IntVector;
 import com.lauriethefish.betterportals.bukkit.net.IPortalClient;
 import com.lauriethefish.betterportals.bukkit.net.requests.GetBlockDataChangesRequest;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
+import com.lauriethefish.betterportals.bukkit.util.performance.IPerformanceWatcher;
+import com.lauriethefish.betterportals.bukkit.util.performance.OperationTimer;
 import com.lauriethefish.betterportals.shared.logging.Logger;
 import com.lauriethefish.betterportals.shared.net.RequestException;
 import org.jetbrains.annotations.NotNull;
@@ -20,6 +22,7 @@ import java.util.UUID;
 public class ExternalBlockDataFetcher implements IBlockDataFetcher  {
     private final Logger logger;
     private final IPortalClient portalClient;
+    private final IPerformanceWatcher performanceWatcher;
     private final GetBlockDataChangesRequest request;
     private final String destServerName;
 
@@ -27,9 +30,10 @@ public class ExternalBlockDataFetcher implements IBlockDataFetcher  {
     private volatile boolean hasFirstRequestFinished = false;
     private volatile boolean hasPreviousRequestFinished = true;
 
-    public ExternalBlockDataFetcher(Logger logger, IPortalClient portalClient, RenderConfig renderConfig, IPortal portal) {
+    public ExternalBlockDataFetcher(Logger logger, IPortalClient portalClient, RenderConfig renderConfig, IPortal portal, IPerformanceWatcher performanceWatcher) {
         this.logger = logger;
         this.portalClient = portalClient;
+        this.performanceWatcher = performanceWatcher;
         this.destServerName = portal.getDestPos().getServerName();
 
         this.request = new GetBlockDataChangesRequest();
@@ -53,10 +57,16 @@ public class ExternalBlockDataFetcher implements IBlockDataFetcher  {
         portalClient.sendRequestToServer(request, destServerName, (response) -> {
             hasPreviousRequestFinished = true;
             try {
+                OperationTimer timer = new OperationTimer();
+
                 logger.finer("Received response to get block data request");
                 Map<IntVector, Integer> serializedChanges = (Map<IntVector, Integer>) response.getResult();
 
                 serializedChanges.forEach((position, newValue) -> currentStates.put(position, BlockData.create(newValue)));
+
+                if(!hasFirstRequestFinished) {
+                    performanceWatcher.putTimeTaken("Initial external block data deserialization (int -> bukkit)", timer);
+                }
 
                 hasFirstRequestFinished = true;
             }   catch(RequestException ex) {
