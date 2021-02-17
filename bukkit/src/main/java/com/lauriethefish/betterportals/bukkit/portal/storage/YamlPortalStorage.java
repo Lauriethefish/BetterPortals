@@ -85,7 +85,7 @@ public class YamlPortalStorage implements IPortalStorage    {
                     logger.finer("Loading modern portal.");
                     newPortal = (Portal) portalsSection.get(portalNumber);
                 }
-            }   catch(Throwable ex) { // Avoid failing all portals when one is invalid
+            }   catch(RuntimeException ex) { // Avoid failing all portals when one is invalid
                 logger.warning("Failed to load portal: %s", ex.getMessage());
                 continue;
             }
@@ -112,7 +112,7 @@ public class YamlPortalStorage implements IPortalStorage    {
         for(IPortal portal : portalManager.getAllPortals()) {
             try {
                 portalsSection.set(String.valueOf(i), portal);
-            }   catch(Throwable ex) { // Avoid failing all portals when one is invalid
+            }   catch(RuntimeException ex) { // Avoid failing all portals when one is invalid
                 logger.warning("Failed to save portal: %s", ex.getMessage());
             }
             i++;

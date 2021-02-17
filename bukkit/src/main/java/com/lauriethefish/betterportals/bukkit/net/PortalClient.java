@@ -91,7 +91,7 @@ public class PortalClient implements IPortalClient {
                     logger.warning("Please make sure that your encryption key is valid!");
                     ex.printStackTrace();
                 }
-            }   catch(Throwable ex) {
+            }   catch(Exception ex) {
                 if(printErrors) {
                     logger.warning("An error occurred while connected to the proxy");
                     ex.printStackTrace();

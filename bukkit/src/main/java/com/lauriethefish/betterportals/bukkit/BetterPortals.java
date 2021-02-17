@@ -17,6 +17,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.util.List;
 
 public class BetterPortals extends JavaPlugin {
@@ -45,7 +46,7 @@ public class BetterPortals extends JavaPlugin {
         try {
             configManager.updateFromResources(this);
             configManager.loadValues();
-        }   catch(Throwable ex) {
+        }   catch(RuntimeException ex) {
             logger.severe("Failed to load the config file. Is it definitely valid YAML?");
             logger.warning("%s: %s", ex.getClass().getName(), ex.getMessage());
             didEnableFail = true;
@@ -55,7 +56,7 @@ public class BetterPortals extends JavaPlugin {
         try {
             Injector injector = preInitInjector.createChildInjector(new MainModule(this));
             injector.injectMembers(this);
-        }   catch(Throwable ex) {
+        }   catch(RuntimeException ex) {
             logger.severe("A critical error occurred during plugin startup");
             ex.printStackTrace();
             didEnableFail = true;
@@ -64,7 +65,7 @@ public class BetterPortals extends JavaPlugin {
 
         try {
             portalStorage.loadPortals();
-        }   catch(Throwable ex) {
+        } catch(IOException | RuntimeException ex) {
             getLogger().severe("Failed to load the portals from portals.yml. Did you modify it with an incorrect format?");
             ex.printStackTrace();
             didEnableFail = true;
@@ -89,15 +90,15 @@ public class BetterPortals extends JavaPlugin {
 
         try {
             playerDataManager.onPluginDisable();
-        }   catch(Throwable ex) {
+        }  catch(RuntimeException ex) {
             logger.severe("Error occurred while resetting player views");
             ex.printStackTrace();
         }
 
         try {
             portalStorage.savePortals();
-        }   catch(Throwable ex) {
-            logger.severe("Error occurred while saving the portals to portals.yml");
+        }   catch(RuntimeException | IOException ex) {
+            logger.severe("Error occurred while saving the portals to portals.yml. Check your file permissions!");
             ex.printStackTrace();
         }
 

@@ -40,7 +40,7 @@ public class ProxyRequestHandler implements IRequestHandler {
             Response response = new Response();
             response.setError(ex);
             onFinish.accept(response);
-        }   catch(Throwable ex) {
+        }   catch(Exception ex) {
             Response response = new Response();
             response.setError(new RequestException(ex, "Internal error occurred on the proxy while processing request"));
         }

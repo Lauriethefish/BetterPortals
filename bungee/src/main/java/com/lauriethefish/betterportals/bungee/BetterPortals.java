@@ -20,7 +20,7 @@ public class BetterPortals extends Plugin {
 
         try {
             config.load();
-        }   catch(Throwable ex) {
+        }   catch(Exception ex) {
             logger.severe("Failed to load the config file");
             logger.severe("Please check that your YAML syntax is correct");
             ex.printStackTrace();

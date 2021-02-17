@@ -74,7 +74,7 @@ public class UpdateManager {
         new Thread(() -> {
             try {
                 checkForUpdatesInternal();
-            } catch (Throwable ex) {
+            } catch (Exception ex) {
                 logger.warning("An error occurred while checking for updates (%s)", ex.getMessage());
             }
         }).start();

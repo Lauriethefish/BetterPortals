@@ -86,7 +86,7 @@ public class ClientRequestHandler implements IRequestHandler {
             Response response = new Response();
             response.setError(ex);
             onFinish.accept(response);
-        }   catch(Throwable ex) {
+        }   catch(Exception ex) {
             Response response = new Response();
             response.setError(new RequestException(ex, "Internal error occurred on a client server while processing request"));
             onFinish.accept(response);

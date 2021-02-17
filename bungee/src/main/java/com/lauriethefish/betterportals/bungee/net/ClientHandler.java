@@ -65,7 +65,7 @@ public class ClientHandler implements IClientHandler {
                 logger.warning("Failed to initialise encryption with %s", socket.getRemoteSocketAddress());
                 logger.warning("Please make sure that your encryption key is valid!");
                 ex.printStackTrace();
-            }   catch(Throwable ex) {
+            }   catch(Exception ex) {
                 logger.warning("An error occurred while connected to %s", socket.getRemoteSocketAddress());
                 ex.printStackTrace();
             }   finally     {

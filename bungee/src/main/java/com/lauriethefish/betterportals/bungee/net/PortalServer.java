@@ -56,7 +56,7 @@ public class PortalServer implements IPortalServer {
 
                 logger.warning("An IO error occurred while running the portal server");
                 ex.printStackTrace();
-            }   catch(Throwable ex) {
+            }   catch(Exception ex) {
                 logger.warning("An error occurred while running the portal server");
                 ex.printStackTrace();
             }   finally     {

@@ -64,10 +64,10 @@ public class MainUpdate implements Runnable {
 
             blockWatcherManager.update();
 
-        }   catch(Throwable t) {
+        }   catch(RuntimeException ex) {
             // An error during main update is bad news.
-            // Things are probably now in an invalid state, so we
-            errorHandler.processCriticalError(t);
+            // Things are probably now in an invalid state, so we exit the plugin now.
+            errorHandler.processCriticalError(ex);
         }
     }
 }
