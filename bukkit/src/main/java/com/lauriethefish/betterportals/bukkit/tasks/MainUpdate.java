@@ -3,6 +3,7 @@ package com.lauriethefish.betterportals.bukkit.tasks;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.lauriethefish.betterportals.bukkit.ICrashHandler;
+import com.lauriethefish.betterportals.bukkit.block.external.IExternalBlockWatcherManager;
 import com.lauriethefish.betterportals.bukkit.entity.faking.IEntityTrackingManager;
 import com.lauriethefish.betterportals.bukkit.net.ClientRequestHandler;
 import com.lauriethefish.betterportals.bukkit.player.IPlayerData;
@@ -24,9 +25,10 @@ public class MainUpdate implements Runnable {
     private final IEntityTrackingManager entityTrackingManager;
     private final ICrashHandler errorHandler;
     private final ClientRequestHandler requestHandler;
+    private final IExternalBlockWatcherManager blockWatcherManager;
 
     @Inject
-    public MainUpdate(JavaPlugin pl, PlayerDataManager playerDataManager, IPortalActivityManager activityManager, IPerformanceWatcher performanceWatcher, IEntityTrackingManager entityTrackingManager, ICrashHandler errorHandler, ClientRequestHandler requestHandler) {
+    public MainUpdate(JavaPlugin pl, PlayerDataManager playerDataManager, IPortalActivityManager activityManager, IPerformanceWatcher performanceWatcher, IEntityTrackingManager entityTrackingManager, ICrashHandler errorHandler, ClientRequestHandler requestHandler, IExternalBlockWatcherManager blockWatcherManager) {
         pl.getServer().getScheduler().runTaskTimer(pl, this, 0L, 1L);
 
         this.playerDataManager = playerDataManager;
@@ -35,6 +37,7 @@ public class MainUpdate implements Runnable {
         this.entityTrackingManager = entityTrackingManager;
         this.errorHandler = errorHandler;
         this.requestHandler = requestHandler;
+        this.blockWatcherManager = blockWatcherManager;
     }
 
     @Override
@@ -58,6 +61,8 @@ public class MainUpdate implements Runnable {
             performanceWatcher.putTimeTaken("Cross-server request handling", handlingTimer);
 
             performanceWatcher.putTimeTaken("Main update", timer);
+
+            blockWatcherManager.update();
 
         }   catch(Throwable t) {
             // An error during main update is bad news.
