@@ -31,7 +31,8 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
     private final RenderConfig renderConfig;
     private final IPerformanceWatcher performanceWatcher;
     private final IBlockRotator blockRotator;
-    private final IBlockDataFetcher dataFetcher; // TODO: should probably be cleared.
+    private final BlockDataFetcherFactory dataFetcherFactory;
+    private IBlockDataFetcher dataFetcher;
 
     private ConcurrentMap<IntVector, ViewableBlockInfo> nonObscuredStates;
     @Getter private ConcurrentMap<IntVector, ViewableBlockInfo> viewableStates;
@@ -59,7 +60,7 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
         this.originToDest = portal.getTransformations().getOriginToDestination();
         this.originWorld = portal.getOriginPos().getWorld();
         this.destDirection = portal.getDestPos().getDirection();
-        this.dataFetcher = dataFetcherFactory.create(portal);
+        this.dataFetcherFactory = dataFetcherFactory;
 
         reset();
     }
@@ -154,7 +155,12 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
     @Override
     public void update(int ticksSinceActivated) {
         if(ticksSinceActivated % renderConfig.getBlockUpdateInterval() != 0) {return;}
+
+        if(dataFetcher == null) {
+            dataFetcher = dataFetcherFactory.create(portal);
+        }
         dataFetcher.update();
+
         // If fetching external blocks has not yet finished, we can't do the flood-fill.
         if(!dataFetcher.isReady()) {
             logger.fine("Not updating portal, data was not yet been fetched");
@@ -175,9 +181,10 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
 
     @Override
     public void reset() {
-        logger.finest("Clearing block array to save memory");
+        logger.finer("Clearing block array to save memory");
         nonObscuredStates = new ConcurrentHashMap<>();
         viewableStates = new ConcurrentHashMap<>();
         firstUpdate = true;
+        dataFetcher = null;
     }
 }
