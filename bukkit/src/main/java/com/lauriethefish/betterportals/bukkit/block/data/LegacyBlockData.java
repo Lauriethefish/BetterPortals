@@ -11,6 +11,9 @@ import java.lang.reflect.Method;
 
 @SuppressWarnings("deprecation")
 public class LegacyBlockData extends BlockData  {
+    /**
+     * This exists on 1.12, but not on 1.16, so we access it using reflection to avoid compilation errors
+     */
     private static final Method GET_FROM_ID;
     static {
         GET_FROM_ID = ReflectionUtil.findMethod(Material.class, "getMaterial", new Class[]{int.class});
@@ -29,15 +32,14 @@ public class LegacyBlockData extends BlockData  {
 
     public LegacyBlockData(int combinedId) {
         byte data = (byte) (combinedId >> 12);
-        int id = combinedId & 0x00FFFFFF;
+        int id = combinedId & 0x00000FFF;
 
         this.underlying = new MaterialData(getMaterial(id), data);
-        throw new RuntimeException("unimplemented");
     }
 
     private static Material getMaterial(int id)  {
         try {
-            return (Material) GET_FROM_ID.invoke(id);
+            return (Material) GET_FROM_ID.invoke(null, id);
         }   catch(ReflectiveOperationException ex) {
             throw new RuntimeException(ex);
         }
