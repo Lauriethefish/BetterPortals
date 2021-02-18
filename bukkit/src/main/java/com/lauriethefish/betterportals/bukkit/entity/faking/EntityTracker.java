@@ -15,9 +15,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class EntityTracker implements IEntityTracker    {
     private final Logger logger;
@@ -25,6 +23,7 @@ public class EntityTracker implements IEntityTracker    {
     @Getter private final EntityInfo entityInfo;
     @Getter private final IPortal portal;
     private final IEntityPacketManipulator packetManipulator;
+    private final IEntityTrackingManager entityTrackingManager;
 
     private final Set<Player> trackingPlayers = new HashSet<>();
 
@@ -33,12 +32,14 @@ public class EntityTracker implements IEntityTracker    {
     private Vector lastDirection;
     private Vector lastVelocity;
     private float lastHeadRotation;
+    private List<Entity> lastMounts;
 
     @Inject
-    public EntityTracker(@Assisted Entity entity, @Assisted IPortal portal, IEntityPacketManipulator packetManipulator, Logger logger) {
+    public EntityTracker(@Assisted Entity entity, @Assisted IPortal portal, IEntityPacketManipulator packetManipulator, Logger logger, IEntityTrackingManager entityTrackingManager) {
         // Non-living entities don't have equipment
         this.equipmentWatcher = entity instanceof LivingEntity ? new EntityEquipmentWatcher((LivingEntity) entity) : null;
         this.entity = entity;
+        this.entityTrackingManager = entityTrackingManager;
         this.portal = portal;
         this.entityInfo = new EntityInfo(portal.getTransformations(), entity);
         this.packetManipulator = packetManipulator;
@@ -54,6 +55,22 @@ public class EntityTracker implements IEntityTracker    {
             if(equipmentChanges.size() > 0) {
                 packetManipulator.sendEntityEquipment(entityInfo, equipmentChanges, trackingPlayers);
             }
+        }
+
+        List<Entity> newMounts = entity.getPassengers();
+        if(!newMounts.equals(lastMounts)) {
+            logger.fine("Riding entities changing! (new count: %s)", newMounts.size());
+            lastMounts = newMounts;
+
+            List<EntityInfo> visibleMounts = new ArrayList<>();
+            for(Entity entity : newMounts) {
+                IEntityTracker tracker = entityTrackingManager.getTracker(portal, entity);
+                if(tracker != null) {
+                    visibleMounts.add(tracker.getEntityInfo());
+                }
+            }
+
+            packetManipulator.sendMount(entityInfo, visibleMounts, trackingPlayers);
         }
 
         // The metadata packet contains tons of stuff, e.g. sneaking and beds on newer versions

@@ -3,6 +3,7 @@ package com.lauriethefish.betterportals.bukkit.entity.faking;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Handles updating, creating and removing {@link EntityTracker}s based on when a player is viewing an entity, and sending animations based on events.
@@ -29,4 +30,12 @@ public interface IEntityTrackingManager {
      * Updates all currently replicated entities
      */
     void update();
+
+    /**
+     * Returns the tracker of <code>entity</code> on <code>portal</code>, or null if there is none.
+     * @param portal The portal to check for trackers
+     * @param entity The entity being tracked
+     * @return The tracker of the entity, or null if there is none.
+     */
+    @Nullable IEntityTracker getTracker(IPortal portal, Entity entity);
 }

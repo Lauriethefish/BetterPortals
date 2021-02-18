@@ -16,6 +16,7 @@ import org.bukkit.event.player.PlayerAnimationType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -145,5 +146,13 @@ public class EntityTrackingManager implements IEntityTrackingManager, Listener {
     @Override
     public void update() {
         trackersByPortal.values().forEach((map) -> map.values().forEach(IEntityTracker::update));
+    }
+
+    @Override
+    public @Nullable IEntityTracker getTracker(IPortal portal, Entity entity) {
+        Map<Entity, IEntityTracker> portalTrackers = trackersByPortal.get(portal);
+        if(portalTrackers == null) {return null;}
+
+        return portalTrackers.get(entity);
     }
 }

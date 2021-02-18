@@ -78,6 +78,12 @@ public interface IEntityPacketManipulator {
      */
     void sendEntityHeadRotation(EntityInfo tracker, Collection<Player> players);
 
+    /**
+     * Sends a mount packet to <code>players</code> for <code>tracker</code> to be riding <code>riding</code>.
+     * @param tracker The entity to update the mounts of
+     * @param riding The new mounts
+     * @param players Players to send the packet to
+     */
     void sendMount(EntityInfo tracker, Collection<EntityInfo> riding, Collection<Player> players);
 
     /**
