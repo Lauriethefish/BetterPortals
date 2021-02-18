@@ -28,14 +28,16 @@ public class YamlPortalStorage extends IPortalStorage    {
     private final JavaPlugin pl;
     private final IPortalManager portalManager;
     private final Logger logger;
+    private final LegacyPortalLoader legacyPortalLoader;
 
     @Inject
-    public YamlPortalStorage(JavaPlugin pl, Logger logger, IPortalManager portalManager, MiscConfig miscConfig) {
+    public YamlPortalStorage(JavaPlugin pl, Logger logger, IPortalManager portalManager, MiscConfig miscConfig, LegacyPortalLoader legacyPortalLoader) {
         super(logger, pl, miscConfig);
 
         this.pl = pl;
         this.logger = logger;
         this.portalManager = portalManager;
+        this.legacyPortalLoader = legacyPortalLoader;
 
         ConfigurationSerialization.registerClass(Portal.class);
         ConfigurationSerialization.registerClass(PortalPosition.class);
@@ -78,15 +80,15 @@ public class YamlPortalStorage extends IPortalStorage    {
         logger.finer("Loading %d portals from parsed YAML . . .", portalNumbers.size());
         for(String portalNumber : portalNumbers) {
             ConfigurationSection portalSection = portalsSection.getConfigurationSection(portalNumber);
-            Portal newPortal;
+            IPortal newPortal;
 
             try {
                 if (portalSection != null && portalSection.contains("portalPosition")) {
                     logger.finer("Loading legacy portal.");
-                    newPortal = /*loadLegacyPortal(portalSection); // TODO*/null;
+                    newPortal = legacyPortalLoader.loadLegacyPortal(portalSection);
                 } else {
                     logger.finer("Loading modern portal.");
-                    newPortal = (Portal) portalsSection.get(portalNumber);
+                    newPortal = (IPortal) portalsSection.get(portalNumber);
                 }
             }   catch(RuntimeException ex) { // Avoid failing all portals when one is invalid
                 logger.warning("Failed to load portal: %s", ex.getMessage());
