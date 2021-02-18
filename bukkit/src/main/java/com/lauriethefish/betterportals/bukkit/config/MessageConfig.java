@@ -70,7 +70,10 @@ public class MessageConfig {
      * @return The yellow formatted message
      */
     public String getWarningMessage(String name) {
-        return ChatColor.YELLOW + getRawMessage(name);
+        String rawMessage = getRawMessage(name);
+        if(rawMessage.isEmpty()) {return "";} // Avoid returning the extra character so that we can use a simple String#isEmpty check to see whether to send the warning
+
+        return ChatColor.YELLOW + rawMessage;
     }
 
     /**
