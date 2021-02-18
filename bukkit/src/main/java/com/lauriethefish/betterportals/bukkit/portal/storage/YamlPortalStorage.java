@@ -1,6 +1,7 @@
 package com.lauriethefish.betterportals.bukkit.portal.storage;
 
 import com.google.inject.Inject;
+import com.lauriethefish.betterportals.bukkit.config.MiscConfig;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import com.lauriethefish.betterportals.bukkit.portal.IPortalManager;
 import com.lauriethefish.betterportals.bukkit.portal.Portal;
@@ -23,13 +24,15 @@ import java.util.Set;
  * Portals are currently stored in <code>plugins/BetterPortals/data/portals.yml</code>
  * TODO: Add legacy portal loading
  */
-public class YamlPortalStorage implements IPortalStorage    {
+public class YamlPortalStorage extends IPortalStorage    {
     private final JavaPlugin pl;
     private final IPortalManager portalManager;
     private final Logger logger;
 
     @Inject
-    public YamlPortalStorage(JavaPlugin pl, Logger logger, IPortalManager portalManager) {
+    public YamlPortalStorage(JavaPlugin pl, Logger logger, IPortalManager portalManager, MiscConfig miscConfig) {
+        super(logger, pl, miscConfig);
+
         this.pl = pl;
         this.logger = logger;
         this.portalManager = portalManager;

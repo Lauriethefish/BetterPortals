@@ -25,6 +25,8 @@ public class MiscConfig {
 
     @Getter private boolean testingCommandsEnabled;
 
+    @Getter private int portalSaveInterval;
+
     @Inject
     public MiscConfig(@Named("configFile") FileConfiguration config, Logger logger) {
         this.config = config;
@@ -51,5 +53,6 @@ public class MiscConfig {
 
         teleportCooldown = config.getInt("teleportCooldown");
         testingCommandsEnabled = config.getBoolean("enableTestingCommands");
+        portalSaveInterval = config.getInt("portalSaveInterval");
     }
 }

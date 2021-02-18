@@ -17,6 +17,9 @@ portalActivationDistance: 20
 portalBlockUpdateInterval: 20 # How often the portal will re-check for the blocks around it
 blockStateRefreshInterval: 40 # How often modified block states are resent to the player
 
+# Delay between portal autosaves, in ticks. Set to -1 to disable
+portalSaveInterval: 6000
+
 enableEntitySupport: true
 
 # If this is true, the below is always treated like it is 1
