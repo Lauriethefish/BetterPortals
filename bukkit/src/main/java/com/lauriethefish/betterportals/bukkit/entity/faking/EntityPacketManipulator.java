@@ -20,6 +20,7 @@ import com.lauriethefish.betterportals.shared.logging.Logger;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Hanging;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -347,6 +348,18 @@ public class EntityPacketManipulator implements IEntityPacketManipulator {
         StructureModifier<Integer> integers = packet.getIntegers();
         integers.write(0, tracker.getEntityId());
         integers.write(1, animationType.getNmsId());
+
+        sendPacket(packet, players);
+    }
+
+    @Override
+    public void sendEntityPickupItem(EntityInfo tracker, EntityInfo pickedUp, Collection<Player> players) {
+        PacketContainer packet = new PacketContainer(PacketType.Play.Server.COLLECT);
+
+        StructureModifier<Integer> integers = packet.getIntegers();
+        integers.write(0, pickedUp.getEntityId());
+        integers.write(1, tracker.getEntityId());
+        integers.write(2, ((Item) pickedUp.getEntity()).getItemStack().getAmount());
 
         sendPacket(packet, players);
     }

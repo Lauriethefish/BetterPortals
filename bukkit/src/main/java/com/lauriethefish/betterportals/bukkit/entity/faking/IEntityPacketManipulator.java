@@ -118,4 +118,12 @@ public interface IEntityPacketManipulator {
      * @param animationType Wrapper over the NMS animation type
      */
     void sendEntityAnimation(EntityInfo tracker, Collection<Player> players, AnimationType animationType);
+
+    /**
+     * Sends an item pickup packet for <code>tracker</code> to pick up <code>pickedUp</code>.
+     * @param tracker The picker-upper
+     * @param pickedUp The item that was picked up
+     * @param players Players to send the packet to
+     */
+    void sendEntityPickupItem(EntityInfo tracker, EntityInfo pickedUp, Collection<Player> players);
 }

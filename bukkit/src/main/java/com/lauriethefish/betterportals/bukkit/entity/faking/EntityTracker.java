@@ -7,6 +7,7 @@ import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import com.lauriethefish.betterportals.bukkit.util.nms.AnimationType;
 import com.lauriethefish.betterportals.bukkit.util.nms.EntityUtil;
 import com.lauriethefish.betterportals.shared.logging.Logger;
+import lombok.Getter;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -21,7 +22,8 @@ import java.util.Set;
 public class EntityTracker implements IEntityTracker    {
     private final Logger logger;
     private final Entity entity;
-    private final EntityInfo entityInfo;
+    @Getter private final EntityInfo entityInfo;
+    @Getter private final IPortal portal;
     private final IEntityPacketManipulator packetManipulator;
 
     private final Set<Player> trackingPlayers = new HashSet<>();
@@ -37,6 +39,7 @@ public class EntityTracker implements IEntityTracker    {
         // Non-living entities don't have equipment
         this.equipmentWatcher = entity instanceof LivingEntity ? new EntityEquipmentWatcher((LivingEntity) entity) : null;
         this.entity = entity;
+        this.portal = portal;
         this.entityInfo = new EntityInfo(portal.getTransformations(), entity);
         this.packetManipulator = packetManipulator;
         this.logger = logger;
@@ -68,6 +71,11 @@ public class EntityTracker implements IEntityTracker    {
     @Override
     public void onAnimation(@NotNull AnimationType animationType) {
         packetManipulator.sendEntityAnimation(entityInfo, trackingPlayers, animationType);
+    }
+
+    @Override
+    public void onPickup(@NotNull EntityInfo pickedUp) {
+        packetManipulator.sendEntityPickupItem(entityInfo, pickedUp, trackingPlayers);
     }
 
     // Handles sending all movement and looking packets

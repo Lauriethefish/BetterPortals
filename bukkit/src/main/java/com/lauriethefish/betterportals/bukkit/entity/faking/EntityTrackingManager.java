@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
 import org.bukkit.event.player.PlayerAnimationType;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -110,6 +111,23 @@ public class EntityTrackingManager implements IEntityTrackingManager, Listener {
 
         AnimationType type = hand == EquipmentSlot.HAND ? AnimationType.MAIN_HAND : AnimationType.OFF_HAND;
         forEachTracker(event.getPlayer(), tracker -> tracker.onAnimation(type));
+    }
+
+    @EventHandler
+    public void onEntityPickupItem(EntityPickupItemEvent event) {
+        Entity entity = event.getEntity();
+
+        forEachTracker(entity, (tracker) -> {
+            Map<Entity, IEntityTracker> portalTrackers = trackersByPortal.get(tracker.getPortal());
+            IEntityTracker pickedUp = portalTrackers.get(event.getItem());
+
+            if(pickedUp != null) {
+                logger.fine("Sending pickup packet");
+                tracker.onPickup(pickedUp.getEntityInfo());
+            }   else    {
+                logger.fine("Not sending pickup packet - the item isn't viewable");
+            }
+        });
     }
 
     /**
