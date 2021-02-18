@@ -133,10 +133,16 @@ chatMessages:
   noWorldLink: "Unfortunately, this portal will not be lit since the world that you are in is not linked. (if you have changed the name of your world in server.properties, you need to change it in the config)
                 If you believe this to be a mistake, contact an admin and link this wiki page for adding a world link: https://github.com/Lauriethefish/BetterPortals/wiki/Editing-the-Config-file#world-connections
                 BetterPortals overrides the behaviour of plugins like MultiverseNetherPortals, so these should be uninstalled unless you're in a world that is manually excluded in the config.
-                This message can be disabled in config.yml"
+                This message can be disabled in the BetterPortals config"
 
-  portalTooBig: "This portal is too big. The current size limit is {size}. You can increase it in the config.
+  # Printed if the player lights a portal over the size limit
+  # To disable, just remove all the text inside the quotes.
+  portalTooBig: "This portal is too big. The current size limit is {size}. You can increase it in the BetterPortals config.
                 Please contact an admin if you want this changed."
+
+  # Printed if the player walks through a vanilla nether portal
+  # To disable, just remove all of the text inside the quotes
+  vanillaPortal: "This is a vanilla nether portal. If you want to view through this portal, you will need to relight it."
 
   outOfDate: "Your version of BetterPortals is out of date. ({current} vs {new}). You can download the latest release from {url}"
 

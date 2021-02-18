@@ -152,8 +152,13 @@ public class SpawningEvents implements Listener {
         throw new IllegalStateException("Invalid PortalCreateEvent called by Bukkit. Portal was not on a valid plane");
     }
 
-    // Sends a message to whoever can be best approximated as the portal lighter
-    // Does nothing if given an empty message
+
+    /**
+     * Sends a message to whoever can be best approximated as the portal lighter
+     * Does nothing if given an empty message
+     * @param event Event to find the lighter of
+     * @param message Message to send. This will do nothing if it's empty
+     */
     private void sendMessageToLighter(@NotNull PortalCreateEvent event, @NotNull String message) {
         if(message.isEmpty()) {return;}
 
