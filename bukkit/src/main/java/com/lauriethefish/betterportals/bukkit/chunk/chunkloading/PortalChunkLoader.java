@@ -4,6 +4,7 @@ import com.lauriethefish.betterportals.bukkit.chunk.chunkpos.SquareChunkAreaIter
 import com.lauriethefish.betterportals.bukkit.config.RenderConfig;
 import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
 import org.bukkit.Location;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import javax.inject.Inject;
@@ -26,7 +27,10 @@ public class PortalChunkLoader implements IPortalChunkLoader   {
     private SquareChunkAreaIterator getAreaIterator(PortalPosition destPosition) {
         Location destLoc = destPosition.getLocation();
         // Return an iterator over the chunks within the box that is rendered to the player
-        return new SquareChunkAreaIterator(destLoc.clone().subtract(config.getHalfFullSize().toVector()), destLoc.clone().add(config.getHalfFullSize().toVector()));
+        Vector radiusFromPortal = config.getHalfFullSize().toVector();
+
+        return new SquareChunkAreaIterator(destLoc.clone().subtract(radiusFromPortal),
+                                            destLoc.clone().add(radiusFromPortal));
     }
 
     @Override

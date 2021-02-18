@@ -3,8 +3,8 @@ package com.lauriethefish.betterportals.bukkit.chunk.chunkloading;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.lauriethefish.betterportals.bukkit.chunk.chunkpos.ChunkPosition;
-import com.lauriethefish.betterportals.shared.util.ReflectionUtil;
 import org.bukkit.Chunk;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.ChunkUnloadEvent;
@@ -27,7 +27,7 @@ public class LegacyChunkLoader implements IChunkLoader, Listener {
         // Cancel ChunkUnloadEvent if the chunk is force loaded
         ChunkPosition chunkPos = new ChunkPosition(event.getChunk());
         if(loadedChunks.contains(chunkPos)) {
-            ReflectionUtil.runMethod(event, "setCancelled", new Class[]{boolean.class}, true);
+            ((Cancellable) event).setCancelled(true); // This is cancellable on 1.12 and 1.13
         }
     }
 
@@ -39,7 +39,7 @@ public class LegacyChunkLoader implements IChunkLoader, Listener {
 
     @Override
     public void setNotForceLoaded(ChunkPosition chunk) {
-        loadedChunks.remove(chunk);
+    loadedChunks.remove(chunk);
     }
 
     @Override

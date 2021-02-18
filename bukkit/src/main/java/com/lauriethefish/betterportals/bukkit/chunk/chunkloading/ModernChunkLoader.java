@@ -10,7 +10,7 @@ import java.util.Set;
 @Singleton
 public class ModernChunkLoader implements IChunkLoader {
     // Used to only unforceload chunks if they are *loaded by the plugin*
-    private Set<ChunkPosition> loadedChunks = new HashSet<>();
+    private final Set<ChunkPosition> loadedChunks = new HashSet<>();
 
     @Override
     public void setForceLoaded(Chunk chunk) {
