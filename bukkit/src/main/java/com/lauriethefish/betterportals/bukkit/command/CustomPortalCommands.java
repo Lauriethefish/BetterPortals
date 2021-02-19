@@ -100,8 +100,8 @@ public class CustomPortalCommands {
     @RequiresPermissions("betterportals.link")
     @RequiresPlayer
     @Description("Links the origin and destination portal together")
-    @Argument(name = "twoWay", defaultValue = "false")
-    @Argument(name = "invert", defaultValue = "false")
+    @Argument(name = "twoWay?", defaultValue = "false")
+    @Argument(name = "invert?", defaultValue = "false")
     public boolean linkPortals(IPlayerData playerData, boolean twoWay, boolean invert) throws CommandException  {
         playerData.getSelection().tryCreateFromSelection(playerData.getPlayer(), twoWay, invert);
         playerData.getPlayer().sendMessage(messageConfig.getChatMessage("portalsLinked"));
@@ -114,7 +114,7 @@ public class CustomPortalCommands {
     @RequiresPermissions("betterportals.linkexternal")
     @RequiresPlayer
     @Description("Links the origin selection on this server with a destination on another server")
-    @Argument(name = "invert", defaultValue = "false")
+    @Argument(name = "invert?", defaultValue = "false")
     public boolean linkExternalPortals(IPlayerData playerData, boolean invert) throws CommandException  {
         playerData.getSelection().tryCreateFromExternalSelection(playerData.getPlayer(), invert);
         playerData.getPlayer().sendMessage(messageConfig.getChatMessage("portalsLinked"));
