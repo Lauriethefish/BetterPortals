@@ -18,9 +18,10 @@ import org.bukkit.util.Vector;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class PlayerBlockStatesTests {
     private IPlayerBlockStates blockView;

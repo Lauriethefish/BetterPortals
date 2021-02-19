@@ -1,11 +1,9 @@
 package com.lauriethefish.betterportals.bukkit.player;
 
 import com.lauriethefish.betterportals.bukkit.player.selection.IPlayerSelectionManager;
-import com.lauriethefish.betterportals.bukkit.player.selection.IPortalSelection;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 

@@ -5,19 +5,22 @@ import com.google.inject.assistedinject.Assisted;
 import com.lauriethefish.betterportals.bukkit.player.selection.IPlayerSelectionManager;
 import com.lauriethefish.betterportals.bukkit.player.view.IPlayerPortalView;
 import com.lauriethefish.betterportals.bukkit.player.view.PlayerPortalViewFactory;
-import com.lauriethefish.betterportals.bukkit.portal.predicate.IPortalPredicateManager;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import com.lauriethefish.betterportals.bukkit.portal.IPortalActivityManager;
 import com.lauriethefish.betterportals.bukkit.portal.IPortalManager;
-import com.lauriethefish.betterportals.bukkit.util.performance.OperationTimer;
+import com.lauriethefish.betterportals.bukkit.portal.predicate.IPortalPredicateManager;
 import com.lauriethefish.betterportals.bukkit.util.performance.IPerformanceWatcher;
+import com.lauriethefish.betterportals.bukkit.util.performance.OperationTimer;
 import com.lauriethefish.betterportals.shared.logging.Logger;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PlayerData implements IPlayerData  {

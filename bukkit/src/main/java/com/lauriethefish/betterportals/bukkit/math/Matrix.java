@@ -1,7 +1,6 @@
 package com.lauriethefish.betterportals.bukkit.math;
 
 import com.lauriethefish.betterportals.bukkit.portal.PortalDirection;
-
 import org.bukkit.util.Vector;
 
 /**

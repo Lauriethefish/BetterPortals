@@ -1,6 +1,7 @@
 import com.lauriethefish.betterportals.bukkit.util.ArrayUtil;
 import org.junit.Test;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ArrayUtilTests {
     private final Integer[] testArray = new Integer[]{1, 2, 3, 4, 5};

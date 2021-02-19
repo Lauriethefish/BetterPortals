@@ -1,17 +1,16 @@
 package com.lauriethefish.betterportals.bukkit.config;
 
-import java.net.InetSocketAddress;
-import java.util.Objects;
-import java.util.UUID;
-
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.lauriethefish.betterportals.shared.logging.Logger;
+import lombok.Getter;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
-import lombok.Getter;
+import java.net.InetSocketAddress;
+import java.util.Objects;
+import java.util.UUID;
 
 @Singleton
 public class ProxyConfig {

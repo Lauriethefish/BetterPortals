@@ -1,7 +1,5 @@
 package com.lauriethefish.betterportals.bukkit.player.view;
 
-import org.bukkit.Location;
-
 public interface IPlayerPortalView {
     // Called every tick while viewing through this view
     void update();

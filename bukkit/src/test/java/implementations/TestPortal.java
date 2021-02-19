@@ -10,8 +10,8 @@ import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
 import lombok.Getter;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.UUID;
 
 public class TestPortal implements IPortal {

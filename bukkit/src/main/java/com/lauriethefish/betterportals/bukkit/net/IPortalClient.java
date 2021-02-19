@@ -1,8 +1,8 @@
 package com.lauriethefish.betterportals.bukkit.net;
 
+import com.lauriethefish.betterportals.bukkit.config.ProxyConfig;
 import com.lauriethefish.betterportals.shared.net.Response;
 import com.lauriethefish.betterportals.shared.net.requests.Request;
-import com.lauriethefish.betterportals.bukkit.config.ProxyConfig;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;

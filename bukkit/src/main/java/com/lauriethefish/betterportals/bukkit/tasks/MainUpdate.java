@@ -9,8 +9,8 @@ import com.lauriethefish.betterportals.bukkit.net.ClientRequestHandler;
 import com.lauriethefish.betterportals.bukkit.player.IPlayerData;
 import com.lauriethefish.betterportals.bukkit.player.PlayerDataManager;
 import com.lauriethefish.betterportals.bukkit.portal.IPortalActivityManager;
-import com.lauriethefish.betterportals.bukkit.util.performance.OperationTimer;
 import com.lauriethefish.betterportals.bukkit.util.performance.IPerformanceWatcher;
+import com.lauriethefish.betterportals.bukkit.util.performance.OperationTimer;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**

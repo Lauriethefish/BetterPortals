@@ -7,7 +7,6 @@ import com.lauriethefish.betterportals.bukkit.util.VersionUtil;
 import com.lauriethefish.betterportals.shared.logging.Logger;
 import com.lauriethefish.betterportals.shared.net.*;
 import com.lauriethefish.betterportals.shared.net.encryption.CipherManager;
-import com.lauriethefish.betterportals.shared.net.HandshakeResponse;
 import com.lauriethefish.betterportals.shared.net.encryption.EncryptedObjectStreamFactory;
 import com.lauriethefish.betterportals.shared.net.encryption.IEncryptedObjectStream;
 import com.lauriethefish.betterportals.shared.net.requests.RelayRequest;
@@ -17,8 +16,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import javax.crypto.AEADBadTagException;
-
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;

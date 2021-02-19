@@ -2,10 +2,7 @@ package com.lauriethefish.betterportals.bukkit.block;
 
 import com.comphenix.protocol.wrappers.WrappedBlockData;
 import com.lauriethefish.betterportals.bukkit.block.data.BlockData;
-import com.lauriethefish.betterportals.bukkit.util.VersionUtil;
 import lombok.Getter;
-import lombok.Setter;
-import org.bukkit.block.BlockState;
 
 // Represents each block that is not fully obscured and will be rendered through the portal
 // A collection of these is built by IViewableBlockArray

@@ -4,11 +4,10 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.lauriethefish.betterportals.bukkit.math.IntVector;
+import lombok.Getter;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.util.Vector;
-
-import lombok.Getter;
 
 import java.util.Objects;
 

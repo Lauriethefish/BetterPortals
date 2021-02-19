@@ -3,18 +3,15 @@ package com.lauriethefish.betterportals.bukkit.config;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.lauriethefish.betterportals.bukkit.command.framework.CommandException;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-
+import lombok.Getter;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
-import lombok.Getter;
-
 import javax.inject.Named;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Handles formatting text based on what's in the messages section of the config.

@@ -3,7 +3,6 @@ package com.lauriethefish.betterportals.bukkit.block.fetch;
 import com.lauriethefish.betterportals.bukkit.block.data.BlockData;
 import com.lauriethefish.betterportals.bukkit.math.IntVector;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public interface IBlockDataFetcher {
     /**

@@ -12,13 +12,11 @@ import com.lauriethefish.betterportals.bukkit.entity.IPortalEntityList;
 import com.lauriethefish.betterportals.bukkit.entity.PortalEntityListFactory;
 import com.lauriethefish.betterportals.bukkit.math.PortalTransformations;
 import com.lauriethefish.betterportals.bukkit.math.PortalTransformationsFactory;
-import com.lauriethefish.betterportals.bukkit.net.IPortalClient;
 import com.lauriethefish.betterportals.bukkit.util.MaterialUtil;
 import com.lauriethefish.betterportals.shared.logging.Logger;
 import lombok.Getter;
 import org.bukkit.Material;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 

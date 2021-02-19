@@ -1,6 +1,7 @@
 import com.lauriethefish.betterportals.shared.util.ReflectionUtil;
 import org.junit.Test;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 // Tests to make sure that ReflectionUtil works fine
 public class ReflectionUtilTests {

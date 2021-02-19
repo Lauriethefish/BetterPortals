@@ -5,10 +5,10 @@ import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.lauriethefish.betterportals.bukkit.config.ConfigManager;
-import com.lauriethefish.betterportals.bukkit.portal.predicate.ActivationDistance;
-import com.lauriethefish.betterportals.bukkit.portal.predicate.ViewPermissions;
 import com.lauriethefish.betterportals.bukkit.portal.PortalDirection;
 import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
+import com.lauriethefish.betterportals.bukkit.portal.predicate.ActivationDistance;
+import com.lauriethefish.betterportals.bukkit.portal.predicate.ViewPermissions;
 import implementations.TestConfigModule;
 import implementations.TestLoggerModule;
 import implementations.TestPortal;
@@ -20,7 +20,8 @@ import org.junit.Test;
 
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PortalPredicateTests {
     private Injector injector;

@@ -4,7 +4,6 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.lauriethefish.betterportals.bukkit.block.data.BlockData;
 import com.lauriethefish.betterportals.bukkit.block.data.ModernBlockData;
-import com.lauriethefish.betterportals.bukkit.command.framework.CommandException;
 import com.lauriethefish.betterportals.bukkit.command.framework.CommandTree;
 import com.lauriethefish.betterportals.bukkit.command.framework.annotations.*;
 import com.lauriethefish.betterportals.bukkit.config.MiscConfig;

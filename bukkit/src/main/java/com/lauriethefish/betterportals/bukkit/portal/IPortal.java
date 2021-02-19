@@ -3,13 +3,10 @@ package com.lauriethefish.betterportals.bukkit.portal;
 import com.lauriethefish.betterportals.bukkit.block.IViewableBlockArray;
 import com.lauriethefish.betterportals.bukkit.entity.IPortalEntityList;
 import com.lauriethefish.betterportals.bukkit.math.PortalTransformations;
-import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
 import java.util.UUID;
 
 /**

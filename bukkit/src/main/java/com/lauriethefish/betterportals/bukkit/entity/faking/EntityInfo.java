@@ -4,9 +4,7 @@ import com.lauriethefish.betterportals.bukkit.math.Matrix;
 import com.lauriethefish.betterportals.bukkit.math.PortalTransformations;
 import com.lauriethefish.betterportals.bukkit.util.nms.EntityUtil;
 import lombok.Getter;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.entity.Creeper;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 

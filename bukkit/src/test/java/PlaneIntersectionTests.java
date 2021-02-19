@@ -1,9 +1,9 @@
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.lauriethefish.betterportals.bukkit.math.PlaneIntersectionChecker;
-
 import org.bukkit.util.Vector;
 import org.junit.Test;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PlaneIntersectionTests {
     private static final Vector MAX_DEV = new Vector(1.5, 2.5, 0.5);

@@ -3,13 +3,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.crypto.AEADBadTagException;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class EncryptionTests {
     private CipherManager cipherManager;

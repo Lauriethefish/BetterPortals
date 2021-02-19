@@ -1,6 +1,5 @@
 import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
-import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -10,14 +9,9 @@ import com.lauriethefish.betterportals.bukkit.player.PlayerDataFactory;
 import com.lauriethefish.betterportals.bukkit.player.PlayerDataManager;
 import implementations.TestLoggerModule;
 import implementations.TestPlayerData;
-import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public class PlayerDataManagerTests {
     private PlayerDataManager playerDataManager;

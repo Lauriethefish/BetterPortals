@@ -4,7 +4,6 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.lauriethefish.betterportals.shared.logging.Logger;
 import com.lauriethefish.betterportals.shared.net.*;
-import com.lauriethefish.betterportals.shared.net.HandshakeResponse;
 import com.lauriethefish.betterportals.shared.net.encryption.EncryptedObjectStreamFactory;
 import com.lauriethefish.betterportals.shared.net.encryption.IEncryptedObjectStream;
 import com.lauriethefish.betterportals.shared.net.requests.Request;
@@ -15,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.crypto.AEADBadTagException;
-import java.io.*;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.security.GeneralSecurityException;

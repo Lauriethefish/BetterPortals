@@ -4,7 +4,8 @@ import org.junit.Test;
 
 import java.util.Random;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SpiralChunkIteratorTests {
     // Check that the spiral iterator actually goes around in a spiral

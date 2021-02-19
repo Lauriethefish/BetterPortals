@@ -2,7 +2,6 @@ package com.lauriethefish.betterportals.bukkit.util.performance;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 
 /**
  * Used to performance test certain parts of the plugin.

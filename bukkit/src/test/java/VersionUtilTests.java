@@ -1,6 +1,8 @@
 import com.lauriethefish.betterportals.bukkit.util.VersionUtil;
-import static org.junit.jupiter.api.Assertions.*;
 import org.junit.Test;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class VersionUtilTests {
     @Test

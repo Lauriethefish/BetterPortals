@@ -1,11 +1,6 @@
 package com.lauriethefish.betterportals.bukkit.command.framework;
 
-import com.lauriethefish.betterportals.bukkit.command.framework.annotations.Argument;
-import com.lauriethefish.betterportals.bukkit.command.framework.annotations.Arguments;
-import com.lauriethefish.betterportals.bukkit.command.framework.annotations.Command;
-import com.lauriethefish.betterportals.bukkit.command.framework.annotations.Description;
-import com.lauriethefish.betterportals.bukkit.command.framework.annotations.RequiresPermissions;
-import com.lauriethefish.betterportals.bukkit.command.framework.annotations.RequiresPlayer;
+import com.lauriethefish.betterportals.bukkit.command.framework.annotations.*;
 import com.lauriethefish.betterportals.bukkit.config.MessageConfig;
 import com.lauriethefish.betterportals.bukkit.player.IPlayerData;
 import com.lauriethefish.betterportals.bukkit.player.IPlayerDataManager;
