@@ -17,6 +17,9 @@ import java.util.Objects;
  */
 @Getter
 public class WorldLink  {
+    private final String originWorldName;
+    private final String destWorldName;
+
     private final World originWorld;
     private final World destinationWorld;
 
@@ -26,8 +29,11 @@ public class WorldLink  {
     private final double coordinateRescalingFactor;
 
     public WorldLink(ConfigurationSection config)    {
-        originWorld = Bukkit.getWorld(Objects.requireNonNull(config.getString("originWorld"), "Missing originWorld key in world link"));
-        destinationWorld = Bukkit.getWorld(Objects.requireNonNull(config.getString("destinationWorld"), "Missing destinationWorld key in world link"));
+        originWorldName = Objects.requireNonNull(config.getString("originWorld"), "Missing originWorld key in world link");
+        destWorldName = Objects.requireNonNull(config.getString("destinationWorld"), "Missing destinationWorld key in world link");
+
+        originWorld = Bukkit.getWorld(originWorldName);
+        destinationWorld = Bukkit.getWorld(destWorldName);
 
         minSpawnY = config.getInt("minSpawnY");
         maxSpawnY = config.getInt("maxSpawnY");

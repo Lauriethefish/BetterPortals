@@ -7,7 +7,6 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.lauriethefish.betterportals.shared.logging.Logger;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -51,7 +50,14 @@ public class PortalSpawnConfig {
         for (String s : worldLinksSection.getKeys(false)) {
             WorldLink newLink = new WorldLink(Objects.requireNonNull(worldLinksSection.getConfigurationSection(s)));
             if (!newLink.isValid()) {
-                logger.info(ChatColor.RED + "An invalid worldConnection was found in config.yml, please check that your world names are correct");
+                logger.warning("An invalid worldConnection was found in the config, please check that your world names are correct.");
+                if (newLink.getOriginWorld() == null) {
+                    logger.warning("No world with name \"%s\" exists (for the origin)", newLink.getOriginWorldName());
+                }
+                if(newLink.getDestinationWorld() == null) {
+                    logger.warning("No world with name \"%s\" exists (for the destination)", newLink.getDestWorldName());
+                }
+
                 continue;
             }
 
