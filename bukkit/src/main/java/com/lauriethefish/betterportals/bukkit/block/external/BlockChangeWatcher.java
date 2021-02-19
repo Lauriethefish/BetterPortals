@@ -1,6 +1,5 @@
 package com.lauriethefish.betterportals.bukkit.block.external;
 
-import com.comphenix.protocol.PacketType;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.lauriethefish.betterportals.bukkit.block.data.BlockData;
