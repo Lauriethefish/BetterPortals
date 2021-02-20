@@ -18,6 +18,8 @@ import com.lauriethefish.betterportals.shared.logging.Logger;
 import lombok.Getter;
 import org.bukkit.World;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -79,14 +81,11 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
      * @param start Start position of the flood fill
      */
     private void searchFromBlock(IntVector start) {
-        // TODO fix
-        IntVector[] stack = new IntVector[renderConfig.getTotalArrayLength() * 2];
-        stack[0] =start;
-        int i = 0;
+        List<IntVector> stack = new ArrayList<>(renderConfig.getTotalArrayLength());
+        stack.add(start);
 
-        while(i >= 0) {
-            IntVector destPos = stack[i];
-            i--;
+        while(stack.size() > 0) {
+            IntVector destPos = stack.remove(stack.size() - 1);
             IntVector relPos = destPos.subtract(centerPos);
 
             BlockData destData = dataFetcher.getData(destPos);
@@ -117,8 +116,7 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
             for(IntVector offset : renderConfig.getSurroundingOffsets()) {
                 IntVector offsetPos = originPos.add(offset);
                 if (!nonObscuredStates.containsKey(offsetPos)) {
-                    i++;
-                    stack[i] = originToDest.transform(offsetPos);
+                    stack.add(originToDest.transform(offsetPos));
                 }
             }
         }
