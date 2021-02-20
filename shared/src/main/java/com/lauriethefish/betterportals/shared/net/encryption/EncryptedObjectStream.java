@@ -3,8 +3,12 @@ package com.lauriethefish.betterportals.shared.net.encryption;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 
+import javax.crypto.CipherInputStream;
+import javax.crypto.CipherOutputStream;
 import java.io.*;
 import java.security.GeneralSecurityException;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 public class EncryptedObjectStream implements IEncryptedObjectStream    {
     private final DataInputStream inputStream;
@@ -29,24 +33,29 @@ public class EncryptedObjectStream implements IEncryptedObjectStream    {
         byte[] data = new byte[length];
         inputStream.readFully(data);
 
-        byte[] decrypted = cipherManager.createDecrypt().doFinal(data);
-        return new ObjectInputStream(new ByteArrayInputStream(decrypted)).readObject();
+        GZIPInputStream decompressionStream = new GZIPInputStream(new ByteArrayInputStream(data));
+        CipherInputStream decryptionStream = new CipherInputStream(decompressionStream, cipherManager.createDecrypt());
+
+        return new ObjectInputStream(decryptionStream).readObject();
     }
 
     @Override
     public void writeObject(Object obj) throws GeneralSecurityException, IOException {
-        ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
-        new ObjectOutputStream(byteOutputStream).writeObject(obj);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        GZIPOutputStream compressionStream = new GZIPOutputStream(byteArrayOutputStream);
+        CipherOutputStream encryptionStream = new CipherOutputStream(compressionStream, cipherManager.createEncrypt());
 
-        byte[] data = byteOutputStream.toByteArray();
-        byte[] encrypted = cipherManager.createEncrypt().doFinal(data);
+        new ObjectOutputStream(encryptionStream).writeObject(obj);
+        encryptionStream.close();
+        compressionStream.close();
 
-        if(encrypted.length > MAX_REQUEST_SIZE) {
-            throw new IllegalStateException(String.format("Size of serialized and encrypted object (%d bytes) was greater than the maximum request size of %d bytes", encrypted.length, MAX_REQUEST_SIZE));
+        byte[] data = byteArrayOutputStream.toByteArray();
+
+        if(data.length > MAX_REQUEST_SIZE) {
+            throw new IllegalStateException(String.format("Size of serialized and encrypted object (%d bytes) was greater than the maximum request size of %d bytes", data.length, MAX_REQUEST_SIZE));
         }
 
-
-        outputStream.writeInt(encrypted.length);
-        outputStream.write(encrypted);
+        outputStream.writeInt(data.length);
+        outputStream.write(data);
     }
 }

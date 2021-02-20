@@ -6,6 +6,8 @@ import java.security.GeneralSecurityException;
 /**
  * Individually serializes objects to avoid issues with block size.
  * Specifically, directly using a {@link javax.crypto.CipherOutputStream} isn't really possible since it has no way to flush pending bytes.
+ *
+ * Also uses compression since portal data transfer is pretty inefficient otherwise.
  */
 public interface IEncryptedObjectStream {
     /**
