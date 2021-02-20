@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.IllegalFormatException;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -74,7 +73,7 @@ public class Config {
 
         String addressStr = config.getString("bindAddress");
         if(addressStr == null) {
-            throw new RuntimeException("Invalid bind address: " + addressStr);
+            throw new RuntimeException("Missing bind address");
         }
 
         int port = config.getInt("serverPort");
@@ -84,8 +83,10 @@ public class Config {
 
         try {
             key = UUID.fromString(Objects.requireNonNull(config.getString("key"), "No encryption key found in the config"));
-        }   catch(IllegalFormatException ex) {
+        }   catch(IllegalArgumentException ex) {
+            logger.info("Generating new random encryption key");
             key = UUID.randomUUID();
+            config.set("key", key.toString());
             wasModified = true;
         }
 
