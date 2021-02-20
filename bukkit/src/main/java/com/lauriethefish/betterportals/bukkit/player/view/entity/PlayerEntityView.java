@@ -38,7 +38,9 @@ public class PlayerEntityView implements IPlayerEntityView  {
     @Override
     public void update() {
         updateHiddenEntities();
-        updateReplicatedEntities();
+        if(!portal.isCrossServer()) {
+            updateReplicatedEntities();
+        }
     }
 
     private void updateHiddenEntities() {

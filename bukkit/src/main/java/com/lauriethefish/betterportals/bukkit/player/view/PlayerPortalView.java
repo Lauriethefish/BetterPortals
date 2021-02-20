@@ -35,7 +35,7 @@ public class PlayerPortalView implements IPlayerPortalView  {
         this.performanceWatcher = performanceWatcher;
 
         this.blockView = viewFactory.createBlockView(player, viewedPortal);
-        if(viewedPortal.isCrossServer() || !miscConfig.isEntitySupportEnabled()) {
+        if(!miscConfig.isEntitySupportEnabled()) {
             this.entityView = null;
         }   else {
             this.entityView = viewFactory.createEntityView(player, viewedPortal);
