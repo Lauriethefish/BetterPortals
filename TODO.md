@@ -16,8 +16,10 @@
 ~~- Javadoc for most of the code~~
 ~~- Legacy portal loading~~
 - ~~- Dimension blend (does anyone actually use this?)~~
-- Check that config updating works fine on both spigot & bungeecord
+~~- Check that config updating works fine on both spigot & bungeecord~~
 
 ## Final Important Things
-- Bukkit compatibility - make sure that we're not using md_5's version of ChatColor anywhere.
+~~- Bukkit compatibility - make sure that we're not using md_5's version of ChatColor anywhere.~~
+
+Done!
 
