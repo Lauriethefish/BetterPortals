@@ -53,13 +53,6 @@ portalCollisionBox:
 disabledWorlds:
   - 'some_world'
 
-# How long the plugin waits before rendering portals after switching worlds.
-# Useful to deal with lag that some players get just after switching worlds.
-# Set to 0 to disable
-waitTimeAfterSwitchingWorlds: 1
-
-teleportCooldown: 2 # How long to wait before a player can go back after going through a portal (0 to disable)
-
 # Stores the links between worlds. By default this links the overworld and the nether with portals
 # There are two links for the overworld and the nether - one for each way.
 # This is to allow one way links between dimensions
