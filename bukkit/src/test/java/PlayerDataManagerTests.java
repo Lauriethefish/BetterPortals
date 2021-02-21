@@ -40,7 +40,11 @@ public class PlayerDataManagerTests {
         MockBukkit.unmock();
     }
 
-    /*@Test
+    /*
+        Disabled since MockBukkit hashes players using a bunch of factors instead of the Bukkit way of just using the player UUID
+        This breaks the player data manager code, so no tests for now :(
+
+    @Test
     public void testPlayerJoin() {
         Player player = serverMock.addPlayer();
 
