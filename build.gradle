@@ -1,0 +1,47 @@
+plugins {
+    id 'java'
+}
+
+allprojects {
+    apply plugin: 'java'
+    
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    group = "com.lauriethefish.betterportals"
+    version = '0.7.0-SNAPSHOT'
+
+    // Optional, just for showing name
+    afterEvaluate {
+        println("Evaluating project ${project.group}:${archivesBaseName}:${version}")
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+
+    repositories {
+        jcenter()
+    }
+
+    compileJava.options.encoding = 'UTF-8'
+
+    dependencies {
+        implementation 'com.google.inject:guice:5.0.0-BETA-1'
+        implementation 'com.google.inject.extensions:guice-assistedinject:5.0.0-BETA-1'
+        implementation 'org.jetbrains:annotations:20.1.0'
+        implementation 'com.google.code.findbugs:jsr305:3.0.2'
+
+        implementation 'org.projectlombok:lombok:1.18.16'
+        annotationProcessor 'org.projectlombok:lombok:1.18.8'
+        testAnnotationProcessor('org.projectlombok:lombok:1.18.8')
+
+        testCompileOnly 'junit:junit:4.12'
+        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
+        testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.3.1'
+    }
+}
+
+subprojects {
+    archivesBaseName = "${rootProject.name}-${project.name}"
+}

@@ -1,37 +1,60 @@
 package com.lauriethefish.betterportals.bukkit;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.lauriethefish.betterportals.bukkit.config.MiscConfig;
+import com.lauriethefish.betterportals.bukkit.config.ProxyConfig;
+import com.lauriethefish.betterportals.bukkit.config.RenderConfig;
+import com.lauriethefish.betterportals.bukkit.portal.IPortalManager;
+import com.lauriethefish.betterportals.shared.logging.Logger;
 import org.bstats.bukkit.Metrics;
+import org.bstats.charts.SimplePie;
+import org.bstats.charts.SingleLineChart;
+import org.bukkit.plugin.java.JavaPlugin;
 
+@Singleton
 public class MetricsManager {
-    private static final int BSTATS_ID = 8669; // ID for the plugins posting on bstats
+    private static final int BSTATS_ID = 8669;
 
-    private BetterPortals pl;
-    private Metrics metrics;
+    private final Logger logger;
+    private final RenderConfig renderConfig;
+    private final MiscConfig miscConfig;
+    private final ProxyConfig proxyConfig;
+    private final IPortalManager portalManager;
 
-    public MetricsManager(BetterPortals pl) {
-        this.pl = pl;
+    private final Metrics metrics;
 
-        pl.logDebug("Initialising metrics...");
-        metrics = new Metrics(pl, BSTATS_ID);
+    @Inject
+    public MetricsManager(JavaPlugin pl, Logger logger, RenderConfig renderConfig, MiscConfig miscConfig, IPortalManager portalManager, ProxyConfig proxyConfig) {
+        this.logger = logger;
+        this.renderConfig = renderConfig;
+        this.miscConfig = miscConfig;
+        this.portalManager = portalManager;
+        this.proxyConfig = proxyConfig;
+
+        logger.fine("Initialising metrics . . .");
+        this.metrics = new Metrics(pl, BSTATS_ID);
         addCharts();
+        logger.fine("Metrics initialised");
     }
 
     private void addCharts() {
-        pl.logDebug("Adding charts...");
-        // Show me the total portals active
-        metrics.addCustomChart(new Metrics.SingleLineChart("portals_active", () -> {
-            return pl.getPortals().size() / 2; // Divide by 2, since each portal is 2 list items
+        logger.fine("Adding charts . . .");
+        metrics.addCustomChart(new SingleLineChart("portals_active", () -> {
+            return portalManager.getAllPortals().size() / 2; // Divide by 2, since each portal is 2 list items
         }));
-        // Various charts for config options
-        metrics.addCustomChart(new Metrics.SimplePie("render_distance_xz", () -> String.valueOf(pl.getLoadedConfig().getRendering().getMaxXZ())));
-        metrics.addCustomChart(new Metrics.SimplePie("render_distance_y", () -> String.valueOf(pl.getLoadedConfig().getRendering().getMaxY())));
-        metrics.addCustomChart(new Metrics.SimplePie("entities_enabled", () -> {
+
+        metrics.addCustomChart(new SimplePie("render_distance_xz", () -> String.valueOf(renderConfig.getMaxXZ())));
+        metrics.addCustomChart(new SimplePie("render_distance_y", () -> String.valueOf(renderConfig.getMaxY())));
+        metrics.addCustomChart(new SimplePie("entities_enabled", () -> {
             // Format it nicely instead of true or false
-            if(pl.getLoadedConfig().isEntitySupportEnabled())  {
+            if(miscConfig.isEntitySupportEnabled())  {
                 return "Entities";
             }   else    {
                 return "No Entities";
             }
         }));
+
+        metrics.addCustomChart(new SimplePie("cross-server_portals", () -> proxyConfig.isEnabled() ? "Cross server portals" : "No cross server portals"));
     }
 }

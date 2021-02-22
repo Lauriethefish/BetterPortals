@@ -1,91 +1,93 @@
 package com.lauriethefish.betterportals.bukkit.config;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
+import com.lauriethefish.betterportals.bukkit.math.IntVector;
+import lombok.Getter;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.util.Vector;
 
-import lombok.Getter;
+import java.util.Objects;
 
-// Technical config options relating to rendering/block arrays.
+@Singleton
 @Getter
 public class RenderConfig {
-    // The min and max values for the blocks that the raycast will check
+    private final FileConfiguration file;
+
     private double minXZ;
     private double maxXZ;
     private double minY;
     private double maxY;
 
-    // Multiplyers used to access the array of changed blocks
-    // This array stores the ghost blocks that have been changed to help performance
     private int yMultip;
     private int zMultip;
-
-    private Vector halfFullSize;
-
-    private int arraySizeXZ;
-    private int arraySizeY;
     private int totalArrayLength;
 
-    private int[] surroundingOffsets;
+    private IntVector halfFullSize;
 
-    private Vector collisionBox; // The offset of the portal's collision box
-    private int blockUpdateInterval; // How often the portal re-checks its surrounding blocks
+    private final IntVector[] surroundingOffsets = new IntVector[]{
+        new IntVector(1, 0, 0),
+        new IntVector(-1, 0, 0),
+        new IntVector(0, 1, 0),
+        new IntVector(0, -1, 0),
+        new IntVector(0, 0, 1),
+        new IntVector(0, 0, -1),
+    };
 
-    private int worldSwitchWaitTime; // How long the plugin waits before rendering portals after switching worlds
+    private Vector collisionBox;
+    private int blockUpdateInterval;
 
-    @Getter private boolean portalBlocksHidden; // If this is true then we will send packets to hide and show the portal blocks
+    private int worldSwitchWaitTime;
 
-    public RenderConfig(FileConfiguration file) {
-        // Calculate the min and max values
+    @Getter private boolean portalBlocksHidden;
+
+    private int blockStateRefreshInterval;
+
+    @Inject
+    public RenderConfig(@Named("configFile") FileConfiguration file) {
+        this.file = file;
+    }
+
+    public void load() {
         maxXZ = file.getInt("portalEffectSizeXZ");
         minXZ = maxXZ * -1.0;
         maxY = file.getInt("portalEffectSizeY");
         minY = maxY * -1.0;
 
-        // Calculate the multipliers for accessing the table
+        if(maxXZ <= 0 || maxY <= 0) {
+            throw new IllegalArgumentException("The portal effect size must be at least one");
+        }
+
         zMultip = (int) (maxXZ - minXZ + 1);
         yMultip = zMultip * zMultip;
         totalArrayLength = yMultip * (int) (maxY - minY + 1);
 
-        // Calculate the differences in index for quickly accessing the block array while building the mesh
-        surroundingOffsets = new int[]{
-            1,
-            -1,
-            yMultip,
-            -yMultip,
-            zMultip,
-            -zMultip
-        };
-        halfFullSize = new Vector((maxXZ - minXZ) / 2, (maxY - minY) / 2, (maxXZ - minXZ) / 2);
+        halfFullSize = new IntVector((maxXZ - minXZ) / 2, (maxY - minY) / 2, (maxXZ - minXZ) / 2);
 
-        // Load the portal's collision box
-        ConfigurationSection cBoxSection = file.getConfigurationSection("portalCollisionBox");
+        ConfigurationSection cBoxSection = Objects.requireNonNull(file.getConfigurationSection("portalCollisionBox"), "Collision box missing");
         collisionBox = new Vector(
-            cBoxSection.getDouble("x"),
-            cBoxSection.getDouble("y"),
-            cBoxSection.getDouble("z")
+                cBoxSection.getDouble("x"),
+                cBoxSection.getDouble("y"),
+                cBoxSection.getDouble("z")
         );
 
         blockUpdateInterval = file.getInt("portalBlockUpdateInterval");
-        worldSwitchWaitTime = file.getInt("waitTimeAfterSwitchingWorlds");
+        if(blockUpdateInterval <= 0) {
+            throw new IllegalArgumentException("Block update interval must be at least 1");
+        }
+
+        worldSwitchWaitTime = file.getInt("waitTimeAfterSwitchingWorlds"); // TODO: implement or yeet
         portalBlocksHidden = file.getBoolean("hidePortalBlocks");
+        blockStateRefreshInterval = file.getInt("blockStateRefreshInterval");
     }
 
-    // Finds the index in an array of blocks surrounding the portal
-    // Coordinates should be relative to the centre of the box
-    public int calculateBlockArrayIndex(double x, double y, double z)  {
-        return (int) (z * zMultip + y * yMultip + x) + totalArrayLength / 2;
+    public boolean isEdge(int x, int y, int z) {
+        return x == minXZ || x == maxXZ || y == minY || y == maxY || z == minXZ || z == maxXZ;
     }
 
-    // Essentially just does the opposite of the above
-    public Vector calculateRelativePos(int index) {
-        int x = Math.floorMod(index, zMultip);
-        index -= x;
-        int z = Math.floorMod(index, yMultip) / zMultip;
-        index -= z * zMultip;
-        int y = index / yMultip;
-        index -= y * yMultip;
-
-        return new Vector(x, y, z).subtract(halfFullSize);
+    public boolean isEdge(IntVector vec) {
+        return isEdge(vec.getX(), vec.getY(), vec.getZ());
     }
 }

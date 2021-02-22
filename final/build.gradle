@@ -1,0 +1,22 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '6.1.0'
+}
+
+repositories {
+    gradlePluginPortal()
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(':shared')
+    implementation project(':bukkit')
+    implementation project(':bungee')
+}
+
+tasks.build.dependsOn tasks.shadowJar
+shadowJar {
+    project.configurations.implementation.canBeResolved = true
+    configurations = [project.configurations.implementation]
+
+    relocate 'org.bstats', 'com.lauriethefish.bstats'
+}

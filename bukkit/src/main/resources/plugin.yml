@@ -1,15 +1,18 @@
 main: com.lauriethefish.betterportals.bukkit.BetterPortals
 name: BetterPortals
-version: 0.6.2
+version: 0.7.0-SNAPSHOT
 author: lauriethefish@outlook.com
 api-version: 1.13
 softdepend: [Multiverse-Core]
+depend: [ProtocolLib]
 
 commands:
   betterportals:
     description: Main plugin command
     aliases:
       - bp
+  testStuff:
+    description: Tests stuff
 #  stresstest:
 #    description: Testing command used for performance testing
 
@@ -38,5 +41,17 @@ permissions:
     description: Allows you to use the /bp reconnect command
     default: op
   betterportals.see:
-    description: Allows users to see through portals
+    description: Required for any player to see portals
     default: true
+  betterportals.use:
+    description: Required for any player to use portals
+    default: true
+  betterportals.setname:
+    description: Allows you to set the name of portals
+    default: op
+  betterportals.setname.others:
+    description: Allows you to set the name of portals that you didn't create
+    default: op
+  betterportals.getname:
+    description: Allows you to use /bp getname
+    default: op
