@@ -6,8 +6,8 @@ import com.lauriethefish.betterportals.bukkit.block.IViewableBlockArray;
 import com.lauriethefish.betterportals.bukkit.block.ViewableBlockArrayFactory;
 import com.lauriethefish.betterportals.bukkit.chunk.chunkloading.PortalChunkLoader;
 import com.lauriethefish.betterportals.bukkit.config.MiscConfig;
-import com.lauriethefish.betterportals.bukkit.entity.EntityTeleportationManagerFactory;
-import com.lauriethefish.betterportals.bukkit.entity.IEntityTeleportationManager;
+import com.lauriethefish.betterportals.bukkit.entity.TeleportManagerFactory;
+import com.lauriethefish.betterportals.bukkit.entity.IEntityTeleportManager;
 import com.lauriethefish.betterportals.bukkit.entity.IPortalEntityList;
 import com.lauriethefish.betterportals.bukkit.entity.PortalEntityListFactory;
 import com.lauriethefish.betterportals.bukkit.math.PortalTransformations;
@@ -43,7 +43,7 @@ public class Portal implements IPortal, ConfigurationSerializable {
     @Getter private final IViewableBlockArray viewableBlocks;
 
     @Getter private final IPortalEntityList entityList;
-    @Getter private final IEntityTeleportationManager entityTeleportationManager;
+    @Getter private final IEntityTeleportManager entityTeleportationManager;
     private final PortalChunkLoader chunkLoader;
 
     private int ticksSinceActivated = -1;
@@ -51,7 +51,7 @@ public class Portal implements IPortal, ConfigurationSerializable {
 
     @Inject
     public Portal(IPortalManager portalManager, PortalEntityListFactory entityListFactory, ViewableBlockArrayFactory viewableBlockArrayFactory,
-                  EntityTeleportationManagerFactory entityTeleportationManagerFactory, PortalChunkLoader chunkLoader, MiscConfig miscConfig,
+                  TeleportManagerFactory teleportManagerFactory, PortalChunkLoader chunkLoader, MiscConfig miscConfig,
                   Logger logger, PortalTransformationsFactory transformationsFactory,
                   @Assisted("originPos") PortalPosition originPos, @Assisted("destPos") PortalPosition destPos,
                   @Assisted Vector size, @Assisted boolean isCustom,
@@ -65,7 +65,7 @@ public class Portal implements IPortal, ConfigurationSerializable {
         this.isCustom = isCustom;
         // We do not need to get the destination entities if viewing entities through portals is disabled, or if entity support is disabled
         this.entityList = entityListFactory.create(this, !isCrossServer && miscConfig.isEntitySupportEnabled());
-        this.entityTeleportationManager = entityTeleportationManagerFactory.create(this);
+        this.entityTeleportationManager = teleportManagerFactory.create(this);
         this.chunkLoader = chunkLoader;
         this.id = id;
         this.ownerId = ownerId;

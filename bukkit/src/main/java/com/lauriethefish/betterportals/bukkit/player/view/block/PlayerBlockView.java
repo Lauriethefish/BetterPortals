@@ -12,7 +12,7 @@ import com.lauriethefish.betterportals.bukkit.math.IntVector;
 import com.lauriethefish.betterportals.bukkit.math.PlaneIntersectionChecker;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import com.lauriethefish.betterportals.bukkit.portal.PortalDirection;
-import com.lauriethefish.betterportals.bukkit.tasks.BlockViewUpdateFinisher;
+import com.lauriethefish.betterportals.bukkit.tasks.BlockUpdateFinisher;
 import com.lauriethefish.betterportals.bukkit.util.MaterialUtil;
 import com.lauriethefish.betterportals.bukkit.util.performance.IPerformanceWatcher;
 import com.lauriethefish.betterportals.bukkit.util.performance.OperationTimer;
@@ -33,7 +33,7 @@ public class PlayerBlockView implements IPlayerBlockView   {
     // Avoid resetting block states while they're being updated asynchronously
     private final ReentrantLock statesLock = new ReentrantLock(true);
     private final Logger logger;
-    private final BlockViewUpdateFinisher updateFinisher;
+    private final BlockUpdateFinisher updateFinisher;
     private final IPerformanceWatcher performanceWatcher;
     private final boolean shouldHidePortalBlocks;
 
@@ -46,7 +46,7 @@ public class PlayerBlockView implements IPlayerBlockView   {
     @Inject
     public PlayerBlockView(@Assisted Player player, @Assisted IPortal portal,
                            MultiBlockChangeManagerFactory multiBlockChangeManagerFactory, PlayerBlockStatesFactory blockStatesFactory,
-                           Logger logger, BlockViewUpdateFinisher updateFinisher, IPerformanceWatcher performanceWatcher, RenderConfig renderConfig) {
+                           Logger logger, BlockUpdateFinisher updateFinisher, IPerformanceWatcher performanceWatcher, RenderConfig renderConfig) {
         this.player = player;
         this.portal = portal;
         this.multiBlockChangeManagerFactory = multiBlockChangeManagerFactory;

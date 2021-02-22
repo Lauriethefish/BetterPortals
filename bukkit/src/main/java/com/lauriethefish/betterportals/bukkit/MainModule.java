@@ -33,9 +33,9 @@ import com.lauriethefish.betterportals.bukkit.portal.spawning.IPortalSpawner;
 import com.lauriethefish.betterportals.bukkit.portal.spawning.PortalSpawner;
 import com.lauriethefish.betterportals.bukkit.portal.storage.IPortalStorage;
 import com.lauriethefish.betterportals.bukkit.portal.storage.YamlPortalStorage;
-import com.lauriethefish.betterportals.bukkit.tasks.BlockViewUpdateFinisher;
+import com.lauriethefish.betterportals.bukkit.tasks.BlockUpdateFinisher;
 import com.lauriethefish.betterportals.bukkit.tasks.MainUpdate;
-import com.lauriethefish.betterportals.bukkit.tasks.ThreadedBlockViewUpdateFinisher;
+import com.lauriethefish.betterportals.bukkit.tasks.ThreadedBlockUpdateFinisher;
 import com.lauriethefish.betterportals.bukkit.util.performance.IPerformanceWatcher;
 import com.lauriethefish.betterportals.bukkit.util.performance.PerformanceWatcher;
 import com.lauriethefish.betterportals.shared.net.IRequestHandler;
@@ -76,7 +76,7 @@ public class MainModule extends AbstractModule {
 
         bind(IPortalManager.class).to(PortalManager.class);
         bind(IPortalActivityManager.class).to(PortalActivityManager.class);
-        bind(BlockViewUpdateFinisher.class).to(ThreadedBlockViewUpdateFinisher.class);
+        bind(BlockUpdateFinisher.class).to(ThreadedBlockUpdateFinisher.class);
         bind(IPortalPredicateManager.class).to(PortalPredicateManager.class);
         bind(IPerformanceWatcher.class).to(PerformanceWatcher.class);
         bind(IPlayerSelectionManager.class).to(PlayerSelectionManager.class);

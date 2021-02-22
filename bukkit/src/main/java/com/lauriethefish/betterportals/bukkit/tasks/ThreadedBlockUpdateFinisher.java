@@ -10,11 +10,11 @@ import org.bukkit.plugin.java.JavaPlugin;
  * Probably less idiomatic, but does provide lower latency
  */
 @Singleton
-public class ThreadedBlockViewUpdateFinisher extends BlockViewUpdateFinisher implements Runnable    {
+public class ThreadedBlockUpdateFinisher extends BlockUpdateFinisher implements Runnable    {
     private final JavaPlugin pl;
 
     @Inject
-    public ThreadedBlockViewUpdateFinisher(JavaPlugin pl, Logger logger) {
+    public ThreadedBlockUpdateFinisher(JavaPlugin pl, Logger logger) {
         super(logger);
         this.pl = pl;
 

@@ -10,7 +10,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  * Handles doing the final processing for portal block updates on another thread
  * Doing tons of raycasts to find which blocks are visible is moderately expensive, so happens on another thread
  */
-public abstract class BlockViewUpdateFinisher {
+public abstract class BlockUpdateFinisher {
     private static class BlockViewUpdateInfo {
         PlayerBlockView blockView;
         boolean refresh;
@@ -31,7 +31,7 @@ public abstract class BlockViewUpdateFinisher {
     private final BlockingQueue<BlockViewUpdateInfo> updateQueue = new LinkedBlockingQueue<>();
     protected final Logger logger;
 
-    protected BlockViewUpdateFinisher(Logger logger) {
+    protected BlockUpdateFinisher(Logger logger) {
         this.logger = logger;
     }
 

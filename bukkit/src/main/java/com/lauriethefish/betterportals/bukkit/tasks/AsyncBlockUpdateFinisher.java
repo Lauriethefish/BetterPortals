@@ -12,9 +12,9 @@ import org.bukkit.plugin.java.JavaPlugin;
  * The disadvantage is that it's usually a while before the Bukkit task is run (often the next tick), so this can increase latency
  */
 @Singleton
-public class AsyncBlockViewUpdateFinisher extends BlockViewUpdateFinisher implements Runnable    {
+public class AsyncBlockUpdateFinisher extends BlockUpdateFinisher implements Runnable    {
     @Inject
-    public AsyncBlockViewUpdateFinisher(JavaPlugin pl, Logger logger) {
+    public AsyncBlockUpdateFinisher(JavaPlugin pl, Logger logger) {
         super(logger);
 
         Bukkit.getScheduler().runTaskTimerAsynchronously(pl, this, 0, 1);

@@ -21,7 +21,7 @@ import java.util.Set;
  * Sends requests to the proxy for teleporting players across servers.
  * Entities are not currently supported, since teleporting them and keeping all of their properties is very difficult.
  */
-public class ExternalEntityTeleportationManager implements IEntityTeleportationManager  {
+public class ExternalEntityTeleportManager implements IEntityTeleportManager  {
     private final IPortal portal;
     private final Logger logger;
     private final JavaPlugin pl;
@@ -31,7 +31,7 @@ public class ExternalEntityTeleportationManager implements IEntityTeleportationM
 
     private final IPortalClient portalClient;
 
-    public ExternalEntityTeleportationManager(IPortal portal, Logger logger, JavaPlugin pl, IPortalPredicateManager predicateManager, IPortalClient portalClient) {
+    public ExternalEntityTeleportManager(IPortal portal, Logger logger, JavaPlugin pl, IPortalPredicateManager predicateManager, IPortalClient portalClient) {
         this.portal = portal;
         this.logger = logger;
         this.pl = pl;

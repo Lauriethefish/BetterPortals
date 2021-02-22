@@ -14,12 +14,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.Map;
 
-public class LocalEntityTeleportationManager implements IEntityTeleportationManager {
+public class LocalEntityTeleportManager implements IEntityTeleportManager {
     private final IPortal portal;
     private final Logger logger;
     private final IPortalPredicateManager predicateManager;
 
-    public LocalEntityTeleportationManager(IPortal portal, Logger logger, IPortalPredicateManager predicateManager) {
+    public LocalEntityTeleportManager(IPortal portal, Logger logger, IPortalPredicateManager predicateManager) {
         this.portal = portal;
         this.logger = logger;
         this.predicateManager = predicateManager;
