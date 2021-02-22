@@ -9,6 +9,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -24,7 +25,6 @@ public class LegacyChunkLoader implements IChunkLoader, Listener {
 
     @EventHandler
     public void onChunkUnload(ChunkUnloadEvent event) {
-        // Cancel ChunkUnloadEvent if the chunk is force loaded
         ChunkPosition chunkPos = new ChunkPosition(event.getChunk());
         if(loadedChunks.contains(chunkPos)) {
             ((Cancellable) event).setCancelled(true); // This is cancellable on 1.12 and 1.13
@@ -38,12 +38,12 @@ public class LegacyChunkLoader implements IChunkLoader, Listener {
     }
 
     @Override
-    public void setNotForceLoaded(ChunkPosition chunk) {
+    public void setNotForceLoaded(@NotNull ChunkPosition chunk) {
     loadedChunks.remove(chunk);
     }
 
     @Override
-    public boolean isForceLoaded(ChunkPosition chunk) {
+    public boolean isForceLoaded(@NotNull ChunkPosition chunk) {
         return loadedChunks.contains(chunk);
     }
 }

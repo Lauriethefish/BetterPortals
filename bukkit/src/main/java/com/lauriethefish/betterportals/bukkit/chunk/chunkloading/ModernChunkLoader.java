@@ -2,6 +2,7 @@ package com.lauriethefish.betterportals.bukkit.chunk.chunkloading;
 
 import com.lauriethefish.betterportals.bukkit.chunk.chunkpos.ChunkPosition;
 import org.bukkit.Chunk;
+import org.jetbrains.annotations.NotNull;
 
 import javax.inject.Singleton;
 import java.util.HashSet;
@@ -19,7 +20,7 @@ public class ModernChunkLoader implements IChunkLoader {
     }
 
     @Override
-    public void setNotForceLoaded(ChunkPosition chunk) {
+    public void setNotForceLoaded(@NotNull ChunkPosition chunk) {
         if(loadedChunks.remove(chunk)) {
             // Do it this way to avoid loading the chunk by calling getChunk
             chunk.getWorld().setChunkForceLoaded(chunk.x, chunk.z, false);
@@ -27,7 +28,7 @@ public class ModernChunkLoader implements IChunkLoader {
     }
 
     @Override
-    public boolean isForceLoaded(ChunkPosition chunk) {
+    public boolean isForceLoaded(@NotNull ChunkPosition chunk) {
         return loadedChunks.contains(chunk);
     }   
 }

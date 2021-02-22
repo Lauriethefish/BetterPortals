@@ -1,6 +1,7 @@
 package com.lauriethefish.betterportals.bukkit.chunk.chunkpos;
 
 import org.bukkit.Location;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 
@@ -13,17 +14,21 @@ public class SpiralChunkAreaIterator implements Iterator<ChunkPosition> {
         new ChunkPosition(null, 0, -1)
     };
 
-    private ChunkPosition currentPos;
-    private ChunkPosition low;
-    private ChunkPosition high;
+    private final ChunkPosition currentPos;
+    private final ChunkPosition low;
+    private final ChunkPosition high;
 
     private int currentDirection = 0; // Current direction as an index of the above array
-    private ChunkPosition currentLength = new ChunkPosition(1, 1);
+    private final ChunkPosition currentLength = new ChunkPosition(1, 1);
 
     private int movesLeft = 1;
 
-    // Makes an inclusive spiral chunk iterator, starting at the midpoint of these two chunks
-    public SpiralChunkAreaIterator(ChunkPosition low, ChunkPosition high) {
+    /**
+     * Makes an inclusive spiral chunk iterator, starting at the midpoint of these two chunks
+     * @param low Bottom-left chunk position, not axis aligned
+     * @param high Top right chunk position, not axis aligned
+     */
+    public SpiralChunkAreaIterator(@NotNull ChunkPosition low, @NotNull ChunkPosition high) {
         if(low.world != high.world) {
             throw new IllegalArgumentException("The two positions must be in the same world");
         }
@@ -33,14 +38,17 @@ public class SpiralChunkAreaIterator implements Iterator<ChunkPosition> {
         this.high = high;
     }
 
-    // Makes an iterator over the chunks between these locations, including the chunks that they're in
+    /**
+     * Makes an iterator over the chunks between these locations, including the chunks that they're in
+     * @param a Position A, not axis aligned
+     * @param b Position B, not axis aligned
+     */
     public SpiralChunkAreaIterator(Location a, Location b) {
         this(new ChunkPosition(a), new ChunkPosition(b));
     }
 
     @Override
     public boolean hasNext() {
-        // If the next position is outside the spiral, return true
         return !(currentPos.x > high.x || currentPos.z > high.z || currentPos.x < low.x || currentPos.z < low.z);
     }
 
