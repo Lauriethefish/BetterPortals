@@ -288,7 +288,7 @@ public class EntityPacketManipulator implements IEntityPacketManipulator {
             // Why minecraft, why not just use a map...
             List<Pair<EnumWrappers.ItemSlot, ItemStack>> wrappedChanges = new ArrayList<>();
             changes.forEach((slot, item) -> {
-                logger.fine("Performing equipment change. Slot: %s. New value: %s", slot, item);
+                logger.finest("Performing equipment change. Slot: %s. New value: %s", slot, item);
 
                 wrappedChanges.add(new Pair<>(slot, item == null ? new ItemStack(Material.AIR) : item));
             });
