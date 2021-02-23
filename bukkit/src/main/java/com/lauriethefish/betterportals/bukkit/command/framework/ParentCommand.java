@@ -53,7 +53,7 @@ public class ParentCommand implements ICommand  {
         ICommand validEnteredCommand = subCommands.get(args[0]);
         if(validEnteredCommand instanceof ParentCommand) {
             return ((ParentCommand) validEnteredCommand).tabComplete(sender, ArrayUtil.removeFirstElement(args));
-        }   else if(validEnteredCommand == null) {
+        }   else    {
             // Find the commands that start with the currently entered word
             List<String> result = new ArrayList<>();
             for(String command : subCommands.keySet()) {
@@ -63,9 +63,6 @@ public class ParentCommand implements ICommand  {
             }
 
             return result;
-        }   else    {
-            // For non-parent commands, just return an empty list - we've reached the bottom
-            return new ArrayList<>();
         }
     }
 
