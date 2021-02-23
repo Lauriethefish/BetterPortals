@@ -47,7 +47,10 @@ public class PlayerEntityView implements IPlayerEntityView  {
         PlaneIntersectionChecker intersectionChecker = portal.getTransformations().createIntersectionChecker(player.getEyeLocation().toVector());
 
         Set<Entity> nowHidden = new HashSet<>();
+
         for(Entity entity : portal.getEntityList().getOriginEntities()) {
+            if(entity == player) {continue;}
+
             // If the line from the player's position to the entity intersects the portal, then hide it since it'll spoil the effect by appearing in front of the blocks
             boolean shouldBeHidden = intersectionChecker.checkIfIntersects(entity.getLocation().toVector());
             if(!shouldBeHidden) {continue;}
