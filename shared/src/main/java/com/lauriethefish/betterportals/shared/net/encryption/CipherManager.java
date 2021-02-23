@@ -22,7 +22,6 @@ public class CipherManager {
     private static final int GCM_NONCE_LENGTH = 12; // Bytes
     private static final int GCM_TAG_LENGTH = 16; // Bytes
 
-    private boolean initialized = false;
     private SecretKey secretKey;
 
     private GCMParameterSpec spec;
@@ -33,10 +32,6 @@ public class CipherManager {
      * @throws NoSuchAlgorithmException If the encryption algorithm wasn't found - this shouldn't happen in practise
      */
     public void init(UUID key) throws NoSuchAlgorithmException  {
-        if(initialized) {throw new IllegalStateException("Attempted to reinitialize cipher manager");}
-        initialized = true;
-
-
         SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
         random.setSeed(uuidToBytes(key));
 
