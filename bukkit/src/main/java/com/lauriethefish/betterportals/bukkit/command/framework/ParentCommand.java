@@ -50,19 +50,23 @@ public class ParentCommand implements ICommand  {
             return new ArrayList<>(subCommands.keySet());
         }
 
-        ICommand validEnteredCommand = subCommands.get(args[0]);
+        String lastArg = args[0];
+
+        ICommand validEnteredCommand = subCommands.get(lastArg);
         if(validEnteredCommand instanceof ParentCommand) {
             return ((ParentCommand) validEnteredCommand).tabComplete(sender, ArrayUtil.removeFirstElement(args));
-        }   else    {
+        }   else if(validEnteredCommand == null)    {
             // Find the commands that start with the currently entered word
             List<String> result = new ArrayList<>();
             for(String command : subCommands.keySet()) {
-                if(command.startsWith(args[0])) {
+                if(command.startsWith(lastArg)) {
                     result.add(command);
                 }
             }
 
             return result;
+        }   else    {
+            return new ArrayList<>();
         }
     }
 

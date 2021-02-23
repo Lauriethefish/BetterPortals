@@ -135,7 +135,7 @@ public class CustomPortalCommands {
     private void setName(IPortal portal, String name) {
         boolean isEgg = false;
         for(String egg : EASTER_EGG_NAMES) {
-            if (egg.equalsIgnoreCase(name)) {
+            if (egg.equalsIgnoreCase(name) || portal.getName().equalsIgnoreCase(egg)) {
                 isEgg = true;
                 break;
             }
