@@ -12,7 +12,6 @@ import java.util.logging.Level;
 
 @Singleton
 public class MiscConfig {
-    private final FileConfiguration config;
     private final Logger logger;
 
     @Getter private double portalActivationDistance;
@@ -28,12 +27,11 @@ public class MiscConfig {
     @Getter private int portalSaveInterval;
 
     @Inject
-    public MiscConfig(@Named("configFile") FileConfiguration config, Logger logger) {
-        this.config = config;
+    public MiscConfig(Logger logger) {
         this.logger = logger;
     }
 
-    public void load() {
+    public void load(FileConfiguration config) {
         portalActivationDistance = config.getDouble("portalActivationDistance");
         entitySupportEnabled = config.getBoolean("enableEntitySupport");
 

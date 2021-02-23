@@ -15,16 +15,13 @@ import java.io.IOException;
 public abstract class IPortalStorage implements Runnable    {
     protected Logger logger;
 
+    private final JavaPlugin pl;
+    private final MiscConfig miscConfig;
+
     public IPortalStorage(Logger logger, JavaPlugin pl, MiscConfig miscConfig) {
         this.logger = logger;
-
-        int saveInterval = miscConfig.getPortalSaveInterval();
-        if(miscConfig.getPortalSaveInterval() > 0) {
-            logger.fine("Starting autosave task");
-            Bukkit.getScheduler().runTaskTimer(pl, this, saveInterval, saveInterval);
-        }   else    {
-            logger.fine("Autosave is disabled");
-        }
+        this.pl = pl;
+        this.miscConfig = miscConfig;
     }
 
     /**
@@ -36,6 +33,16 @@ public abstract class IPortalStorage implements Runnable    {
      * Saves all currently registered portals in {@link IPortalManager}
      */
     public abstract void savePortals() throws IOException;
+
+    public void start() {
+        int saveInterval = miscConfig.getPortalSaveInterval();
+        if(miscConfig.getPortalSaveInterval() > 0) {
+            logger.fine("Starting autosave task");
+            Bukkit.getScheduler().runTaskTimer(pl, this, saveInterval, saveInterval);
+        }   else    {
+            logger.fine("Autosave is disabled");
+        }
+    }
 
     @Override
     public void run() {

@@ -6,13 +6,9 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.lauriethefish.betterportals.bukkit.config.ConfigManager;
 import com.lauriethefish.betterportals.bukkit.portal.*;
 import com.lauriethefish.betterportals.bukkit.portal.predicate.IPortalPredicateManager;
-import implementations.TestConfigModule;
-import implementations.TestLoggerModule;
-import implementations.TestPortal;
-import implementations.TestPortalPredicateManager;
+import implementations.*;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.junit.After;
@@ -31,7 +27,7 @@ public class PortalManagerTests {
     private WorldMock nether;
     private PortalFactory portalFactory;
     private PortalManager portalManager;
-    private TestPortalPredicateManager predicateManager = new TestPortalPredicateManager();
+    private final TestPortalPredicateManager predicateManager = new TestPortalPredicateManager();
 
     @Before
     public void setup() {
@@ -42,15 +38,15 @@ public class PortalManagerTests {
         Injector injector = Guice.createInjector(
                 new FactoryModuleBuilder().implement(IPortal.class, TestPortal.class).build(PortalFactory.class),
                 new TestLoggerModule(),
-                new TestConfigModule(),
                 new AbstractModule() {
                     @Override
                     protected void configure() {
                         bind(IPortalPredicateManager.class).toInstance(predicateManager);
+                        bind(IPortalActivityManager.class).to(TestPortalActivityManager.class);
                     }
                 }
         );
-        injector.getInstance(ConfigManager.class).loadValues();
+        TestConfigHandler.prepareConfig(injector);
 
         portalFactory = injector.getInstance(PortalFactory.class);
         portalManager = injector.getInstance(PortalManager.class);

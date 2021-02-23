@@ -17,4 +17,6 @@ public interface IPortalActivityManager {
      * Called once the view for all players has been updated
      */
     void postUpdate();
+
+    void resetActivity();
 }

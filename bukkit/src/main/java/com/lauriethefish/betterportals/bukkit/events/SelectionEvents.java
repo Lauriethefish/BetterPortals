@@ -13,7 +13,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Objects;
 
@@ -23,12 +22,12 @@ public class SelectionEvents implements Listener {
     private final MessageConfig messageConfig;
 
     @Inject
-    public SelectionEvents(JavaPlugin pl, IPortalWandManager portalWandManager, IPlayerDataManager playerDataManager, MessageConfig messageConfig) {
+    public SelectionEvents(IEventRegistrar eventRegistrar, IPortalWandManager portalWandManager, IPlayerDataManager playerDataManager, MessageConfig messageConfig) {
         this.portalWandManager = portalWandManager;
         this.playerDataManager = playerDataManager;
         this.messageConfig = messageConfig;
 
-        pl.getServer().getPluginManager().registerEvents(this, pl);
+        eventRegistrar.register(this);
     }
 
     @EventHandler

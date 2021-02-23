@@ -113,4 +113,10 @@ public interface IPortalManager {
      * @return Whether a portal with this ID was registered.
      */
     boolean removePortalById(@NotNull UUID id);
+
+    /**
+     * Called whenever the plugin enables, but not for the first time.
+     * Or when the player does <code>/bp reload</code>
+     */
+    void onReload();
 }

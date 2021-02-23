@@ -13,10 +13,17 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 @Singleton
 public class AsyncBlockUpdateFinisher extends BlockUpdateFinisher implements Runnable    {
+    private final JavaPlugin pl;
+
     @Inject
     public AsyncBlockUpdateFinisher(JavaPlugin pl, Logger logger) {
         super(logger);
 
+        this.pl = pl;
+    }
+
+    @Override
+    public void start() {
         Bukkit.getScheduler().runTaskTimerAsynchronously(pl, this, 0, 1);
     }
 

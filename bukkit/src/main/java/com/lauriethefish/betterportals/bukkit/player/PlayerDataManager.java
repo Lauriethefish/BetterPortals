@@ -2,6 +2,7 @@ package com.lauriethefish.betterportals.bukkit.player;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.lauriethefish.betterportals.bukkit.events.IEventRegistrar;
 import com.lauriethefish.betterportals.bukkit.net.requests.GetSelectionRequest;
 import com.lauriethefish.betterportals.bukkit.player.selection.IPlayerSelectionManager;
 import com.lauriethefish.betterportals.bukkit.player.selection.IPortalSelection;
@@ -15,7 +16,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,12 +36,12 @@ public class PlayerDataManager implements IPlayerDataManager, Listener   {
     private final Map<UUID, IPlayerSelectionManager> loggedOutPlayerSelections = new HashMap<>();
 
     @Inject
-    public PlayerDataManager(JavaPlugin pl, Logger logger, PlayerDataFactory playerDataFactory) {
+    public PlayerDataManager(IEventRegistrar eventRegistrar, Logger logger, PlayerDataFactory playerDataFactory) {
         this.logger = logger;
         this.playerDataFactory = playerDataFactory;
 
         addExistingPlayers();
-        pl.getServer().getPluginManager().registerEvents(this, pl);
+        eventRegistrar.register(this);
     }
 
     private void addExistingPlayers() {

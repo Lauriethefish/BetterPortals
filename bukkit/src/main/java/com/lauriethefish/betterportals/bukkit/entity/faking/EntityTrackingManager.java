@@ -2,6 +2,7 @@ package com.lauriethefish.betterportals.bukkit.entity.faking;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.lauriethefish.betterportals.bukkit.events.IEventRegistrar;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import com.lauriethefish.betterportals.bukkit.util.nms.AnimationType;
 import com.lauriethefish.betterportals.shared.logging.Logger;
@@ -15,7 +16,6 @@ import org.bukkit.event.player.PlayerAnimationEvent;
 import org.bukkit.event.player.PlayerAnimationType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -37,10 +37,10 @@ public class EntityTrackingManager implements IEntityTrackingManager, Listener {
     private final Map<Entity, EquipmentSlot> lastHandUsed = new HashMap<>();
 
     @Inject
-    public EntityTrackingManager(Logger logger, JavaPlugin pl, EntityTrackerFactory entityTrackerFactory) {
+    public EntityTrackingManager(Logger logger, IEventRegistrar eventRegistrar, EntityTrackerFactory entityTrackerFactory) {
         this.logger = logger;
         this.entityTrackerFactory = entityTrackerFactory;
-        pl.getServer().getPluginManager().registerEvents(this, pl);
+        eventRegistrar.register(this);
     }
 
     @Override

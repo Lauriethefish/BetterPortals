@@ -17,7 +17,10 @@ public class ThreadedBlockUpdateFinisher extends BlockUpdateFinisher implements 
     public ThreadedBlockUpdateFinisher(JavaPlugin pl, Logger logger) {
         super(logger);
         this.pl = pl;
+    }
 
+    @Override
+    public void start() {
         new Thread(this).start();
     }
 

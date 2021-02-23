@@ -8,8 +8,8 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.inject.Named;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,11 +26,9 @@ public class ConfigManager {
     private final MiscConfig misc;
 
     private final Logger logger;
-    private FileConfiguration file;
 
     @Inject
-    public ConfigManager(@Named("configFile") FileConfiguration file, Logger logger, MessageConfig messages, PortalSpawnConfig spawning, RenderConfig rendering, ProxyConfig proxy, MiscConfig misc) {
-        this.file = file;
+    public ConfigManager(Logger logger, MessageConfig messages, PortalSpawnConfig spawning, RenderConfig rendering, ProxyConfig proxy, MiscConfig misc) {
         this.logger = logger;
         this.messages = messages;
         this.spawning = spawning;
@@ -41,13 +39,19 @@ public class ConfigManager {
 
     /**
      * Loads all config values, throwing an error if parsing fails.
+     * @param pl The plugin instance, or null if loading during testing
+     * @param file The configuration file to load from
      */
-    public void loadValues() {
-        misc.load();
-        messages.load();
-        spawning.load();
-        rendering.load();
-        proxy.load();
+    public void loadValues(@NotNull FileConfiguration file, @Nullable JavaPlugin pl) {
+        if(pl != null) {
+            file = updateFromResources(file, pl);
+        }
+
+        misc.load(file);
+        messages.load(file);
+        spawning.load(file);
+        rendering.load(file);
+        proxy.load(file);
     }
 
     /**
@@ -81,8 +85,9 @@ public class ConfigManager {
      * Copies any missing parameters from the config into the default config if any are missing.
      * This has the side effect of removing comments, so it only happens if there are actually keys missing
      * @param pl The BetterPortals plugin
+     * @return The updated config file
      */
-    public void updateFromResources(JavaPlugin pl) {
+    private FileConfiguration updateFromResources(FileConfiguration file, JavaPlugin pl) {
         FileConfiguration defaultConfig = new YamlConfiguration();
 
         try {
@@ -90,8 +95,8 @@ public class ConfigManager {
 
             // If the saved config file has the right keys and values, return it since it is on the correct version
             Set<String> savedFileKeys = file.getKeys(true);
-            if(defaultConfig.getKeys(true).size() == savedFileKeys.size())   {
-                return;
+            if(defaultConfig.getKeys(true).size() <= savedFileKeys.size())   {
+                return file;
             }
 
             logger.info("Updating config file . . .");
@@ -112,6 +117,6 @@ public class ConfigManager {
             ex.printStackTrace();
         }
 
-        this.file = defaultConfig;
+        return defaultConfig;
     }
 }

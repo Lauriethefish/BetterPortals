@@ -1,8 +1,6 @@
 package com.lauriethefish.betterportals.bukkit.config;
 
-import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.google.inject.name.Named;
 import com.lauriethefish.betterportals.bukkit.math.IntVector;
 import lombok.Getter;
 import org.bukkit.configuration.ConfigurationSection;
@@ -14,8 +12,6 @@ import java.util.Objects;
 @Singleton
 @Getter
 public class RenderConfig {
-    private final FileConfiguration file;
-
     private double minXZ;
     private double maxXZ;
     private double minY;
@@ -45,12 +41,7 @@ public class RenderConfig {
 
     private int blockStateRefreshInterval;
 
-    @Inject
-    public RenderConfig(@Named("configFile") FileConfiguration file) {
-        this.file = file;
-    }
-
-    public void load() {
+    public void load(FileConfiguration file) {
         maxXZ = file.getInt("portalEffectSizeXZ");
         minXZ = maxXZ * -1.0;
         maxY = file.getInt("portalEffectSizeY");

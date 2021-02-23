@@ -73,4 +73,19 @@ public class PortalActivityManager implements IPortalActivityManager    {
         activePortalsYetToUpdate.clear();
         activePortalsYetToUpdate.addAll(activePortals);
     }
+
+    @Override
+    public void resetActivity() {
+        for(IPortal portal : activePortals) {
+            portal.onDeactivate();
+            if(viewedPortals.contains(portal)) {
+                portal.onViewDeactivate();
+            }
+        }
+
+        activePortals.clear();
+        viewedPortals.clear();
+        activePortalsYetToUpdate.clear();
+        viewActivePortalsYetToUpdate.clear();
+    }
 }

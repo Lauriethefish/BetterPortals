@@ -14,7 +14,6 @@ import java.util.UUID;
 
 @Singleton
 public class ProxyConfig {
-    private final FileConfiguration config;
     private final Logger logger;
 
     @Getter private boolean isEnabled; // Whether or not bungeecord support will be enabled
@@ -23,12 +22,11 @@ public class ProxyConfig {
     @Getter private int reconnectionDelay; // How long after being disconnected before attempting a reconnection (in ticks)
 
     @Inject
-    public ProxyConfig(@Named("configFile") FileConfiguration config, Logger logger) {
-        this.config = config;
+    public ProxyConfig(Logger logger) {
         this.logger = logger;
     }
 
-    public void load() {
+    public void load(FileConfiguration config) {
         ConfigurationSection section = Objects.requireNonNull(config.getConfigurationSection("proxy"), "Proxy section missing");
 
         isEnabled = section.getBoolean("enableProxy");

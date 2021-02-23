@@ -9,7 +9,7 @@ import com.lauriethefish.betterportals.bukkit.portal.PortalDirection;
 import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
 import com.lauriethefish.betterportals.bukkit.portal.predicate.ActivationDistance;
 import com.lauriethefish.betterportals.bukkit.portal.predicate.ViewPermissions;
-import implementations.TestConfigModule;
+import implementations.TestConfigHandler;
 import implementations.TestLoggerModule;
 import implementations.TestPortal;
 import org.bukkit.Location;
@@ -37,10 +37,9 @@ public class PortalPredicateTests {
         nether = server.addSimpleWorld("world_nether");
 
         injector = Guice.createInjector(
-                new TestConfigModule(),
                 new TestLoggerModule()
         );
-        injector.getInstance(ConfigManager.class).loadValues();
+        TestConfigHandler.prepareConfig(injector);
 
         player = server.addPlayer();
 

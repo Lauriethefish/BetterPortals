@@ -102,7 +102,6 @@ public class MainModule extends AbstractModule {
         bind(double.class).annotatedWith(Names.named("blockSendUpdateDistance")).toInstance(blockSendUpdateDistance);
 
         bind(IPlayerDataManager.class).to(PlayerDataManager.class).asEagerSingleton();
-        bind(MainUpdate.class).asEagerSingleton();
         bind(MetricsManager.class).asEagerSingleton();
 
         install(new EventsModule());

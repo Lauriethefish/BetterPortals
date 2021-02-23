@@ -49,7 +49,6 @@ public interface IPortal {
     void onActivate();
     void onDeactivate();
 
-
     /**
      * Called when at least one player is viewing through the portal
      */

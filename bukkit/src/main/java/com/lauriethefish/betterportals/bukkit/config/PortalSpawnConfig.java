@@ -17,11 +17,10 @@ import java.util.*;
 
 @Singleton
 public class PortalSpawnConfig {
-    private final FileConfiguration file;
     private final Logger logger;
 
-    private final Map<World, WorldLink> worldLinks = new HashMap<>();
-    private final Set<World> disabledWorlds = new HashSet<>();
+    private Map<World, WorldLink> worldLinks;
+    private Set<World> disabledWorlds;
 
     @Getter private Vector maxPortalSize; // Maximum size of natural/nether portals
     @Getter private int minimumPortalSpawnDistance; // How close portals will spawn to each other
@@ -34,12 +33,14 @@ public class PortalSpawnConfig {
     @Getter private double allowedSpawnTimePerTick;
 
     @Inject
-    public PortalSpawnConfig(@Named("configFile") FileConfiguration file, Logger logger) {
-        this.file = file;
+    public PortalSpawnConfig(Logger logger) {
         this.logger = logger;
     }
 
-    public void load() {
+    public void load(FileConfiguration file) {
+        worldLinks = new HashMap<>();
+        disabledWorlds = new HashSet<>();
+
         ConfigurationSection dimBlendSection = Objects.requireNonNull(file.getConfigurationSection("dimensionBlend"));
         dimensionBlendEnabled = dimBlendSection.getBoolean("enable");
         blendFallOff = dimBlendSection.getDouble("fallOffRate");

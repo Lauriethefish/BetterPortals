@@ -45,6 +45,11 @@ public abstract class BlockUpdateFinisher {
     }
 
     /**
+     * Starts the task/thread that is being used
+     */
+    public abstract void start();
+
+    /**
      * Schedules the update for <code>blockView</code> to happen on another thread.
      * @param blockView The block view to be updated
      * @param refresh Whether to resend all block states regardless of if they were already sent

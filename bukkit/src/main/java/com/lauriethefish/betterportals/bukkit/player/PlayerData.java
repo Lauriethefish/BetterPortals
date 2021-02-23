@@ -50,7 +50,6 @@ public class PlayerData implements IPlayerData  {
         this.playerPortalViewFactory = playerPortalViewFactory;
     }
 
-    // Return an unmodifiable set - we don't want external callers changing this
     @Override
     public @NotNull Collection<IPortal> getViewedPortals() {
         return Collections.unmodifiableCollection(portalViews.keySet());
@@ -112,6 +111,7 @@ public class PlayerData implements IPlayerData  {
         for(IPlayerPortalView view : portalViews.values()) {
             view.onDeactivate();
         }
+        portalViews.clear();
     }
 
     private void setViewing(IPortal portal) {

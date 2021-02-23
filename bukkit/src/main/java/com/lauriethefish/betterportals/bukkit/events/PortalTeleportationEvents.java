@@ -11,7 +11,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPortalEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,14 +23,14 @@ public class PortalTeleportationEvents implements Listener {
     private final double portalExistenceRadius;
 
     @Inject
-    public PortalTeleportationEvents(JavaPlugin pl, IPortalManager portalManager, PortalSpawnConfig spawnConfig, MessageConfig messageConfig) {
+    public PortalTeleportationEvents(IEventRegistrar eventRegistrar, IPortalManager portalManager, PortalSpawnConfig spawnConfig, MessageConfig messageConfig) {
         this.portalManager = portalManager;
         this.messageConfig = messageConfig;
 
         Vector maxPortalSize = spawnConfig.getMaxPortalSize();
         this.portalExistenceRadius = Math.max(maxPortalSize.getX(), maxPortalSize.getY()) + 2;
 
-        pl.getServer().getPluginManager().registerEvents(this, pl);
+        eventRegistrar.register(this);
     }
 
     private boolean isPluginPortal(@NotNull Entity entity) {

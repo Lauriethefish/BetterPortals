@@ -16,15 +16,17 @@ import java.util.function.Predicate;
 public class PortalManager implements IPortalManager    {
     private final Logger logger;
     private final IPortalPredicateManager predicateManager;
+    private final IPortalActivityManager portalActivityManager;
 
     // Multiple portals can have the same origin position
     private final Map<Location, Set<IPortal>> portals = new HashMap<>();
     private final Map<UUID, IPortal> portalsById = new HashMap<>();
 
     @Inject
-    public PortalManager(Logger logger, IPortalPredicateManager predicateManager) {
+    public PortalManager(Logger logger, IPortalPredicateManager predicateManager, IPortalActivityManager portalActivityManager) {
         this.logger = logger;
         this.predicateManager = predicateManager;
+        this.portalActivityManager = portalActivityManager;
     }
 
     @Override
@@ -136,5 +138,10 @@ public class PortalManager implements IPortalManager    {
         removePortal(removed); // Also remove it in the location map
 
         return true;
+    }
+
+    @Override
+    public void onReload() {
+        portalActivityManager.resetActivity();
     }
 }

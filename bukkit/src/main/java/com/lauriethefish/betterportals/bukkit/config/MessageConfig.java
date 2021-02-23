@@ -18,20 +18,13 @@ import java.util.Objects;
  */
 @Singleton
 public class MessageConfig {
-    private final FileConfiguration file;
-
     private final Map<String, String> messageMap = new HashMap<>();
 
     @Getter private String portalWandName;
     @Getter private String prefix;
     @Getter private String messageColor;
 
-    @Inject
-    public MessageConfig(@Named("configFile") FileConfiguration file) {
-        this.file = file;
-    }
-
-    public void load() {
+    public void load(FileConfiguration file) {
         ConfigurationSection messagesSection = Objects.requireNonNull(file.getConfigurationSection("chatMessages"), "Missing chat messages section");
 
         for(String key : messagesSection.getKeys(false)) {

@@ -19,6 +19,7 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 @Singleton
 public class MainUpdate implements Runnable {
+    private final JavaPlugin pl;
     private final PlayerDataManager playerDataManager;
     private final IPortalActivityManager activityManager;
     private final IPerformanceWatcher performanceWatcher;
@@ -29,8 +30,7 @@ public class MainUpdate implements Runnable {
 
     @Inject
     public MainUpdate(JavaPlugin pl, PlayerDataManager playerDataManager, IPortalActivityManager activityManager, IPerformanceWatcher performanceWatcher, IEntityTrackingManager entityTrackingManager, ICrashHandler errorHandler, ClientRequestHandler requestHandler, IExternalBlockWatcherManager blockWatcherManager) {
-        pl.getServer().getScheduler().runTaskTimer(pl, this, 0L, 1L);
-
+        this.pl = pl;
         this.playerDataManager = playerDataManager;
         this.activityManager = activityManager;
         this.performanceWatcher = performanceWatcher;
@@ -38,6 +38,10 @@ public class MainUpdate implements Runnable {
         this.errorHandler = errorHandler;
         this.requestHandler = requestHandler;
         this.blockWatcherManager = blockWatcherManager;
+    }
+
+    public void start() {
+        pl.getServer().getScheduler().runTaskTimer(pl, this, 0L, 1L);
     }
 
     @Override
