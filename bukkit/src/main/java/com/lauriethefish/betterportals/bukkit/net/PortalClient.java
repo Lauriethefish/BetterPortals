@@ -35,6 +35,7 @@ public class PortalClient implements IPortalClient {
     private final EncryptedObjectStreamFactory encryptedObjectStreamFactory;
     private final IRequestHandler requestHandler;
     private final IClientReconnectHandler reconnectHandler;
+    private final CipherManager cipherManager;
 
     private Socket socket;
     private volatile boolean isRunning = false;
@@ -55,15 +56,7 @@ public class PortalClient implements IPortalClient {
         this.encryptedObjectStreamFactory = encryptedObjectStreamFactory;
         this.requestHandler = requestHandler;
         this.reconnectHandler = reconnectHandler;
-
-        if(proxyConfig.isEnabled()) {
-            try {
-                cipherManager.init(proxyConfig.getEncryptionKey());
-            } catch (NoSuchAlgorithmException ex) {
-                logger.severe("Unable to find algorithm to encrypt proxy connection");
-                ex.printStackTrace();
-            }
-        }
+        this.cipherManager = cipherManager;
     }
 
     @Override
@@ -71,6 +64,13 @@ public class PortalClient implements IPortalClient {
         if(isRunning) {throw new IllegalStateException("Attempted to start connection when was was already established");}
         isRunning = true;
         shouldReconnectIfFailed = true;
+
+        try {
+            cipherManager.init(proxyConfig.getEncryptionKey());
+        } catch (NoSuchAlgorithmException ex) {
+            logger.severe("Unable to find algorithm to encrypt proxy connection");
+            ex.printStackTrace();
+        }
 
         new Thread(() -> {
             try {
