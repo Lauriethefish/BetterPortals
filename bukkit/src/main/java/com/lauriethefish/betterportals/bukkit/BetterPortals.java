@@ -106,6 +106,10 @@ public class BetterPortals extends JavaPlugin {
 
     public void softReload() {
         logger.fine("Performing plugin soft-reload . . .");
+        if(proxyConfig.isEnabled()) {
+            portalClient.shutDown();
+        }
+
         reloadConfig();
         try {
             configManager.loadValues(getConfig(), this);
@@ -116,6 +120,10 @@ public class BetterPortals extends JavaPlugin {
 
         playerDataManager.onPluginDisable();
         portalManager.onReload();
+
+        if(proxyConfig.isEnabled()) {
+            portalClient.connect();
+        }
     }
 
     @Override
