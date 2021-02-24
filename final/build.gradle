@@ -19,5 +19,11 @@ shadowJar {
     configurations = [project.configurations.implementation]
 
     relocate 'org.bstats', 'com.lauriethefish.bstats'
-    relocate 'com.google', 'com.lauriethefish.google'
+
+    // Unfortunately manually excluding GSON here (it's included with spigot) isn't really possible so we manually relocate these separately
+    relocate 'com.google.thirdparty', 'com.lauriethefish.google.thirdparty'
+    relocate 'com.google.j2objc', 'com.lauriethefish.google.j2objc'
+    relocate 'com.google.inject', 'com.lauriethefish.google.inject'
+    relocate 'com.google.errorprone', 'com.lauriethefish.google.errorprone'
+    relocate 'com.google.common', 'com.lauriethefish.google.common'
 }
