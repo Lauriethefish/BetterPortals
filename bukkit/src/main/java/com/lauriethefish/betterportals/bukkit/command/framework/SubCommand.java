@@ -57,13 +57,11 @@ public class SubCommand implements ICommand {
 
         boolean commandAnnotationFound = false;
         for (Annotation annotation : method.getAnnotations()) {
-            logger.fine("here");
             if (annotation instanceof Command) {
                 commandAnnotationFound = true;
             } else if (annotation instanceof RequiresPlayer) {
                 requiresPlayer = true;
             } else if (annotation instanceof RequiresPermissions) {
-                logger.fine("permissions");
                 requiredPermissions = ((RequiresPermissions) annotation).value();
             } else if (annotation instanceof Arguments) { // Otherwise, multiple arguments are wrapped in here
                 arguments = ((Arguments) annotation).value();
