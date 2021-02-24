@@ -32,7 +32,7 @@ public class EntityInfo {
      */
     public EntityInfo(@NotNull PortalTransformations transformations, @NotNull Entity entity) {
         this.entity = entity;
-        this.entityId = entityIdGenerator.nextInt();
+        this.entityId = entityIdGenerator.nextInt() & Integer.MAX_VALUE;
 
         this.translation = transformations.getDestinationToOrigin();
         this.rotation = transformations.getRotateToOrigin();
