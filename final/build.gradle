@@ -19,4 +19,5 @@ shadowJar {
     configurations = [project.configurations.implementation]
 
     relocate 'org.bstats', 'com.lauriethefish.bstats'
+    relocate 'com.google', 'com.lauriethefish.google'
 }
