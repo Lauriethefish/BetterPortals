@@ -20,13 +20,13 @@ public class PortalPredicateManager implements IPortalPredicateManager  {
 
     // Add the default predicates for activation distance and view permissions
     @Inject
-    public PortalPredicateManager(Logger logger, ActivationDistance activationDistance, ViewPermissions viewPermissions, TeleportPermissions teleportPermissions, CrossServerDestinationChecker crossServerDestinationChecker) {
+    public PortalPredicateManager(Logger logger, ActivationDistance activationDistance, CrossServerDestinationChecker crossServerDestinationChecker) {
         this.logger = logger;
 
         addActivationPredicate(activationDistance);
         addActivationPredicate(crossServerDestinationChecker);
-        addViewPredicate(viewPermissions);
-        addTeleportPredicate(teleportPermissions);
+        addViewPredicate(new PermissionsChecker("betterportals.see"));
+        addTeleportPredicate(new PermissionsChecker("betterportals.use"));
     }
 
     @Override

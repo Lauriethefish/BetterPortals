@@ -135,6 +135,19 @@ public class Portal implements IPortal, ConfigurationSerializable {
     }
 
     @Override
+    public String getPermissionPath() {
+        if(isCustom) {
+            if(getName() != null) {
+                return ".custom." + getName();
+            }   else    {
+                return "";
+            }
+        }   else    {
+            return ".nether." + originPos.getWorldName();
+        }
+    }
+
+    @Override
     public boolean isRegistered() {
         return portalManager.getPortalById(id) != null;
     }

@@ -87,6 +87,13 @@ public interface IPortal {
     void remove(boolean removeOtherDirection);
 
     /**
+     * Gets the end of the permissions for this portal.
+     * e.g. <code>nether.world_nether</code> or <code>custom.myPortal</code>
+     * @return The portals permission path, without the prefix
+     */
+    String getPermissionPath();
+
+    /**
      * @return If this portal is registered and can be viewed/used by players
      */
     boolean isRegistered();

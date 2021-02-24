@@ -117,6 +117,11 @@ public class TestPortal implements IPortal {
     }
 
     @Override
+    public String getPermissionPath() {
+        return null;
+    }
+
+    @Override
     public boolean isRegistered() {
         return false;
     }

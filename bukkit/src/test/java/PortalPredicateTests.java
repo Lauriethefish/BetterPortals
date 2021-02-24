@@ -4,11 +4,10 @@ import be.seeseemelk.mockbukkit.WorldMock;
 import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.lauriethefish.betterportals.bukkit.config.ConfigManager;
 import com.lauriethefish.betterportals.bukkit.portal.PortalDirection;
 import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
 import com.lauriethefish.betterportals.bukkit.portal.predicate.ActivationDistance;
-import com.lauriethefish.betterportals.bukkit.portal.predicate.ViewPermissions;
+import com.lauriethefish.betterportals.bukkit.portal.predicate.PermissionsChecker;
 import implementations.TestConfigHandler;
 import implementations.TestLoggerModule;
 import implementations.TestPortal;
@@ -73,7 +72,7 @@ public class PortalPredicateTests {
     @Test
     public void testViewPermissions() {
         // This is done with operator status for now, until I can figure out how to make MockBukkit add/revoke permissions.
-        ViewPermissions predicate = injector.getInstance(ViewPermissions.class);
+        PermissionsChecker predicate = new PermissionsChecker("betterportals.see");
         player.setOp(true);
         assertTrue(predicate.test(portal, player));
         player.setOp(false);
