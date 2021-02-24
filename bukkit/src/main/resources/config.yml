@@ -116,6 +116,7 @@ chatMessages:
   mustSelectBothSides: "You must select both sides of a portal first. For info, run /bp help"
   mustSelectOrigin: "You must select the origin of the portal on this server"
   wrongNumberOfArgs: "Wrong number of arguments. Run /bp help for help."
+  noCommands: "You don't have permission to use any sub-commands"
   invalidArgs: "One of your arguments was invalid. Run /bp help for help."
   differentSizes: "The origin and destination portal must be of the same size"
   noPortalCloseEnough: "No portal close enough found"

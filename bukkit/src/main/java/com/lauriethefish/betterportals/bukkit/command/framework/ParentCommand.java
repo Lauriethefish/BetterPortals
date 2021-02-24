@@ -44,10 +44,31 @@ public class ParentCommand implements ICommand  {
         }
     }
 
+    /**
+     * Finds the sub-commands that <code>sender</code> has permission to use.
+     * @param sender The user typing in the command or going to help
+     * @return The commands that they have permission to use
+     */
+    private Map<String, ICommand> filterSubCommands(CommandSender sender) {
+        Map<String, ICommand> result = new HashMap<>();
+        subCommands.forEach((name, command) -> {
+            if(command instanceof ParentCommand) {
+                result.put(name, command);
+            }   else    {
+                SubCommand subCommand = (SubCommand) command;
+                if(subCommand.hasPermissions(sender)) {
+                    result.put(name, command);
+                }
+            }
+        });
+
+        return result;
+    }
+
     List<String> tabComplete(CommandSender sender, String[] args) {
         // If we're at the end of the chain, return a list of our sub commands
         if(args.length == 0) {
-            return new ArrayList<>(subCommands.keySet());
+            return new ArrayList<>(filterSubCommands(sender).keySet());
         }
 
         String lastArg = args[0];
@@ -58,7 +79,7 @@ public class ParentCommand implements ICommand  {
         }   else if(validEnteredCommand == null)    {
             // Find the commands that start with the currently entered word
             List<String> result = new ArrayList<>();
-            for(String command : subCommands.keySet()) {
+            for(String command : filterSubCommands(sender).keySet()) {
                 if(command.startsWith(lastArg)) {
                     result.add(command);
                 }
@@ -71,8 +92,14 @@ public class ParentCommand implements ICommand  {
     }
 
     private void displayHelp(CommandSender sender, String pathToCall) {
+        Map<String, ICommand> subCommands = filterSubCommands(sender);
+        if(subCommands.size() == 0) {
+            sender.sendMessage(messageConfig.getChatMessage("noCommands"));
+            return;
+        }
+
         sender.sendMessage(messageConfig.getChatMessage("help"));
-        subCommands.forEach((name, subCommand) -> {
+        filterSubCommands(sender).forEach((name, subCommand) -> {
             // Since this command is an alias, we don't display it in the help menu directly.
             if(aliases.contains(name)) {return;}
 

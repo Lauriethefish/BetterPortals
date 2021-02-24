@@ -57,11 +57,13 @@ public class SubCommand implements ICommand {
 
         boolean commandAnnotationFound = false;
         for (Annotation annotation : method.getAnnotations()) {
+            logger.fine("here");
             if (annotation instanceof Command) {
                 commandAnnotationFound = true;
             } else if (annotation instanceof RequiresPlayer) {
                 requiresPlayer = true;
             } else if (annotation instanceof RequiresPermissions) {
+                logger.fine("permissions");
                 requiredPermissions = ((RequiresPermissions) annotation).value();
             } else if (annotation instanceof Arguments) { // Otherwise, multiple arguments are wrapped in here
                 arguments = ((Arguments) annotation).value();
@@ -157,12 +159,20 @@ public class SubCommand implements ICommand {
         throw new CommandException("Usage: " + pathToCall + usage);
     }
 
+    public boolean hasPermissions(CommandSender sender) {
+        for (String permission : requiredPermissions) {
+            if (!sender.hasPermission(permission)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     @Override
     public boolean execute(CommandSender sender, String pathToCall, String[] args) throws CommandException {
-        for(String permission : requiredPermissions) {
-            if(!sender.hasPermission(permission)) {
-                throw new CommandException(messageConfig.getErrorMessage("notEnoughPerms"));
-            }
+        if(!hasPermissions(sender)) {
+            throw new CommandException(messageConfig.getErrorMessage("notEnoughPerms"));
         }
 
         if(requiresPlayer && !(sender instanceof Player)) {

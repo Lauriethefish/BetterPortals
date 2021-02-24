@@ -1,6 +1,5 @@
 package com.lauriethefish.betterportals.bukkit.portal.predicate;
 
-import com.google.inject.Singleton;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -14,24 +13,21 @@ import org.jetbrains.annotations.NotNull;
  * The permissions work as follows:
  * <code>betterportals.use.nether.originWorldName</code> for nether portals.
  * <code>betterportals.use.custom.originPortalName</code> for custom portals.
+ *
+ * And the same for <code>betterportals.see</code>, just with viewing.
+ * This class does both, since you can pass a different path into the constructor
  */
-@Singleton
-public class TeleportPermissions implements PortalPredicate {
+public class PermissionsChecker implements PortalPredicate {
+    private final String basePath;
+
+    public PermissionsChecker(String basePath) {
+        this.basePath = basePath;
+    }
+
     @Override
     public boolean test(@NotNull IPortal portal, @NotNull Player player) {
         PluginManager pm = Bukkit.getPluginManager();
-        String permName;
-
-        if (portal.isNetherPortal()) {
-            permName = String.format("betterportals.use.nether.%s", portal.getOriginPos().getWorld().getName());
-        } else {
-            // Portals with no names default to just requiring the betterportals.use permission.
-            if (portal.getName() == null) {
-                return player.hasPermission("betterportals.use");
-            } else {
-                permName = String.format("betterportals.use.custom.%s", portal.getName());
-            }
-        }
+        String permName = basePath + portal.getPermissionPath();
 
         // Get the permission, setting it to a default of true if necessary
         Permission permission = pm.getPermission(permName);
@@ -40,6 +36,6 @@ public class TeleportPermissions implements PortalPredicate {
             pm.addPermission(permission);
         }
 
-        return player.hasPermission("betterportals.use") && player.hasPermission(permission);
+        return player.hasPermission(basePath) && player.hasPermission(permission);
     }
 }
