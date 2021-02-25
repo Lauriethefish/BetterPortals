@@ -91,9 +91,8 @@ public class PlayerSelectionManager implements IPlayerSelectionManager  {
 
         Vector externalSize = new Vector(externalSelection.getSizeX(), externalSelection.getSizeY(), 0.0);
 
-        // This could invert either the destination or origin selection - there's no difference
         if(invert) {
-            destSelection.invertDirection();
+            originSelection.invertDirection();
         }
 
         if(!originSelection.getPortalSize().equals(externalSize)) {
