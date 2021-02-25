@@ -257,6 +257,7 @@ public class PortalClient implements IPortalClient {
         for(Consumer<Response> responseConsumer : waitingRequests.values()) {
             responseConsumer.accept(disconnectResponse);
         }
+        waitingRequests.clear();
 
         reconnectHandler.onClientDisconnect();
     }

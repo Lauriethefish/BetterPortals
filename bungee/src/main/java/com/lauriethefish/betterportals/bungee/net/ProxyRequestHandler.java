@@ -89,5 +89,7 @@ public class ProxyRequestHandler implements IRequestHandler {
                 onFinish.accept(response);
             }
         });
+
+        onFinish.accept(new Response());
     }
 }
