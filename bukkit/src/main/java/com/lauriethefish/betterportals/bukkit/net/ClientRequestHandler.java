@@ -4,7 +4,7 @@ import com.comphenix.protocol.wrappers.Pair;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.lauriethefish.betterportals.bukkit.block.external.IExternalBlockWatcherManager;
-import com.lauriethefish.betterportals.bukkit.math.IntVector;
+import com.lauriethefish.betterportals.api.IntVector;
 import com.lauriethefish.betterportals.bukkit.net.requests.CheckDestinationValidityRequest;
 import com.lauriethefish.betterportals.bukkit.net.requests.GetBlockDataChangesRequest;
 import com.lauriethefish.betterportals.bukkit.net.requests.GetSelectionRequest;

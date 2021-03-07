@@ -1,6 +1,5 @@
-package com.lauriethefish.betterportals.bukkit.math;
+package com.lauriethefish.betterportals.api;
 
-import com.lauriethefish.betterportals.bukkit.block.data.BlockData;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;

@@ -2,7 +2,7 @@ package com.lauriethefish.betterportals.bukkit.chunk.chunkloading;
 
 import com.lauriethefish.betterportals.bukkit.chunk.chunkpos.SquareChunkAreaIterator;
 import com.lauriethefish.betterportals.bukkit.config.RenderConfig;
-import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
+import com.lauriethefish.betterportals.api.PortalPosition;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;

@@ -7,11 +7,10 @@ import com.lauriethefish.betterportals.bukkit.block.fetch.BlockDataFetcherFactor
 import com.lauriethefish.betterportals.bukkit.block.fetch.IBlockDataFetcher;
 import com.lauriethefish.betterportals.bukkit.block.rotation.IBlockRotator;
 import com.lauriethefish.betterportals.bukkit.config.RenderConfig;
-import com.lauriethefish.betterportals.bukkit.math.IntVector;
+import com.lauriethefish.betterportals.api.IntVector;
 import com.lauriethefish.betterportals.bukkit.math.Matrix;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
-import com.lauriethefish.betterportals.bukkit.portal.PortalDirection;
-import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
+import com.lauriethefish.betterportals.api.PortalDirection;
 import com.lauriethefish.betterportals.bukkit.util.MaterialUtil;
 import com.lauriethefish.betterportals.bukkit.util.performance.IPerformanceWatcher;
 import com.lauriethefish.betterportals.bukkit.util.performance.OperationTimer;

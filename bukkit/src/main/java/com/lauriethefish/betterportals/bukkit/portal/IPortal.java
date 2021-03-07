@@ -1,5 +1,6 @@
 package com.lauriethefish.betterportals.bukkit.portal;
 
+import com.lauriethefish.betterportals.api.PortalPosition;
 import com.lauriethefish.betterportals.bukkit.block.IViewableBlockArray;
 import com.lauriethefish.betterportals.bukkit.entity.IPortalEntityList;
 import com.lauriethefish.betterportals.bukkit.math.PortalTransformations;

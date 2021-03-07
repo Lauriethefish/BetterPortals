@@ -1,6 +1,6 @@
 package com.lauriethefish.betterportals.bukkit.player.selection;
 
-import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
+import com.lauriethefish.betterportals.api.PortalPosition;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;

@@ -2,10 +2,11 @@ package com.lauriethefish.betterportals.bukkit.math;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import com.lauriethefish.betterportals.api.IntVector;
 import com.lauriethefish.betterportals.bukkit.config.RenderConfig;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
-import com.lauriethefish.betterportals.bukkit.portal.PortalDirection;
-import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
+import com.lauriethefish.betterportals.api.PortalDirection;
+import com.lauriethefish.betterportals.api.PortalPosition;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -139,6 +140,8 @@ public class PortalTransformations {
         Vector planeSize = portalSize.clone().multiply(0.5); // The size for the intersection checker is a radius, so we half this since it's the size of the full portal window
         planeSize = originPos.getDirection().swapVector(planeSize); // Must be on the Z and Y, or Z and X if horizontal (portal's sizes always use the XZ, but we don't want this here)
         planeSize.add(renderConfig.getCollisionBox()); // Expand the size slightly by the values in the config
+
+        // TODO: fix bug where the Z coordinate is used even though it shouldn't be
 
         return new PlaneIntersectionChecker(
                 originPos.getVector(),

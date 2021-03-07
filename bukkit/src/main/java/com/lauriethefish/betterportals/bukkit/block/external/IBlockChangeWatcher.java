@@ -1,6 +1,6 @@
 package com.lauriethefish.betterportals.bukkit.block.external;
 
-import com.lauriethefish.betterportals.bukkit.math.IntVector;
+import com.lauriethefish.betterportals.api.IntVector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;

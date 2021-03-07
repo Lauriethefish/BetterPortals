@@ -2,6 +2,7 @@ package com.lauriethefish.betterportals.bukkit.portal;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import com.lauriethefish.betterportals.api.PortalPosition;
 import com.lauriethefish.betterportals.bukkit.block.IViewableBlockArray;
 import com.lauriethefish.betterportals.bukkit.block.ViewableBlockArrayFactory;
 import com.lauriethefish.betterportals.bukkit.chunk.chunkloading.PortalChunkLoader;

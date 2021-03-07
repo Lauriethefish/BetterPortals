@@ -1,6 +1,6 @@
 package com.lauriethefish.betterportals.bukkit.chunk.chunkloading;
 
-import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
+import com.lauriethefish.betterportals.api.PortalPosition;
 import org.jetbrains.annotations.NotNull;
 
 public interface IPortalChunkLoader {

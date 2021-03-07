@@ -1,6 +1,7 @@
 package com.lauriethefish.betterportals.bukkit.math;
 
-import com.lauriethefish.betterportals.bukkit.portal.PortalDirection;
+import com.lauriethefish.betterportals.api.IntVector;
+import com.lauriethefish.betterportals.api.PortalDirection;
 import org.bukkit.util.Vector;
 
 /**
