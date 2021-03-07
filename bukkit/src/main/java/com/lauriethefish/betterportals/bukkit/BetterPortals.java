@@ -90,6 +90,7 @@ public class BetterPortals extends JavaPlugin {
             }
         }   else    {
             eventRegistrar.onPluginReload();
+            portalManager.onReload();
         }
 
         if(proxyConfig.isEnabled()) {
