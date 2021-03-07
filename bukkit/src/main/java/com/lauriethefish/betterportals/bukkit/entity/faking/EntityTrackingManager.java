@@ -62,6 +62,10 @@ public class EntityTrackingManager implements IEntityTrackingManager, Listener {
         Map<Entity, IEntityTracker> portalMap = trackersByPortal.get(portal);
 
         IEntityTracker tracker = portalMap.get(entity);
+        if(tracker == null) {
+            logger.fine("Attempted to remove entity tracker that didn't exist. This should never happen!");
+            return;
+        }
         tracker.removeTracking(player, sendPackets);
 
         // If no players are tracking this entity, remove it from the map
