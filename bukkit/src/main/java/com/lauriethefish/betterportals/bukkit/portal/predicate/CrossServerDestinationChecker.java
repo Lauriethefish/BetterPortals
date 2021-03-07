@@ -3,6 +3,7 @@ package com.lauriethefish.betterportals.bukkit.portal.predicate;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.lauriethefish.betterportals.api.BetterPortal;
+import com.lauriethefish.betterportals.api.PortalPredicate;
 import com.lauriethefish.betterportals.bukkit.net.IPortalClient;
 import com.lauriethefish.betterportals.bukkit.net.requests.CheckDestinationValidityRequest;
 import com.lauriethefish.betterportals.bukkit.util.VersionUtil;
@@ -20,7 +21,7 @@ import java.util.Map;
 import java.util.Set;
 
 @Singleton
-public class CrossServerDestinationChecker implements PortalPredicate   {
+public class CrossServerDestinationChecker implements PortalPredicate {
     /**
      * Time, in seconds, between each check that the cross-server portal has a valid destination
      */

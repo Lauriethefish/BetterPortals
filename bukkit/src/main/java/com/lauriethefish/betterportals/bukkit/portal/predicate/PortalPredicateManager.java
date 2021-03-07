@@ -2,6 +2,7 @@ package com.lauriethefish.betterportals.bukkit.portal.predicate;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.lauriethefish.betterportals.api.PortalPredicate;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import com.lauriethefish.betterportals.shared.logging.Logger;
 import org.bukkit.entity.Player;

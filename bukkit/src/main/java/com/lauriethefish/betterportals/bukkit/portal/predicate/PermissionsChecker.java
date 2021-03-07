@@ -1,6 +1,7 @@
 package com.lauriethefish.betterportals.bukkit.portal.predicate;
 
 import com.lauriethefish.betterportals.api.BetterPortal;
+import com.lauriethefish.betterportals.api.PortalPredicate;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
