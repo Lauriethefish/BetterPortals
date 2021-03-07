@@ -111,16 +111,6 @@ public class IntVector implements Cloneable, Serializable {
     }
 
     /**
-     * Gets the wrapper over the block at this coordinate's data.
-     * @param world World to get the data in
-     * @return The data wrapper
-     */
-    @NotNull
-    public BlockData getData(@NotNull World world) {
-        return BlockData.create(getBlock(world));
-    }
-
-    /**
      * Converts this instance into a Location
      * @param world World for the Location
      * @return The Location

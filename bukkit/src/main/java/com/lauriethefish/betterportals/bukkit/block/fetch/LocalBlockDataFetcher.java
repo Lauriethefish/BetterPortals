@@ -29,6 +29,6 @@ public class LocalBlockDataFetcher implements IBlockDataFetcher {
 
     @Override
     public @NotNull BlockData getData(@NotNull IntVector position) {
-        return position.getData(destinationWorld);
+        return BlockData.create(position.getBlock(destinationWorld));
     }
 }
