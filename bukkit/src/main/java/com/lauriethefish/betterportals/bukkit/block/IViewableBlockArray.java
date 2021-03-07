@@ -1,7 +1,7 @@
 package com.lauriethefish.betterportals.bukkit.block;
 
 import com.lauriethefish.betterportals.bukkit.config.RenderConfig;
-import com.lauriethefish.betterportals.bukkit.math.IntVector;
+import com.lauriethefish.betterportals.api.IntVector;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ConcurrentMap;

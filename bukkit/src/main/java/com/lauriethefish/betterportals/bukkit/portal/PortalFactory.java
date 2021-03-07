@@ -1,6 +1,7 @@
 package com.lauriethefish.betterportals.bukkit.portal;
 
 import com.google.inject.assistedinject.Assisted;
+import com.lauriethefish.betterportals.api.PortalPosition;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 

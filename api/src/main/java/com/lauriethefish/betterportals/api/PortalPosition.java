@@ -1,6 +1,5 @@
-package com.lauriethefish.betterportals.bukkit.portal;
+package com.lauriethefish.betterportals.api;
 
-import com.lauriethefish.betterportals.bukkit.math.IntVector;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;

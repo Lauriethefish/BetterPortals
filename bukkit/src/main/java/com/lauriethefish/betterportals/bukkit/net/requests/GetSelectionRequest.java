@@ -1,7 +1,7 @@
 package com.lauriethefish.betterportals.bukkit.net.requests;
 
 import com.lauriethefish.betterportals.bukkit.player.selection.IPortalSelection;
-import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
+import com.lauriethefish.betterportals.api.PortalPosition;
 import com.lauriethefish.betterportals.shared.net.requests.Request;
 import lombok.Getter;
 import lombok.Setter;

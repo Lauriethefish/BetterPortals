@@ -6,7 +6,7 @@ import com.lauriethefish.betterportals.bukkit.chunk.chunkpos.ChunkPosition;
 import com.lauriethefish.betterportals.bukkit.config.PortalSpawnConfig;
 import com.lauriethefish.betterportals.bukkit.config.WorldLink;
 import com.lauriethefish.betterportals.bukkit.portal.IPortalManager;
-import com.lauriethefish.betterportals.bukkit.portal.PortalDirection;
+import com.lauriethefish.betterportals.api.PortalDirection;
 import com.lauriethefish.betterportals.bukkit.util.MaterialUtil;
 import org.bukkit.Location;
 import org.bukkit.Material;

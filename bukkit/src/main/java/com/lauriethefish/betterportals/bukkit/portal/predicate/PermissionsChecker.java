@@ -1,5 +1,7 @@
 package com.lauriethefish.betterportals.bukkit.portal.predicate;
 
+import com.lauriethefish.betterportals.api.BetterPortal;
+import com.lauriethefish.betterportals.api.PortalPredicate;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -25,9 +27,9 @@ public class PermissionsChecker implements PortalPredicate {
     }
 
     @Override
-    public boolean test(@NotNull IPortal portal, @NotNull Player player) {
+    public boolean test(@NotNull BetterPortal portal, @NotNull Player player) {
         PluginManager pm = Bukkit.getPluginManager();
-        String permName = basePath + portal.getPermissionPath();
+        String permName = basePath + ((IPortal) portal).getPermissionPath();
 
         // Get the permission, setting it to a default of true if necessary
         Permission permission = pm.getPermission(permName);

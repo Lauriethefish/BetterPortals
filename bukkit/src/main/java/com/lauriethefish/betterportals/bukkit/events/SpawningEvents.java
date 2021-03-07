@@ -6,7 +6,7 @@ import com.lauriethefish.betterportals.bukkit.config.PortalSpawnConfig;
 import com.lauriethefish.betterportals.bukkit.math.MathUtil;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import com.lauriethefish.betterportals.bukkit.portal.IPortalManager;
-import com.lauriethefish.betterportals.bukkit.portal.PortalDirection;
+import com.lauriethefish.betterportals.api.PortalDirection;
 import com.lauriethefish.betterportals.bukkit.portal.PortalFactory;
 import com.lauriethefish.betterportals.bukkit.portal.spawning.IPortalSpawner;
 import com.lauriethefish.betterportals.bukkit.portal.spawning.PortalSpawnPosition;

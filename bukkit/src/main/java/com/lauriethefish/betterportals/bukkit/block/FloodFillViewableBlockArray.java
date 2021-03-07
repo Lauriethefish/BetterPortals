@@ -7,10 +7,10 @@ import com.lauriethefish.betterportals.bukkit.block.fetch.BlockDataFetcherFactor
 import com.lauriethefish.betterportals.bukkit.block.fetch.IBlockDataFetcher;
 import com.lauriethefish.betterportals.bukkit.block.rotation.IBlockRotator;
 import com.lauriethefish.betterportals.bukkit.config.RenderConfig;
-import com.lauriethefish.betterportals.bukkit.math.IntVector;
+import com.lauriethefish.betterportals.api.IntVector;
 import com.lauriethefish.betterportals.bukkit.math.Matrix;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
-import com.lauriethefish.betterportals.bukkit.portal.PortalDirection;
+import com.lauriethefish.betterportals.api.PortalDirection;
 import com.lauriethefish.betterportals.bukkit.util.MaterialUtil;
 import com.lauriethefish.betterportals.bukkit.util.performance.IPerformanceWatcher;
 import com.lauriethefish.betterportals.bukkit.util.performance.OperationTimer;
@@ -92,7 +92,7 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
             boolean isOccluding = destData.getType().isOccluding();
 
             IntVector originPos = destToOrigin.transform(destPos);
-            BlockData originData = originPos.getData(originWorld);
+            BlockData originData = BlockData.create(originPos.getBlock(originWorld));
 
             ViewableBlockInfo blockInfo = new ViewableBlockInfo(originData, destData);
             boolean isEdge = renderConfig.isEdge(relPos);
@@ -138,7 +138,7 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
                 searchFromBlock(destPos);
             }
 
-            BlockData newOriginData = entry.getKey().getData(originWorld);
+            BlockData newOriginData = BlockData.create(entry.getKey().getBlock(originWorld));
 
             if(!newOriginData.equals(blockInfo.getBaseOriginData())) {
                 logger.finer("Origin block change");

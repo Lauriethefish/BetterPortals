@@ -1,7 +1,7 @@
 package com.lauriethefish.betterportals.bukkit.block.fetch;
 
 import com.lauriethefish.betterportals.bukkit.block.data.BlockData;
-import com.lauriethefish.betterportals.bukkit.math.IntVector;
+import com.lauriethefish.betterportals.api.IntVector;
 import org.jetbrains.annotations.NotNull;
 
 public interface IBlockDataFetcher {

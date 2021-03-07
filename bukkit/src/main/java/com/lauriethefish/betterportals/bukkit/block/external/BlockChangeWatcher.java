@@ -3,7 +3,7 @@ package com.lauriethefish.betterportals.bukkit.block.external;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.lauriethefish.betterportals.bukkit.block.data.BlockData;
-import com.lauriethefish.betterportals.bukkit.math.IntVector;
+import com.lauriethefish.betterportals.api.IntVector;
 import com.lauriethefish.betterportals.bukkit.net.requests.GetBlockDataChangesRequest;
 import com.lauriethefish.betterportals.bukkit.util.performance.IPerformanceWatcher;
 import com.lauriethefish.betterportals.bukkit.util.performance.OperationTimer;

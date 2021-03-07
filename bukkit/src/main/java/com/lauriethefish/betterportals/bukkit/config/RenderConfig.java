@@ -1,7 +1,7 @@
 package com.lauriethefish.betterportals.bukkit.config;
 
 import com.google.inject.Singleton;
-import com.lauriethefish.betterportals.bukkit.math.IntVector;
+import com.lauriethefish.betterportals.api.IntVector;
 import lombok.Getter;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;

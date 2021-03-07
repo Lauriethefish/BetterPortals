@@ -1,6 +1,5 @@
-package com.lauriethefish.betterportals.bukkit.math;
+package com.lauriethefish.betterportals.api;
 
-import com.lauriethefish.betterportals.bukkit.block.data.BlockData;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;
@@ -108,16 +107,6 @@ public class IntVector implements Cloneable, Serializable {
     @NotNull
     public Block getBlock(@NotNull World world) {
         return world.getBlockAt(x, y, z);
-    }
-
-    /**
-     * Gets the wrapper over the block at this coordinate's data.
-     * @param world World to get the data in
-     * @return The data wrapper
-     */
-    @NotNull
-    public BlockData getData(@NotNull World world) {
-        return BlockData.create(getBlock(world));
     }
 
     /**

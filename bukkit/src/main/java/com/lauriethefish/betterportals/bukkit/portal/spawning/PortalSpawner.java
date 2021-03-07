@@ -4,7 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.lauriethefish.betterportals.bukkit.config.PortalSpawnConfig;
 import com.lauriethefish.betterportals.bukkit.config.WorldLink;
-import com.lauriethefish.betterportals.bukkit.portal.PortalDirection;
+import com.lauriethefish.betterportals.api.PortalDirection;
 import com.lauriethefish.betterportals.bukkit.portal.blend.IDimensionBlendManager;
 import com.lauriethefish.betterportals.bukkit.util.MaterialUtil;
 import com.lauriethefish.betterportals.shared.logging.Logger;

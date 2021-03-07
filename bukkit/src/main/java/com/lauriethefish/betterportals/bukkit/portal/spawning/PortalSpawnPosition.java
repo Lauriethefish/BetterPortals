@@ -1,7 +1,7 @@
 package com.lauriethefish.betterportals.bukkit.portal.spawning;
 
-import com.lauriethefish.betterportals.bukkit.portal.PortalDirection;
-import com.lauriethefish.betterportals.bukkit.portal.PortalPosition;
+import com.lauriethefish.betterportals.api.PortalDirection;
+import com.lauriethefish.betterportals.api.PortalPosition;
 import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;

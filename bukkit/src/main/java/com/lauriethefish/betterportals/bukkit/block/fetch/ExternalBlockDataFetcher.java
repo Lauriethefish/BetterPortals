@@ -2,7 +2,7 @@ package com.lauriethefish.betterportals.bukkit.block.fetch;
 
 import com.lauriethefish.betterportals.bukkit.block.data.BlockData;
 import com.lauriethefish.betterportals.bukkit.config.RenderConfig;
-import com.lauriethefish.betterportals.bukkit.math.IntVector;
+import com.lauriethefish.betterportals.api.IntVector;
 import com.lauriethefish.betterportals.bukkit.net.IPortalClient;
 import com.lauriethefish.betterportals.bukkit.net.requests.GetBlockDataChangesRequest;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;

@@ -1,6 +1,8 @@
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.lauriethefish.betterportals.api.PortalDirection;
+import com.lauriethefish.betterportals.api.PortalPosition;
 import com.lauriethefish.betterportals.bukkit.portal.*;
 import implementations.TestLoggerModule;
 import implementations.TestPortal;
