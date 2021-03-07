@@ -2,9 +2,9 @@ package com.lauriethefish.betterportals.bukkit.portal.predicate;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.lauriethefish.betterportals.api.BetterPortal;
 import com.lauriethefish.betterportals.bukkit.net.IPortalClient;
 import com.lauriethefish.betterportals.bukkit.net.requests.CheckDestinationValidityRequest;
-import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import com.lauriethefish.betterportals.bukkit.util.VersionUtil;
 import com.lauriethefish.betterportals.shared.logging.Logger;
 import com.lauriethefish.betterportals.shared.net.RequestException;
@@ -29,9 +29,9 @@ public class CrossServerDestinationChecker implements PortalPredicate   {
     private final Logger logger;
     private final IPortalClient portalClient;
 
-    private final Map<IPortal, Boolean> cachedValidity = new HashMap<>();
-    private final Map<IPortal, Instant> lastChecked = new HashMap<>();
-    private final Set<IPortal> ongoingRequest = new HashSet<>();
+    private final Map<BetterPortal, Boolean> cachedValidity = new HashMap<>();
+    private final Map<BetterPortal, Instant> lastChecked = new HashMap<>();
+    private final Set<BetterPortal> ongoingRequest = new HashSet<>();
 
     private boolean wasConnectedLastTick = true;
 
@@ -42,7 +42,7 @@ public class CrossServerDestinationChecker implements PortalPredicate   {
     }
 
     @Override
-    public boolean test(@NotNull IPortal portal, @NotNull Player player) {
+    public boolean test(@NotNull BetterPortal portal, @NotNull Player player) {
         if(!portal.isCrossServer()) {
             return true;
         }
@@ -78,7 +78,7 @@ public class CrossServerDestinationChecker implements PortalPredicate   {
      * @param portal The portal to check the cache for
      * @return The cached validity value, or null if there is none or the value is out of date.
      */
-    private @Nullable Boolean checkCache(@NotNull IPortal portal) {
+    private @Nullable Boolean checkCache(@NotNull BetterPortal portal) {
         Instant lastTimeChecked = lastChecked.get(portal);
         if(lastTimeChecked == null) {return null;}
         double secondsElapsed = Duration.between(lastTimeChecked, Instant.now()).getSeconds();
@@ -94,7 +94,7 @@ public class CrossServerDestinationChecker implements PortalPredicate   {
      * Sends a request to the proxy to check that the portal can be activated
      * @param portal The portal to check the validity of
      */
-    private void runValidityCheck(@NotNull IPortal portal) {
+    private void runValidityCheck(@NotNull BetterPortal portal) {
         if(ongoingRequest.contains(portal)) {
             return;
         }
@@ -128,7 +128,7 @@ public class CrossServerDestinationChecker implements PortalPredicate   {
      * @param portal The portal to cache the validity for
      * @param newValue The new validity value
      */
-    private void putValidityValue(@NotNull IPortal portal, boolean newValue) {
+    private void putValidityValue(@NotNull BetterPortal portal, boolean newValue) {
         cachedValidity.put(portal, newValue);
         lastChecked.put(portal, Instant.now());
     }
