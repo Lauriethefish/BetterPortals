@@ -88,4 +88,11 @@ public abstract class BetterPortalsAPI {
      * @throws IllegalStateException if BetterPortals is not enabled
      */
     public abstract void addPortalTeleportPredicate(@NotNull PortalPredicate predicate);
+
+    /**
+     * Fetches a portal by its unique ID, as obtained by {@link BetterPortal#getId()}
+     * @param id The ID of the portal
+     * @return The portal, or null if there is none with this ID
+     */
+    public abstract BetterPortal getPortalById(@NotNull UUID id);
 }

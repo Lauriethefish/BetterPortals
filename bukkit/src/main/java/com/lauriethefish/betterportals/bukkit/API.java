@@ -82,4 +82,10 @@ public class API extends BetterPortalsAPI {
 
         portalPredicateManager.addTeleportPredicate(predicate);
     }
+
+    @Override
+    public BetterPortal getPortalById(@NotNull UUID id) {
+        verifyEnabled();
+        return portalManager.getPortalById(id);
+    }
 }
