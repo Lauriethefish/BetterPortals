@@ -40,6 +40,8 @@ import com.lauriethefish.betterportals.bukkit.tasks.MainUpdate;
 import com.lauriethefish.betterportals.bukkit.tasks.ThreadedBlockUpdateFinisher;
 import com.lauriethefish.betterportals.bukkit.util.performance.IPerformanceWatcher;
 import com.lauriethefish.betterportals.bukkit.util.performance.PerformanceWatcher;
+import com.lauriethefish.betterportals.shared.logging.Logger;
+import com.lauriethefish.betterportals.shared.logging.OverrideLogger;
 import com.lauriethefish.betterportals.shared.net.IRequestHandler;
 import com.lauriethefish.betterportals.shared.net.encryption.EncryptedObjectStream;
 import com.lauriethefish.betterportals.shared.net.encryption.EncryptedObjectStreamFactory;
@@ -58,6 +60,7 @@ public class MainModule extends AbstractModule {
     protected void configure() {
         bind(JavaPlugin.class).toInstance(pl);
         bind(BetterPortals.class).toInstance(pl);
+        bind(Logger.class).toInstance(new OverrideLogger(pl.getLogger()));
 
         bind(BlockUpdateFinisher.class).to(ThreadedBlockUpdateFinisher.class);
         bind(IPerformanceWatcher.class).to(PerformanceWatcher.class);

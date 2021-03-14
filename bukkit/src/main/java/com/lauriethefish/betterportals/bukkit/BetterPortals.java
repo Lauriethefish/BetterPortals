@@ -24,8 +24,8 @@ import java.io.IOException;
 import java.util.List;
 
 public class BetterPortals extends JavaPlugin {
-    private Logger logger;
-    private ConfigManager configManager;
+    @Inject private Logger logger;
+    @Inject private ConfigManager configManager;
 
     @Inject private CommandTree commandTree;
     @Inject private IPortalStorage portalStorage;
@@ -47,14 +47,9 @@ public class BetterPortals extends JavaPlugin {
     public void onEnable() {
         saveDefaultConfig();
 
-        // Unfortunately, guice doesn't really have support for conveniently catching errors during eager bindings, or binding some classes first then stopping if they fail.
-        // To get round this, we first create an initial injector for loading the config, then create another with the eager bindings actually used for startup.
-        // This works out pretty well.
-        Injector preInitInjector = null;
         if(firstEnable) {
-            preInitInjector = Guice.createInjector(new PreInitModule(this));
-            this.logger = preInitInjector.getInstance(Logger.class);
-            this.configManager = preInitInjector.getInstance(ConfigManager.class);
+            startup();
+            if(didEnableFail) {return;}
         }
 
         try {
@@ -66,45 +61,47 @@ public class BetterPortals extends JavaPlugin {
             return;
         }
 
-        if(firstEnable) {
-            try {
-                Injector injector = preInitInjector.createChildInjector(new MainModule(this));
-                injector.injectMembers(this);
-            } catch (RuntimeException ex) {
-                logger.severe("A critical error occurred during plugin startup");
-                ex.printStackTrace();
-                didEnableFail = true;
-                return;
-            }
-
-            try {
-                portalStorage.loadPortals();
-            } catch(IOException | RuntimeException ex) {
-                getLogger().severe("Failed to load the portals from portals.yml. Did you modify it with an incorrect format?");
-                ex.printStackTrace();
-                didEnableFail = true;
-                return;
-            }
-
-            if(miscConfig.isUpdateCheckEnabled()) {
-                updateManager.checkForUpdates();
-            }
-        }   else    {
-            eventRegistrar.onPluginReload();
-            portalManager.onReload();
-        }
-
         if(proxyConfig.isEnabled()) {
             logger.fine("Proxy is enabled! Initialising connection . . .");
             portalClient.connect();
+        }
+
+        if(!firstEnable) {
+            eventRegistrar.onPluginReload();
+            portalManager.onReload();
         }
 
         blockUpdateFinisher.start();
         mainUpdate.start();
         portalStorage.start();
 
-        firstEnable = false;
         apiImplementation.onEnable();
+        firstEnable = false;
+    }
+
+    private void startup() {
+        try {
+            Injector injector = Guice.createInjector(new MainModule(this));
+            injector.injectMembers(this);
+        } catch (RuntimeException ex) {
+            getLogger().severe("A critical error occurred during plugin startup");
+            ex.printStackTrace();
+            didEnableFail = true;
+            return;
+        }
+
+        try {
+            portalStorage.loadPortals();
+        } catch(IOException | RuntimeException ex) {
+            getLogger().severe("Failed to load the portals from portals.yml. Did you modify it with an incorrect format?");
+            ex.printStackTrace();
+            didEnableFail = true;
+            return;
+        }
+
+        if(miscConfig.isUpdateCheckEnabled()) {
+            updateManager.checkForUpdates();
+        }
     }
 
     public void softReload() {
@@ -129,6 +126,7 @@ public class BetterPortals extends JavaPlugin {
         if(proxyConfig.isEnabled()) {
             portalClient.connect();
         }
+        apiImplementation.onEnable();
     }
 
     @Override
