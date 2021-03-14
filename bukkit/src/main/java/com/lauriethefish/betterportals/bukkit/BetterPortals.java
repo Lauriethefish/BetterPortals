@@ -73,6 +73,9 @@ public class BetterPortals extends JavaPlugin {
         }
 
         if(!firstEnable) {
+            reloadConfig();
+            loadConfig();
+
             eventRegistrar.onPluginReload();
             portalManager.onReload();
         }
@@ -85,6 +88,16 @@ public class BetterPortals extends JavaPlugin {
         firstEnable = false;
     }
 
+    private boolean loadConfig() {
+        try {
+            configManager.loadValues(getConfig(), this);
+        }   catch(RuntimeException ex) {
+            logger.warning("Failed to reload the config file. Please check your YAML syntax!: %s: %s", ex.getClass().getName(), ex.getMessage());
+            return false;
+        }
+        return true;
+    }
+
     private void startup() {
         try {
             Injector injector = Guice.createInjector(new MainModule(this));
@@ -92,6 +105,11 @@ public class BetterPortals extends JavaPlugin {
         } catch (RuntimeException ex) {
             getLogger().severe("A critical error occurred during plugin startup");
             ex.printStackTrace();
+            didEnableFail = true;
+            return;
+        }
+
+        if(!loadConfig()) {
             didEnableFail = true;
             return;
         }
@@ -119,10 +137,7 @@ public class BetterPortals extends JavaPlugin {
         }
 
         reloadConfig();
-        try {
-            configManager.loadValues(getConfig(), this);
-        }   catch(RuntimeException ex) {
-            logger.warning("Failed to reload the config file. Please check your YAML syntax!: %s: %s", ex.getClass().getName(), ex.getMessage());
+        if(!loadConfig()) {
             return;
         }
 
