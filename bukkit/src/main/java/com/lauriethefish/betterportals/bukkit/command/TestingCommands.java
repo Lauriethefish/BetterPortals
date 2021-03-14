@@ -19,6 +19,7 @@ import com.lauriethefish.betterportals.bukkit.util.performance.IPerformanceWatch
 import com.lauriethefish.betterportals.bukkit.util.performance.Operation;
 import com.lauriethefish.betterportals.bukkit.util.performance.OperationTimer;
 import com.lauriethefish.betterportals.shared.net.RequestException;
+import org.bukkit.Chunk;
 import org.bukkit.block.BlockState;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
@@ -192,6 +193,15 @@ public class TestingCommands {
             }
         }));
 
+        return true;
+    }
+
+    @Command
+    @Path("betterportals/test/refresh")
+    @RequiresPlayer
+    public boolean refreshChunk(Player sender) {
+        Chunk senderChunk = sender.getLocation().getChunk();
+        sender.getWorld().refreshChunk(senderChunk.getX(), senderChunk.getZ());
         return true;
     }
 }
