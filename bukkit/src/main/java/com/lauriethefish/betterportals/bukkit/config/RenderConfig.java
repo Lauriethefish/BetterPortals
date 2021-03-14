@@ -1,8 +1,11 @@
 package com.lauriethefish.betterportals.bukkit.config;
 
+import com.comphenix.protocol.wrappers.WrappedBlockData;
 import com.google.inject.Singleton;
 import com.lauriethefish.betterportals.api.IntVector;
+import com.lauriethefish.betterportals.bukkit.util.MaterialUtil;
 import lombok.Getter;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.util.Vector;
@@ -22,6 +25,8 @@ public class RenderConfig {
     private int totalArrayLength;
 
     private IntVector halfFullSize;
+
+    private WrappedBlockData backgroundBlockData; // Default to black concrete
 
     private final IntVector[] surroundingOffsets = new IntVector[]{
         new IntVector(1, 0, 0),
@@ -72,6 +77,13 @@ public class RenderConfig {
         worldSwitchWaitTime = file.getInt("waitTimeAfterSwitchingWorlds"); // TODO: implement or yeet
         portalBlocksHidden = file.getBoolean("hidePortalBlocks");
         blockStateRefreshInterval = file.getInt("blockStateRefreshInterval");
+
+        String bgBlockString = file.getString("backgroundBlock", "");
+        assert bgBlockString != null;
+
+        if(!bgBlockString.isEmpty()) {
+            backgroundBlockData = WrappedBlockData.createData(Material.valueOf(bgBlockString));
+        }
     }
 
     public boolean isEdge(int x, int y, int z) {

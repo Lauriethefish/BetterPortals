@@ -1,5 +1,6 @@
 package com.lauriethefish.betterportals.bukkit.block;
 
+import com.comphenix.protocol.wrappers.WrappedBlockData;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.lauriethefish.betterportals.bukkit.block.data.BlockData;
@@ -16,6 +17,7 @@ import com.lauriethefish.betterportals.bukkit.util.performance.IPerformanceWatch
 import com.lauriethefish.betterportals.bukkit.util.performance.OperationTimer;
 import com.lauriethefish.betterportals.shared.logging.Logger;
 import lombok.Getter;
+import org.bukkit.Material;
 import org.bukkit.World;
 
 import java.util.ArrayList;
@@ -81,6 +83,11 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
      * @param start Start position of the flood fill
      */
     private void searchFromBlock(IntVector start) {
+        WrappedBlockData backgroundData = renderConfig.getBackgroundBlockData();
+        if(backgroundData == null) {
+            backgroundData = MaterialUtil.PORTAL_EDGE_DATA; // Use the default if not overridden in the config
+        }
+
         List<IntVector> stack = new ArrayList<>(renderConfig.getTotalArrayLength());
         stack.add(start);
 
@@ -97,7 +104,7 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
             ViewableBlockInfo blockInfo = new ViewableBlockInfo(originData, destData);
             boolean isEdge = renderConfig.isEdge(relPos);
             if(isEdge && !isOccluding) {
-                blockInfo.setRenderedDestData(MaterialUtil.PORTAL_EDGE_DATA);
+                blockInfo.setRenderedDestData(backgroundData);
             }   else    {
                 blockInfo.setRenderedDestData(blockRotator.rotateByMatrix(rotateDestToOrigin, destData).toProtocolLib());
             }
