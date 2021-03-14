@@ -61,6 +61,12 @@ public class BetterPortals extends JavaPlugin {
             return;
         }
 
+        if(firstEnable) {
+            if(miscConfig.isTestingCommandsEnabled()) {
+                commandTree.registerTestCommands();
+            }
+        }
+
         if(proxyConfig.isEnabled()) {
             logger.fine("Proxy is enabled! Initialising connection . . .");
             portalClient.connect();
