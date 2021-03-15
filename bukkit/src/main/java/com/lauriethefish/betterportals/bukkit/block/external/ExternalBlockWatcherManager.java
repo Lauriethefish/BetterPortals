@@ -23,12 +23,12 @@ public class ExternalBlockWatcherManager implements IExternalBlockWatcherManager
     private static final int BLOCK_WATCHER_CLEAR_DELAY = 5;
 
     private final Logger logger;
-    private final BlockChangeWatcherFactory blockChangeWatcherFactory;
+    private final IBlockChangeWatcher.Factory blockChangeWatcherFactory;
     private final Map<UUID, IBlockChangeWatcher> watchers = new HashMap<>();
     private final Map<UUID, Instant> lastRequested = new HashMap<>();
 
     @Inject
-    public ExternalBlockWatcherManager(Logger logger, BlockChangeWatcherFactory blockChangeWatcherFactory) {
+    public ExternalBlockWatcherManager(Logger logger, IBlockChangeWatcher.Factory blockChangeWatcherFactory) {
         this.logger = logger;
         this.blockChangeWatcherFactory = blockChangeWatcherFactory;
     }

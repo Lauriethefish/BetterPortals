@@ -6,7 +6,6 @@ import com.google.inject.assistedinject.Assisted;
 import com.lauriethefish.betterportals.bukkit.block.IViewableBlockArray;
 import com.lauriethefish.betterportals.bukkit.block.ViewableBlockInfo;
 import com.lauriethefish.betterportals.bukkit.block.multiblockchange.IMultiBlockChangeManager;
-import com.lauriethefish.betterportals.bukkit.block.multiblockchange.MultiBlockChangeManagerFactory;
 import com.lauriethefish.betterportals.bukkit.config.RenderConfig;
 import com.lauriethefish.betterportals.api.IntVector;
 import com.lauriethefish.betterportals.bukkit.math.PlaneIntersectionChecker;
@@ -28,7 +27,7 @@ public class PlayerBlockView implements IPlayerBlockView   {
     private final Player player;
     private final IPortal portal;
 
-    private final MultiBlockChangeManagerFactory multiBlockChangeManagerFactory;
+    private final IMultiBlockChangeManager.Factory multiBlockChangeManagerFactory;
     private final IPlayerBlockStates blockStates;
     // Avoid resetting block states while they're being updated asynchronously
     private final ReentrantLock statesLock = new ReentrantLock(true);
@@ -45,7 +44,7 @@ public class PlayerBlockView implements IPlayerBlockView   {
 
     @Inject
     public PlayerBlockView(@Assisted Player player, @Assisted IPortal portal,
-                           MultiBlockChangeManagerFactory multiBlockChangeManagerFactory, PlayerBlockStatesFactory blockStatesFactory,
+                           IMultiBlockChangeManager.Factory multiBlockChangeManagerFactory, IPlayerBlockStates.Factory blockStatesFactory,
                            Logger logger, BlockUpdateFinisher updateFinisher, IPerformanceWatcher performanceWatcher, RenderConfig renderConfig) {
         this.player = player;
         this.portal = portal;

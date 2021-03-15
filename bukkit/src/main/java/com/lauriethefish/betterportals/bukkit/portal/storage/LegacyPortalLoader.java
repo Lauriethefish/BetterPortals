@@ -4,7 +4,6 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import com.lauriethefish.betterportals.api.PortalDirection;
-import com.lauriethefish.betterportals.bukkit.portal.PortalFactory;
 import com.lauriethefish.betterportals.api.PortalPosition;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -17,10 +16,10 @@ import java.util.UUID;
 
 @Singleton
 public class LegacyPortalLoader {
-    private final PortalFactory portalFactory;
+    private final IPortal.Factory portalFactory;
 
     @Inject
-    public LegacyPortalLoader(PortalFactory portalFactory) {
+    public LegacyPortalLoader(IPortal.Factory portalFactory) {
         this.portalFactory = portalFactory;
     }
 

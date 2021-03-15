@@ -2,6 +2,7 @@ package com.lauriethefish.betterportals.bukkit.block;
 
 import com.lauriethefish.betterportals.bukkit.config.RenderConfig;
 import com.lauriethefish.betterportals.api.IntVector;
+import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ConcurrentMap;
@@ -33,4 +34,8 @@ public interface IViewableBlockArray {
      * Next time {@link IViewableBlockArray#update(int)} is called, another initial update will be done, which takes longer.
      */
     void reset();
+
+    interface Factory {
+        IViewableBlockArray create(IPortal portal);
+    }
 }

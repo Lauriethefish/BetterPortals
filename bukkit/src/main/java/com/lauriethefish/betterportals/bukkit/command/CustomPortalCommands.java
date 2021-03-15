@@ -10,7 +10,6 @@ import com.lauriethefish.betterportals.bukkit.player.IPlayerData;
 import com.lauriethefish.betterportals.bukkit.player.selection.IPortalWandManager;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import com.lauriethefish.betterportals.bukkit.portal.IPortalManager;
-import com.lauriethefish.betterportals.bukkit.portal.PortalFactory;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -23,10 +22,10 @@ public class CustomPortalCommands {
     private final IPortalManager portalManager;
     private final MessageConfig messageConfig;
     private final IPortalWandManager portalWandManager;
-    private final PortalFactory portalFactory;
+    private final IPortal.Factory portalFactory;
 
     @Inject
-    public CustomPortalCommands(CommandTree commandTree, IPortalManager portalManager, MessageConfig messageConfig, IPortalWandManager portalWandManager, PortalFactory portalFactory) {
+    public CustomPortalCommands(CommandTree commandTree, IPortalManager portalManager, MessageConfig messageConfig, IPortalWandManager portalWandManager, IPortal.Factory portalFactory) {
         this.portalManager = portalManager;
         this.messageConfig = messageConfig;
         this.portalWandManager = portalWandManager;

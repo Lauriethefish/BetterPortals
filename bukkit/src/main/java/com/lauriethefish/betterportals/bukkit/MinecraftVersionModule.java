@@ -3,7 +3,6 @@ package com.lauriethefish.betterportals.bukkit;
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.lauriethefish.betterportals.bukkit.block.multiblockchange.IMultiBlockChangeManager;
-import com.lauriethefish.betterportals.bukkit.block.multiblockchange.MultiBlockChangeManagerFactory;
 import com.lauriethefish.betterportals.bukkit.block.multiblockchange.MultiBlockChangeManager_1_16_2;
 import com.lauriethefish.betterportals.bukkit.block.multiblockchange.MultiBlockChangeManager_Old;
 import com.lauriethefish.betterportals.bukkit.block.rotation.IBlockRotator;
@@ -28,7 +27,7 @@ public class MinecraftVersionModule extends AbstractModule {
         bind(IChunkGenerationChecker.class).to(VersionUtil.isMcVersionAtLeast("1.14.0") ? ModernChunkGenerationChecker.class : LegacyChunkGenerationChecker.class);
         install(new FactoryModuleBuilder()
             .implement(IMultiBlockChangeManager.class, VersionUtil.isMcVersionAtLeast("1.16.2") ? MultiBlockChangeManager_1_16_2.class : MultiBlockChangeManager_Old.class)
-            .build(MultiBlockChangeManagerFactory.class)
+            .build(IMultiBlockChangeManager.Factory.class)
         );
     }
 }

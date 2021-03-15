@@ -14,12 +14,12 @@ public class BlockModule extends AbstractModule {
     public void configure() {
         install(new FactoryModuleBuilder()
                 .implement(IViewableBlockArray.class, FloodFillViewableBlockArray.class)
-                .build(ViewableBlockArrayFactory.class)
+                .build(IViewableBlockArray.Factory.class)
         );
 
         install(new FactoryModuleBuilder()
                 .implement(IBlockChangeWatcher.class, BlockChangeWatcher.class)
-                .build(BlockChangeWatcherFactory.class)
+                .build(IBlockChangeWatcher.Factory.class)
         );
 
         install(new FactoryModuleBuilder()

@@ -9,7 +9,6 @@ import com.lauriethefish.betterportals.bukkit.player.view.PlayerPortalView;
 import com.lauriethefish.betterportals.bukkit.player.view.PlayerPortalViewFactory;
 import com.lauriethefish.betterportals.bukkit.player.view.block.IPlayerBlockStates;
 import com.lauriethefish.betterportals.bukkit.player.view.block.PlayerBlockStates;
-import com.lauriethefish.betterportals.bukkit.player.view.block.PlayerBlockStatesFactory;
 import org.bukkit.Bukkit;
 
 public class PlayerModule extends AbstractModule {
@@ -17,11 +16,11 @@ public class PlayerModule extends AbstractModule {
     public void configure() {
         install(new FactoryModuleBuilder()
                 .implement(IPlayerBlockStates.class, PlayerBlockStates.class)
-                .build(PlayerBlockStatesFactory.class)
+                .build(IPlayerBlockStates.Factory.class)
         );
         install(new FactoryModuleBuilder()
                 .implement(IPlayerData.class, PlayerData.class)
-                .build(PlayerDataFactory.class)
+                .build(IPlayerData.Factory.class)
         );
         install(new FactoryModuleBuilder()
                 .implement(IPlayerPortalView.class, PlayerPortalView.class)

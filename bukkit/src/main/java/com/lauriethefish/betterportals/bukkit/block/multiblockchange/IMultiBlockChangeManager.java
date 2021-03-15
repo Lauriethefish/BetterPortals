@@ -1,6 +1,7 @@
 package com.lauriethefish.betterportals.bukkit.block.multiblockchange;
 
 import com.comphenix.protocol.wrappers.WrappedBlockData;
+import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 /**
@@ -19,4 +20,8 @@ public interface IMultiBlockChangeManager {
      * Does <i>not</i> clear changes.
      */
     void sendChanges();
+
+    interface Factory {
+        IMultiBlockChangeManager create(Player player);
+    }
 }

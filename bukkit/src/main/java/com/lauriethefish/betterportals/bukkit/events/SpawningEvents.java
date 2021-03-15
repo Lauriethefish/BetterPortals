@@ -7,7 +7,6 @@ import com.lauriethefish.betterportals.bukkit.math.MathUtil;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import com.lauriethefish.betterportals.bukkit.portal.IPortalManager;
 import com.lauriethefish.betterportals.api.PortalDirection;
-import com.lauriethefish.betterportals.bukkit.portal.PortalFactory;
 import com.lauriethefish.betterportals.bukkit.portal.spawning.IPortalSpawner;
 import com.lauriethefish.betterportals.bukkit.portal.spawning.PortalSpawnPosition;
 import com.lauriethefish.betterportals.bukkit.util.VersionUtil;
@@ -35,13 +34,13 @@ public class SpawningEvents implements Listener {
 
     private final IPortalSpawner portalSpawnChecker;
     private final IPortalManager portalManager;
-    private final PortalFactory portalFactory;
+    private final IPortal.Factory portalFactory;
     private final PortalSpawnConfig spawnConfig;
     private final MessageConfig messageConfig;
     private final Logger logger;
 
     @Inject
-    public SpawningEvents(IEventRegistrar eventRegistrar, IPortalSpawner portalSpawnChecker, IPortalManager portalManager, PortalFactory portalFactory, PortalSpawnConfig spawnConfig, MessageConfig messageConfig, Logger logger) {
+    public SpawningEvents(IEventRegistrar eventRegistrar, IPortalSpawner portalSpawnChecker, IPortalManager portalManager, IPortal.Factory portalFactory, PortalSpawnConfig spawnConfig, MessageConfig messageConfig, Logger logger) {
         this.portalSpawnChecker = portalSpawnChecker;
         this.portalManager = portalManager;
         this.portalFactory = portalFactory;

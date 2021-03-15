@@ -4,10 +4,8 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.lauriethefish.betterportals.api.PortalPosition;
 import com.lauriethefish.betterportals.bukkit.block.IViewableBlockArray;
-import com.lauriethefish.betterportals.bukkit.block.ViewableBlockArrayFactory;
 import com.lauriethefish.betterportals.bukkit.chunk.chunkloading.PortalChunkLoader;
 import com.lauriethefish.betterportals.bukkit.config.MiscConfig;
-import com.lauriethefish.betterportals.bukkit.entity.TeleportManagerFactory;
 import com.lauriethefish.betterportals.bukkit.entity.IEntityTeleportManager;
 import com.lauriethefish.betterportals.bukkit.entity.IPortalEntityList;
 import com.lauriethefish.betterportals.bukkit.entity.PortalEntityListFactory;
@@ -51,8 +49,8 @@ public class Portal implements IPortal, ConfigurationSerializable {
     private int ticksSinceViewActivated = -1;
 
     @Inject
-    public Portal(IPortalManager portalManager, PortalEntityListFactory entityListFactory, ViewableBlockArrayFactory viewableBlockArrayFactory,
-                  TeleportManagerFactory teleportManagerFactory, PortalChunkLoader chunkLoader, MiscConfig miscConfig,
+    public Portal(IPortalManager portalManager, PortalEntityListFactory entityListFactory, IViewableBlockArray.Factory viewableBlockArrayFactory,
+                  IEntityTeleportManager.Factory teleportManagerFactory, PortalChunkLoader chunkLoader, MiscConfig miscConfig,
                   Logger logger, PortalTransformationsFactory transformationsFactory,
                   @Assisted("originPos") PortalPosition originPos, @Assisted("destPos") PortalPosition destPos,
                   @Assisted Vector size, @Assisted boolean isCustom,
@@ -185,7 +183,7 @@ public class Portal implements IPortal, ConfigurationSerializable {
     }
 
     // We have to inject this statically unfortunately, no real other choice :/
-    @Inject private static PortalFactory deserializationFactory;
+    @Inject private static Factory deserializationFactory;
 
     public static Portal valueOf(Map<String, Object> map) {
         // We have to null check this and replace it with a random ID since it didn't exist in all prior versions
