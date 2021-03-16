@@ -27,8 +27,8 @@ allprojects {
     compileJava.options.encoding = 'UTF-8'
 
     dependencies {
-        implementation 'com.google.inject:guice:5.0.0-BETA-1'
-        implementation 'com.google.inject.extensions:guice-assistedinject:5.0.0-BETA-1'
+        implementation 'com.google.inject:guice:4.0'
+        implementation 'com.google.inject.extensions:guice-assistedinject:4.0'
         implementation 'org.jetbrains:annotations:20.1.0'
         implementation 'com.google.code.findbugs:jsr305:3.0.2'
 
