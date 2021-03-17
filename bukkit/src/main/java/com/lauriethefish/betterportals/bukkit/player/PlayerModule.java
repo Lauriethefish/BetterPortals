@@ -34,6 +34,5 @@ public class PlayerModule extends AbstractModule {
 
         bind(IPlayerSelectionManager.class).to(PlayerSelectionManager.class);
         bind(IPortalSelection.class).to(PortalSelection.class);
-        bind(IPortalWandManager.class).to(PortalWandManager.class);
     }
 }

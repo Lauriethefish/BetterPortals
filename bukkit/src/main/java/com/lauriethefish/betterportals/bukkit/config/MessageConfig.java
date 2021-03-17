@@ -1,14 +1,17 @@
 package com.lauriethefish.betterportals.bukkit.config;
 
-import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.lauriethefish.betterportals.bukkit.command.framework.CommandException;
+import com.lauriethefish.betterportals.bukkit.util.nms.NBTTagUtil;
 import lombok.Getter;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
 
-import javax.inject.Named;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -18,11 +21,15 @@ import java.util.Objects;
  */
 @Singleton
 public class MessageConfig {
+    private static final String PORTAL_WAND_TAG = "portalWand";
+
     private final Map<String, String> messageMap = new HashMap<>();
 
-    @Getter private String portalWandName;
+    private String portalWandName;
     @Getter private String prefix;
     @Getter private String messageColor;
+
+    private ItemStack portalWand = null;
 
     public void load(FileConfiguration file) {
         ConfigurationSection messagesSection = Objects.requireNonNull(file.getConfigurationSection("chatMessages"), "Missing chat messages section");
@@ -34,6 +41,34 @@ public class MessageConfig {
         portalWandName = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(file.getString("portalWandName"), "Missing portalWandName"));
         prefix = getRawMessage("prefix");
         messageColor = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(messagesSection.getString("messageColor"), "Missing messageColor"));
+    }
+
+    /**
+     * @return The wand with the NBT tags for creating portals
+     */
+    public @NotNull ItemStack getPortalWand() {
+        if(portalWand == null) {
+            portalWand = new ItemStack(Material.BLAZE_ROD);
+
+            ItemMeta meta = portalWand.getItemMeta();
+            assert meta != null;
+            meta.setDisplayName(portalWandName);
+
+            portalWand.setItemMeta(meta);
+            // Portal wand checking is done with an NBT tag
+            portalWand = NBTTagUtil.addMarkerTag(portalWand, PORTAL_WAND_TAG);
+        }
+
+        return portalWand;
+    }
+
+    /**
+     * Checks if <code>item</code> is a portal wand
+     * @param item The item to test
+     * @return true if it is a valid portal wand, false otherwise
+     */
+    public boolean isPortalWand(ItemStack item) {
+        return NBTTagUtil.hasMarkerTag(item, PORTAL_WAND_TAG);
     }
 
     /**
