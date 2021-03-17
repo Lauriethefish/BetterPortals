@@ -102,7 +102,10 @@ public class CustomPortalCommands {
     @Description("Links the origin and destination portal together")
     @Argument(name = "twoWay?", defaultValue = "false")
     @Argument(name = "invert?", defaultValue = "false")
-    public boolean linkPortals(IPlayerData playerData, boolean twoWay, boolean invert) throws CommandException  {
+    public boolean linkPortals(IPlayerData playerData, String twoWayStr, String invertStr) throws CommandException  {
+        boolean twoWay = twoWayStr.equalsIgnoreCase("true") || twoWayStr.equalsIgnoreCase("twoWay") || twoWayStr.equalsIgnoreCase("dual");
+        boolean invert = invertStr.equalsIgnoreCase("true") || invertStr.equalsIgnoreCase("invert");
+
         playerData.getSelection().tryCreateFromSelection(playerData.getPlayer(), twoWay, invert);
         playerData.getPlayer().sendMessage(messageConfig.getChatMessage("portalsLinked"));
         return true;
