@@ -38,6 +38,7 @@ public class BetterPortals extends JavaPlugin {
     @Inject private BlockUpdateFinisher blockUpdateFinisher;
     @Inject private IPortalManager portalManager;
     @Inject private IEventRegistrar eventRegistrar;
+    @Inject private API apiImplementation;
 
     private boolean firstEnable = true;
     private boolean didEnableFail = false;
@@ -90,6 +91,7 @@ public class BetterPortals extends JavaPlugin {
             }
         }   else    {
             eventRegistrar.onPluginReload();
+            portalManager.onReload();
         }
 
         if(proxyConfig.isEnabled()) {
@@ -102,9 +104,12 @@ public class BetterPortals extends JavaPlugin {
         portalStorage.start();
 
         firstEnable = false;
+        apiImplementation.onEnable();
     }
 
     public void softReload() {
+        apiImplementation.onDisable();
+
         logger.fine("Performing plugin soft-reload . . .");
         if(proxyConfig.isEnabled()) {
             portalClient.shutDown();

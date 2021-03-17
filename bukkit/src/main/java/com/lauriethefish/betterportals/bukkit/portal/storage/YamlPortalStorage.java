@@ -40,7 +40,7 @@ public class YamlPortalStorage extends IPortalStorage    {
         this.legacyPortalLoader = legacyPortalLoader;
 
         ConfigurationSerialization.registerClass(Portal.class);
-        ConfigurationSerialization.registerClass(PortalPosition.class);
+        ConfigurationSerialization.registerClass(PortalPosition.class, "com.lauriethefish.betterportals.bukkit.portal.PortalPosition");
     }
 
     private Path getDataFolder() {

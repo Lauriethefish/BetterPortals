@@ -5,7 +5,7 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Represents a portal's direction
+ * Represents a portal's direction. Portals can not be diagonal, only up/down/left/right/forward/backwards.
  */
 public enum PortalDirection {
     UP(new Vector(0.0, 1.0, 0.0), new Vector(1.0, 0.0, 0.0)),

@@ -3,11 +3,13 @@ package com.lauriethefish.betterportals.bukkit;
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
+import com.lauriethefish.betterportals.bukkit.block.BlockModule;
 import com.lauriethefish.betterportals.bukkit.block.FloodFillViewableBlockArray;
 import com.lauriethefish.betterportals.bukkit.block.IViewableBlockArray;
 import com.lauriethefish.betterportals.bukkit.block.ViewableBlockArrayFactory;
 import com.lauriethefish.betterportals.bukkit.block.external.*;
 import com.lauriethefish.betterportals.bukkit.command.CommandsModule;
+import com.lauriethefish.betterportals.bukkit.entity.EntityModule;
 import com.lauriethefish.betterportals.bukkit.entity.IPortalEntityList;
 import com.lauriethefish.betterportals.bukkit.entity.PortalEntityList;
 import com.lauriethefish.betterportals.bukkit.entity.PortalEntityListFactory;
@@ -57,54 +59,19 @@ public class MainModule extends AbstractModule {
         bind(JavaPlugin.class).toInstance(pl);
         bind(BetterPortals.class).toInstance(pl);
 
-        install(new MinecraftVersionModule());
-
-        install(new FactoryModuleBuilder().implement(IPortal.class, Portal.class).build(PortalFactory.class));
-        install(new FactoryModuleBuilder().implement(IPortalEntityList.class, PortalEntityList.class).build(PortalEntityListFactory.class));
-        install(new FactoryModuleBuilder().implement(IPlayerBlockStates.class, PlayerBlockStates.class).build(PlayerBlockStatesFactory.class));
-        install(new FactoryModuleBuilder().implement(IViewableBlockArray.class, FloodFillViewableBlockArray.class).build(ViewableBlockArrayFactory.class));
-        install(new FactoryModuleBuilder().implement(IPlayerData.class, PlayerData.class).build(PlayerDataFactory.class));
-        install(new FactoryModuleBuilder().implement(IPlayerPortalView.class, PlayerPortalView.class).build(PlayerPortalViewFactory.class));
-        install(new FactoryModuleBuilder().implement(IEntityTracker.class, EntityTracker.class).build(EntityTrackerFactory.class));
-        install(new FactoryModuleBuilder().build(PortalTransformationsFactory.class));
-        install(new FactoryModuleBuilder().implement(IEncryptedObjectStream.class, EncryptedObjectStream.class).build(EncryptedObjectStreamFactory.class));
-        install(new FactoryModuleBuilder().implement(IBlockChangeWatcher.class, BlockChangeWatcher.class).build(BlockChangeWatcherFactory.class))   ;
-        install(new FactoryModuleBuilder()
-                .implement(IPlayerBlockView.class, PlayerBlockView.class)
-                .implement(IPlayerEntityView.class, PlayerEntityView.class)
-                .build(ViewFactory.class));
-
-        bind(IPortalManager.class).to(PortalManager.class);
-        bind(IPortalActivityManager.class).to(PortalActivityManager.class);
         bind(BlockUpdateFinisher.class).to(ThreadedBlockUpdateFinisher.class);
-        bind(IPortalPredicateManager.class).to(PortalPredicateManager.class);
         bind(IPerformanceWatcher.class).to(PerformanceWatcher.class);
-        bind(IPlayerSelectionManager.class).to(PlayerSelectionManager.class);
-        bind(IPortalSelection.class).to(PortalSelection.class);
-        bind(IPortalWandManager.class).to(PortalWandManager.class);
-        bind(IPortalSpawner.class).to(PortalSpawner.class);
-        bind(IPortalStorage.class).to(YamlPortalStorage.class);
-        bind(IEntityPacketManipulator.class).to(EntityPacketManipulator.class);
-        bind(IEntityTrackingManager.class).to(EntityTrackingManager.class);
         bind(ICrashHandler.class).to(CrashHandler.class);
-        bind(IDimensionBlendManager.class).to(DimensionBlendManager.class);
-        bind(IPortalClient.class).to(PortalClient.class);
-        bind(IRequestHandler.class).to(ClientRequestHandler.class);
-        bind(IExternalBlockWatcherManager.class).to(ExternalBlockWatcherManager.class);
-        bind(IClientReconnectHandler.class).to(ClientReconnectHandler.class);
 
-        // Portals need a PortalFactory for their serialization
-        // Not really another way we can really get it over there, so gotta use static injection :/
-        requestStaticInjection(Portal.class);
-
-        // Base the distance for a hard block reset on the server's view distance
-        double blockSendUpdateDistance = Bukkit.getServer().getViewDistance() * 25;
-        bind(double.class).annotatedWith(Names.named("blockSendUpdateDistance")).toInstance(blockSendUpdateDistance);
-
-        bind(IPlayerDataManager.class).to(PlayerDataManager.class).asEagerSingleton();
         bind(MetricsManager.class).asEagerSingleton();
 
         install(new EventsModule());
         install(new CommandsModule());
+        install(new PortalModule());
+        install(new BlockModule());
+        install(new NetworkModule());
+        install(new PlayerModule());
+        install(new EntityModule());
+        install(new MinecraftVersionModule());
     }
 }
