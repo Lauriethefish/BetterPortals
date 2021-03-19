@@ -2,8 +2,10 @@ package com.lauriethefish.betterportals.bukkit.config;
 
 import com.google.inject.Singleton;
 import com.lauriethefish.betterportals.bukkit.command.framework.CommandException;
+import com.lauriethefish.betterportals.bukkit.util.VersionUtil;
 import com.lauriethefish.betterportals.bukkit.util.nms.NBTTagUtil;
 import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -35,12 +37,61 @@ public class MessageConfig {
         ConfigurationSection messagesSection = Objects.requireNonNull(file.getConfigurationSection("chatMessages"), "Missing chat messages section");
 
         for(String key : messagesSection.getKeys(false)) {
-            messageMap.put(key, ChatColor.translateAlternateColorCodes('&', messagesSection.getString(key)));
+            messageMap.put(key, translateColorCodes(messagesSection.getString(key)));
         }
 
-        portalWandName = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(file.getString("portalWandName"), "Missing portalWandName"));
+        portalWandName = translateColorCodes(Objects.requireNonNull(file.getString("portalWandName"), "Missing portalWandName"));
         prefix = getRawMessage("prefix");
-        messageColor = ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(messagesSection.getString("messageColor"), "Missing messageColor"));
+        messageColor = translateColorCodes(Objects.requireNonNull(messagesSection.getString("messageColor"), "Missing messageColor"));
+    }
+
+    private String translateColorCodes(String message) {
+        message = ChatColor.translateAlternateColorCodes('&', message);
+
+        if(!VersionUtil.isMcVersionAtLeast("1.16.0") || !Bukkit.getBukkitVersion().contains("craftbukkit")) {
+            return message;
+        }
+
+        boolean previousWasOpenBrace = false;
+        boolean recordingHex = false;
+        StringBuilder currentHex = null;
+        StringBuilder translatedMessage = new StringBuilder();
+        for(char c : message.toCharArray()) {
+            if(recordingHex) {
+                if(c == ')') {
+                    recordingHex = false;
+                    translatedMessage.append(net.md_5.bungee.api.ChatColor.of(currentHex.toString()));
+                    continue;
+                }
+
+                if(c == '}') {
+                    previousWasOpenBrace = false;
+                    continue;
+                }
+
+                currentHex.append(c);
+            }   else    {
+                if(c == '}') {
+                    previousWasOpenBrace = false;
+                    continue;
+                }
+
+                if(c == '(' && previousWasOpenBrace) {
+                    recordingHex = true;
+                    currentHex = new StringBuilder();
+                    continue;
+                }
+
+                if(c == '{') {
+                    previousWasOpenBrace = true;
+                    continue;
+                }
+
+                translatedMessage.append(c);
+            }
+        }
+
+        return translatedMessage.toString();
     }
 
     /**
