@@ -23,6 +23,21 @@ import java.util.Objects;
  */
 @Singleton
 public class MessageConfig {
+    private static final boolean HEX_COLOR_CODES_AVAILABLE;
+
+    static {
+        boolean isAvailable = false;
+
+        if(VersionUtil.isMcVersionAtLeast("1.16.0")) {
+            try {
+                Class.forName("net.md_5.bungee.api.ChatColor");
+                isAvailable = true;
+            }   catch(ClassNotFoundException ignored) {}
+        }
+
+        HEX_COLOR_CODES_AVAILABLE = isAvailable;
+    }
+
     private static final String PORTAL_WAND_TAG = "portalWand";
 
     private final Map<String, String> messageMap = new HashMap<>();
@@ -48,10 +63,14 @@ public class MessageConfig {
     private String translateColorCodes(String message) {
         message = ChatColor.translateAlternateColorCodes('&', message);
 
-        if(!VersionUtil.isMcVersionAtLeast("1.16.0") || !Bukkit.getBukkitVersion().contains("craftbukkit")) {
+        if (HEX_COLOR_CODES_AVAILABLE) {
+            return translateHexColors(message);
+        }   else    {
             return message;
         }
+    }
 
+    private String translateHexColors(String message) {
         boolean previousWasOpenBrace = false;
         boolean recordingHex = false;
         StringBuilder currentHex = null;
