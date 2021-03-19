@@ -5,7 +5,6 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.lauriethefish.betterportals.bukkit.player.IPlayerData;
-import com.lauriethefish.betterportals.bukkit.player.PlayerDataFactory;
 import com.lauriethefish.betterportals.bukkit.player.PlayerDataManager;
 import implementations.TestLoggerModule;
 import implementations.TestPlayerData;
@@ -23,7 +22,7 @@ public class PlayerDataManagerTests {
         JavaPlugin mockPlugin = MockBukkit.createMockPlugin();
 
         Injector injector = Guice.createInjector(new TestLoggerModule(),
-                new FactoryModuleBuilder().implement(IPlayerData.class, TestPlayerData.class).build(PlayerDataFactory.class),
+                new FactoryModuleBuilder().implement(IPlayerData.class, TestPlayerData.class).build(IPlayerData.Factory.class),
                 new AbstractModule() {
                     @Override
                     protected void configure() {

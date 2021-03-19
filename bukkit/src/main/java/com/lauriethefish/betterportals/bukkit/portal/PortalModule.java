@@ -20,7 +20,7 @@ public class PortalModule extends AbstractModule {
     public void configure() {
         install(new FactoryModuleBuilder()
                 .implement(IPortal.class, Portal.class)
-                .build(PortalFactory.class)
+                .build(IPortal.Factory.class)
         );
         install(new FactoryModuleBuilder()
                 .implement(IPortalEntityList.class, PortalEntityList.class)

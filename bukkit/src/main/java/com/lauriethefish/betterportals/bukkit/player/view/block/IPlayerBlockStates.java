@@ -1,6 +1,7 @@
 package com.lauriethefish.betterportals.bukkit.player.view.block;
 
 import com.lauriethefish.betterportals.bukkit.block.ViewableBlockInfo;
+import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 // Implementors of this class must make sure that it is thread safe
@@ -16,4 +17,8 @@ public interface IPlayerBlockStates {
 
     // Returns if the block was viewable last tick, AKA whether or not an update packet is needed
     boolean setNonViewable(Vector position, ViewableBlockInfo block);
+
+    interface Factory {
+        IPlayerBlockStates create(Player player);
+    }
 }

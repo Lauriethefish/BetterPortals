@@ -7,7 +7,6 @@ import com.lauriethefish.betterportals.api.PortalPosition;
 import com.lauriethefish.betterportals.api.PortalPredicate;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import com.lauriethefish.betterportals.bukkit.portal.IPortalManager;
-import com.lauriethefish.betterportals.bukkit.portal.PortalFactory;
 import com.lauriethefish.betterportals.bukkit.portal.predicate.IPortalPredicateManager;
 import com.lauriethefish.betterportals.shared.logging.Logger;
 import org.bukkit.util.Vector;
@@ -21,12 +20,12 @@ import java.util.UUID;
  */
 public class API extends BetterPortalsAPI {
     private final Logger logger;
-    private final PortalFactory portalFactory;
+    private final IPortal.Factory portalFactory;
     private final IPortalManager portalManager;
     private final IPortalPredicateManager portalPredicateManager;
 
     @Inject
-    public API(Logger logger, PortalFactory portalFactory, IPortalManager portalManager, IPortalPredicateManager portalPredicateManager) {
+    public API(Logger logger, IPortal.Factory portalFactory, IPortalManager portalManager, IPortalPredicateManager portalPredicateManager) {
         this.logger = logger;
         this.portalFactory = portalFactory;
         this.portalManager = portalManager;

@@ -18,22 +18,23 @@ import org.jetbrains.annotations.NotNull;
  * We cancel regular nether portal teleportation since we override it.
  */
 public class PortalTeleportationEvents implements Listener {
+    private final PortalSpawnConfig spawnConfig;
     private final IPortalManager portalManager;
     private final MessageConfig messageConfig;
-    private final double portalExistenceRadius;
 
     @Inject
     public PortalTeleportationEvents(IEventRegistrar eventRegistrar, IPortalManager portalManager, PortalSpawnConfig spawnConfig, MessageConfig messageConfig) {
         this.portalManager = portalManager;
         this.messageConfig = messageConfig;
-
-        Vector maxPortalSize = spawnConfig.getMaxPortalSize();
-        this.portalExistenceRadius = Math.max(maxPortalSize.getX(), maxPortalSize.getY()) + 2;
+        this.spawnConfig = spawnConfig;
 
         eventRegistrar.register(this);
     }
 
     private boolean isPluginPortal(@NotNull Entity entity) {
+        Vector maxPortalSize = spawnConfig.getMaxPortalSize();
+        double portalExistenceRadius = Math.max(maxPortalSize.getX(), maxPortalSize.getY()) + 2;
+
         return portalManager.findClosestPortal(entity.getLocation(), portalExistenceRadius) != null;
     }
 

@@ -2,6 +2,7 @@ package com.lauriethefish.betterportals.bukkit.command.framework;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.lauriethefish.betterportals.bukkit.command.TestingCommands;
 import com.lauriethefish.betterportals.bukkit.command.framework.annotations.Aliases;
 import com.lauriethefish.betterportals.bukkit.command.framework.annotations.Command;
 import com.lauriethefish.betterportals.bukkit.command.framework.annotations.Path;
@@ -22,14 +23,16 @@ public class CommandTree {
     private final MessageConfig messages;
     private final Logger logger;
     private final IPlayerDataManager playerDataManager;
+    private final TestingCommands testingCommands;
 
     private final ParentCommand rootNode;
 
     @Inject
-    public CommandTree(MessageConfig messages, Logger logger, IPlayerDataManager playerDataManager) {
+    public CommandTree(MessageConfig messages, Logger logger, IPlayerDataManager playerDataManager, TestingCommands testingCommands) {
         this.messages = messages;
         this.logger = logger;
         this.playerDataManager = playerDataManager;
+        this.testingCommands = testingCommands;
 
         // We don't want to print an exception if another command like /gamemode is entered
         this.rootNode = new ParentCommand(logger, messages, true);
@@ -112,5 +115,10 @@ public class CommandTree {
         args = argsList.toArray(new String[0]);
 
         return rootNode.tabComplete(sender, args);
+    }
+
+    public void registerTestCommands() {
+        logger.fine("Registering test commands");
+        registerCommands(testingCommands);
     }
 }

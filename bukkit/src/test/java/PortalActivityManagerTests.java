@@ -17,16 +17,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class PortalActivityManagerTests {
     private PortalActivityManager portalActivityManager;
-    private PortalFactory portalFactory;
+    private IPortal.Factory portalFactory;
 
     @Before
     public void setup() {
         Injector injector = Guice.createInjector(
-                new FactoryModuleBuilder().implement(IPortal.class, TestPortal.class).build(PortalFactory.class),
+                new FactoryModuleBuilder().implement(IPortal.class, TestPortal.class).build(IPortal.Factory.class),
                 new TestLoggerModule()
         );
 
-        portalFactory = injector.getInstance(PortalFactory.class);
+        portalFactory = injector.getInstance(IPortal.Factory.class);
         portalActivityManager = injector.getInstance(PortalActivityManager.class);
     }
 

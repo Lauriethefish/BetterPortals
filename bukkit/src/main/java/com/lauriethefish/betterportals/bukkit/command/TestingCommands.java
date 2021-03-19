@@ -4,7 +4,6 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.lauriethefish.betterportals.bukkit.block.data.BlockData;
 import com.lauriethefish.betterportals.bukkit.block.data.ModernBlockData;
-import com.lauriethefish.betterportals.bukkit.command.framework.CommandTree;
 import com.lauriethefish.betterportals.bukkit.command.framework.annotations.*;
 import com.lauriethefish.betterportals.bukkit.config.MiscConfig;
 import com.lauriethefish.betterportals.bukkit.entity.faking.EntityInfo;
@@ -19,6 +18,7 @@ import com.lauriethefish.betterportals.bukkit.util.performance.IPerformanceWatch
 import com.lauriethefish.betterportals.bukkit.util.performance.Operation;
 import com.lauriethefish.betterportals.bukkit.util.performance.OperationTimer;
 import com.lauriethefish.betterportals.shared.net.RequestException;
+import org.bukkit.Chunk;
 import org.bukkit.block.BlockState;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
@@ -38,15 +38,11 @@ public class TestingCommands {
     private List<Integer> storedData;
 
     @Inject
-    public TestingCommands(CommandTree commandTree, IPerformanceWatcher performanceWatcher, NewPortalChecker spawnChecker, IEntityPacketManipulator entityPacketManipulator, IPortalClient portalClient, MiscConfig miscConfig) {
+    public TestingCommands(IPerformanceWatcher performanceWatcher, NewPortalChecker spawnChecker, IEntityPacketManipulator entityPacketManipulator, IPortalClient portalClient, MiscConfig miscConfig) {
         this.performanceWatcher = performanceWatcher;
         this.spawnChecker = spawnChecker;
         this.entityPacketManipulator = entityPacketManipulator;
         this.portalClient = portalClient;
-
-        if(miscConfig.isTestingCommandsEnabled()) {
-            commandTree.registerCommands(this);
-        }
     }
 
     @Command
@@ -192,6 +188,15 @@ public class TestingCommands {
             }
         }));
 
+        return true;
+    }
+
+    @Command
+    @Path("betterportals/test/refresh")
+    @RequiresPlayer
+    public boolean refreshChunk(Player sender) {
+        Chunk senderChunk = sender.getLocation().getChunk();
+        sender.getWorld().refreshChunk(senderChunk.getX(), senderChunk.getZ());
         return true;
     }
 }

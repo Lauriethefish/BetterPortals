@@ -38,4 +38,8 @@ public interface IPlayerData {
      * Resets portal views when the plugin is disabled.
      */
     void onPluginDisable();
+
+    interface Factory {
+        IPlayerData create(Player player);
+    }
 }

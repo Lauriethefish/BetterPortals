@@ -5,7 +5,6 @@ import com.lauriethefish.betterportals.bukkit.config.MessageConfig;
 import com.lauriethefish.betterportals.bukkit.player.IPlayerData;
 import com.lauriethefish.betterportals.bukkit.player.IPlayerDataManager;
 import com.lauriethefish.betterportals.bukkit.player.selection.IPortalSelection;
-import com.lauriethefish.betterportals.bukkit.player.selection.IPortalWandManager;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -17,13 +16,11 @@ import org.bukkit.inventory.ItemStack;
 import java.util.Objects;
 
 public class SelectionEvents implements Listener {
-    private final IPortalWandManager portalWandManager;
     private final IPlayerDataManager playerDataManager;
     private final MessageConfig messageConfig;
 
     @Inject
-    public SelectionEvents(IEventRegistrar eventRegistrar, IPortalWandManager portalWandManager, IPlayerDataManager playerDataManager, MessageConfig messageConfig) {
-        this.portalWandManager = portalWandManager;
+    public SelectionEvents(IEventRegistrar eventRegistrar, IPlayerDataManager playerDataManager, MessageConfig messageConfig) {
         this.playerDataManager = playerDataManager;
         this.messageConfig = messageConfig;
 
@@ -33,7 +30,7 @@ public class SelectionEvents implements Listener {
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         ItemStack item = event.getItem();
-        if(item == null || !portalWandManager.isPortalWand(item))  {return;}
+        if(item == null || !messageConfig.isPortalWand(item))  {return;}
 
         // We only care about left or right clicks
         Action action = event.getAction();

@@ -4,7 +4,6 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.lauriethefish.betterportals.bukkit.block.ViewableBlockInfo;
 import com.lauriethefish.betterportals.bukkit.block.multiblockchange.IMultiBlockChangeManager;
-import com.lauriethefish.betterportals.bukkit.block.multiblockchange.MultiBlockChangeManagerFactory;
 import com.lauriethefish.betterportals.shared.logging.Logger;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -14,13 +13,13 @@ import java.util.Map;
 
 public class PlayerBlockStates implements IPlayerBlockStates {
     private final Player player;
-    private final MultiBlockChangeManagerFactory multiBlockChangeManagerFactory;
+    private final IMultiBlockChangeManager.Factory multiBlockChangeManagerFactory;
     private final Logger logger;
 
     private final Map<Vector, ViewableBlockInfo> viewedStates = new HashMap<>();
 
     @Inject
-    public PlayerBlockStates(@Assisted Player player, MultiBlockChangeManagerFactory multiBlockChangeManagerFactory, Logger logger) {
+    public PlayerBlockStates(@Assisted Player player, IMultiBlockChangeManager.Factory multiBlockChangeManagerFactory, Logger logger) {
         this.player = player;
         this.multiBlockChangeManagerFactory = multiBlockChangeManagerFactory;
         this.logger = logger;

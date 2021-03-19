@@ -27,7 +27,7 @@ public class PortalManagerTests {
     private ServerMock server;
     private WorldMock overworld;
     private WorldMock nether;
-    private PortalFactory portalFactory;
+    private IPortal.Factory portalFactory;
     private PortalManager portalManager;
     private final TestPortalPredicateManager predicateManager = new TestPortalPredicateManager();
 
@@ -38,7 +38,7 @@ public class PortalManagerTests {
         nether = server.addSimpleWorld("world_nether");
 
         Injector injector = Guice.createInjector(
-                new FactoryModuleBuilder().implement(IPortal.class, TestPortal.class).build(PortalFactory.class),
+                new FactoryModuleBuilder().implement(IPortal.class, TestPortal.class).build(IPortal.Factory.class),
                 new TestLoggerModule(),
                 new AbstractModule() {
                     @Override
@@ -50,7 +50,7 @@ public class PortalManagerTests {
         );
         TestConfigHandler.prepareConfig(injector);
 
-        portalFactory = injector.getInstance(PortalFactory.class);
+        portalFactory = injector.getInstance(IPortal.Factory.class);
         portalManager = injector.getInstance(PortalManager.class);
     }
 

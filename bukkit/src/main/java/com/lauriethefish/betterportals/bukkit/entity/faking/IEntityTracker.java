@@ -2,6 +2,7 @@ package com.lauriethefish.betterportals.bukkit.entity.faking;
 
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import com.lauriethefish.betterportals.bukkit.util.nms.AnimationType;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -53,4 +54,8 @@ public interface IEntityTracker {
      * @param pickedUp The info of the entity that got picked up
      */
     void onPickup(@NotNull EntityInfo pickedUp);
+
+    interface Factory {
+        IEntityTracker create(Entity entity, IPortal portal);
+    }
 }

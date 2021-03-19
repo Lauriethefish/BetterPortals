@@ -1,5 +1,6 @@
 package com.lauriethefish.betterportals.bukkit.portal;
 
+import com.google.inject.assistedinject.Assisted;
 import com.lauriethefish.betterportals.api.BetterPortal;
 import com.lauriethefish.betterportals.api.PortalPosition;
 import com.lauriethefish.betterportals.bukkit.block.IViewableBlockArray;
@@ -7,8 +8,8 @@ import com.lauriethefish.betterportals.bukkit.entity.IPortalEntityList;
 import com.lauriethefish.betterportals.bukkit.math.PortalTransformations;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.UUID;
 
 /**
@@ -67,4 +68,14 @@ public interface IPortal extends BetterPortal {
      * @return If this portal is registered and can be viewed/used by players
      */
     boolean isRegistered();
+
+    interface Factory {
+        IPortal create(@Assisted("originPos") @NotNull PortalPosition originPos,
+                       @Assisted("destPos") @NotNull PortalPosition destPos,
+                       Vector size, boolean isCustom,
+                       @Assisted("id") UUID id,
+                       @Nullable @Assisted("ownerId") UUID ownerId,
+                       @Nullable @Assisted("name") String name
+        );
+    }
 }

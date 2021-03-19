@@ -67,6 +67,10 @@ disabledWorlds:
 # Set to 0 to disable
 waitTimeAfterSwitchingWorlds: 1
 
+# The background used for when the portal render distance is reached.
+# Set to an empty string to use the default (black concrete)
+backgroundBlock: ''
+
 teleportCooldown: 2 # How long to wait before a player can go back after going through a portal (0 to disable)
 
 # Stores the links between worlds. By default this links the overworld and the nether with portals

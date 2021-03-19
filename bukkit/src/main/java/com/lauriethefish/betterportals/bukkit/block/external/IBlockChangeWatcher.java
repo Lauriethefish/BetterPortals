@@ -1,6 +1,7 @@
 package com.lauriethefish.betterportals.bukkit.block.external;
 
 import com.lauriethefish.betterportals.api.IntVector;
+import com.lauriethefish.betterportals.bukkit.net.requests.GetBlockDataChangesRequest;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -16,4 +17,8 @@ public interface IBlockChangeWatcher {
      * @return The new block data, as an integer.
      */
     @NotNull Map<IntVector, Integer> checkForChanges();
+
+    interface Factory {
+        IBlockChangeWatcher create(GetBlockDataChangesRequest request);
+    }
 }

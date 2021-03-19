@@ -27,7 +27,7 @@ import java.util.function.Consumer;
 @Singleton
 public class EntityTrackingManager implements IEntityTrackingManager, Listener {
     private final Logger logger;
-    private final EntityTrackerFactory entityTrackerFactory;
+    private final IEntityTracker.Factory entityTrackerFactory;
     private final Map<IPortal, Map<Entity, IEntityTracker>> trackersByPortal = new HashMap<>(); // Used for separating trackers based on portal
     private final Map<Entity, Collection<IEntityTracker>> trackersByEntity = new HashMap<>(); // Used for calling events when the tracked entities perform animations
 
@@ -37,7 +37,7 @@ public class EntityTrackingManager implements IEntityTrackingManager, Listener {
     private final Map<Entity, EquipmentSlot> lastHandUsed = new HashMap<>();
 
     @Inject
-    public EntityTrackingManager(Logger logger, IEventRegistrar eventRegistrar, EntityTrackerFactory entityTrackerFactory) {
+    public EntityTrackingManager(Logger logger, IEventRegistrar eventRegistrar, IEntityTracker.Factory entityTrackerFactory) {
         this.logger = logger;
         this.entityTrackerFactory = entityTrackerFactory;
         eventRegistrar.register(this);

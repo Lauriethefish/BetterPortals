@@ -7,7 +7,6 @@ import com.lauriethefish.betterportals.bukkit.config.MessageConfig;
 import com.lauriethefish.betterportals.bukkit.net.requests.GetSelectionRequest;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import com.lauriethefish.betterportals.bukkit.portal.IPortalManager;
-import com.lauriethefish.betterportals.bukkit.portal.PortalFactory;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.entity.Player;
@@ -18,7 +17,7 @@ import java.util.UUID;
 public class PlayerSelectionManager implements IPlayerSelectionManager  {
     private final MessageConfig messageConfig;
     @Getter private final IPortalSelection currentlySelecting;
-    private final PortalFactory portalFactory;
+    private final IPortal.Factory portalFactory;
     private final IPortalManager portalManager;
 
     @Getter private IPortalSelection originSelection;
@@ -27,7 +26,7 @@ public class PlayerSelectionManager implements IPlayerSelectionManager  {
     @Getter @Setter private GetSelectionRequest.ExternalSelectionInfo externalSelection;
 
     @Inject
-    public PlayerSelectionManager(MessageConfig messageConfig, IPortalSelection currentlySelecting, PortalFactory portalFactory, IPortalManager portalManager) {
+    public PlayerSelectionManager(MessageConfig messageConfig, IPortalSelection currentlySelecting, IPortal.Factory portalFactory, IPortalManager portalManager) {
         this.messageConfig = messageConfig;
         this.currentlySelecting = currentlySelecting;
         this.portalFactory = portalFactory;

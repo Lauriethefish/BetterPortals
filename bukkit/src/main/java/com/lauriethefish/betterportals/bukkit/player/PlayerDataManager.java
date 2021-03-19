@@ -25,7 +25,7 @@ import java.util.*;
 @Singleton
 public class PlayerDataManager implements IPlayerDataManager, Listener   {
     private final Logger logger;
-    private final PlayerDataFactory playerDataFactory;
+    private final IPlayerData.Factory playerDataFactory;
     private final Map<Player, IPlayerData> players = new HashMap<>();
 
     private final Map<UUID, TeleportRequest> pendingTeleportOnJoin = new HashMap<>();
@@ -36,7 +36,7 @@ public class PlayerDataManager implements IPlayerDataManager, Listener   {
     private final Map<UUID, IPlayerSelectionManager> loggedOutPlayerSelections = new HashMap<>();
 
     @Inject
-    public PlayerDataManager(IEventRegistrar eventRegistrar, Logger logger, PlayerDataFactory playerDataFactory) {
+    public PlayerDataManager(IEventRegistrar eventRegistrar, Logger logger, IPlayerData.Factory playerDataFactory) {
         this.logger = logger;
         this.playerDataFactory = playerDataFactory;
 

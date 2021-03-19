@@ -17,6 +17,9 @@ portalActivationDistance: 20
 portalBlockUpdateInterval: 20 # How often the portal will re-check for the blocks around it
 blockStateRefreshInterval: 40 # How often modified block states are resent to the player
 
+# Delay between portal autosaves, in ticks. Set to -1 to disable
+portalSaveInterval: 6000
+
 enableEntitySupport: true
 
 # If this is true, the below is always treated like it is 1
@@ -32,6 +35,12 @@ minimumPortalSpawnDistance: 6
 
 # Change this to FINE, FINER or FINEST to enable debug logging
 logLevel: INFO
+
+# The update check nags you to update if you're not on latest
+enableUpdateCheck: true
+
+# Enables the /bp test ... commands. These shouldn't be used in normal plugin use.
+enableTestingCommands: false
 
 # The maximum size of portals in blocks. The x is width and y is height
 # This should never be larger than twice the portal effect size
@@ -53,6 +62,17 @@ portalCollisionBox:
 disabledWorlds:
   - 'some_world'
 
+# How long the plugin waits before rendering portals after switching worlds.
+# Useful to deal with lag that some players get just after switching worlds.
+# Set to 0 to disable
+waitTimeAfterSwitchingWorlds: 1
+
+# The background used for when the portal render distance is reached.
+# Set to an empty string to use the default (black concrete)
+backgroundBlock: ''
+
+teleportCooldown: 2 # How long to wait before a player can go back after going through a portal (0 to disable)
+
 # Stores the links between worlds. By default this links the overworld and the nether with portals
 # There are two links for the overworld and the nether - one for each way.
 # This is to allow one way links between dimensions
@@ -71,6 +91,10 @@ worldConnections:
     minSpawnY: 5
     maxSpawnY: 250
     coordinateRescalingFactor: 8.0
+
+# While a portal is finding a destination position, it checks the chunks over multiple ticks to avoid completely freezing the server
+# This specifies the amount of time allowed per-tick (in milliseconds)
+allowedSpawnTimePerTick: 35
 
 # Allows for setting a proxy server to allow cross-server portals
 proxy:
@@ -96,14 +120,36 @@ chatMessages:
   mustSelectBothSides: "You must select both sides of a portal first. For info, run /bp help"
   mustSelectOrigin: "You must select the origin of the portal on this server"
   wrongNumberOfArgs: "Wrong number of arguments. Run /bp help for help."
+  noCommands: "You don't have permission to use any sub-commands"
   invalidArgs: "One of your arguments was invalid. Run /bp help for help."
   differentSizes: "The origin and destination portal must be of the same size"
   noPortalCloseEnough: "No portal close enough found"
-  portalNotOwnedByPlayer: "You do not have permission to remove portals created by other people"
+  removeNotOwnedByPlayer: "You do not have permission to remove portals created by other people"
+  nameNotOwnedbyPlayer: "You don't have permission to set the name of portals created by other people"
   unknownCommand: "Unknown Command. For help, run /bp help"
   proxyDisabled: "Unable to reconnect to the proxy: it is not enabled!"
   alreadyConnected: "Unable to reconnect to the proxy: the server is already connected!"
   horizontalIssues: "Warning: horizontal portals with different origin/destination directions can cause issues with block rotations - not all blocks can be rotated in every direction"
+  noName: "This portal has no name"
+  nameNetherPortal: "You can't set the name of a nether portal"
+
+  # Printed if a player lights a portal in an unlinked world
+  # To disable, just remove all the text inside the quotes
+  noWorldLink: "Unfortunately, this portal will not be lit since the world that you are in is not linked. (if you have changed the name of your world in server.properties, you need to change it in the config)
+                If you believe this to be a mistake, contact an admin and link this wiki page for adding a world link: https://github.com/Lauriethefish/BetterPortals/wiki/Editing-the-Config-file#world-connections
+                BetterPortals overrides the behaviour of plugins like MultiverseNetherPortals, so these should be uninstalled unless you're in a world that is manually excluded in the config.
+                This message can be disabled in the BetterPortals config"
+
+  # Printed if the player lights a portal over the size limit
+  # To disable, just remove all the text inside the quotes.
+  portalTooBig: "This portal is too big. The current size limit is {size}. You can increase it in the BetterPortals config.
+                Please contact an admin if you want this changed."
+
+  # Printed if the player walks through a vanilla nether portal
+  # To disable, just remove all of the text inside the quotes
+  vanillaPortal: "This is a vanilla nether portal. If you want to view through this portal, you will need to relight it."
+
+  outOfDate: "Your version of BetterPortals is out of date. ({current} vs {new}). You can download the latest release from {url}"
 
   reload: "Reloaded plugin"
   originPortalSet: "Origin portal set"
@@ -111,6 +157,8 @@ chatMessages:
   portalsLinked: "Portals linked successfully"
   portalRemoved: "Portal removed"
   startedReconnection: "Started reconnecting to the proxy. See console for details."
+  changedName: "Successfully changed the portal name"
+  currentName: "The name for this portal is: {name}"
   help: "Sub Commands"
 
   setPosA: "Set position A"

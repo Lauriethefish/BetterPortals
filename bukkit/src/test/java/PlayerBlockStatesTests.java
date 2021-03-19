@@ -7,10 +7,8 @@ import com.google.inject.Injector;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.lauriethefish.betterportals.bukkit.block.ViewableBlockInfo;
 import com.lauriethefish.betterportals.bukkit.block.multiblockchange.IMultiBlockChangeManager;
-import com.lauriethefish.betterportals.bukkit.block.multiblockchange.MultiBlockChangeManagerFactory;
 import com.lauriethefish.betterportals.bukkit.player.view.block.IPlayerBlockStates;
 import com.lauriethefish.betterportals.bukkit.player.view.block.PlayerBlockStates;
-import com.lauriethefish.betterportals.bukkit.player.view.block.PlayerBlockStatesFactory;
 import com.lauriethefish.betterportals.shared.util.ReflectionUtil;
 import implementations.TestLoggerModule;
 import implementations.TestMultiBlockChangeManager;
@@ -34,11 +32,11 @@ public class PlayerBlockStatesTests {
             protected void configure() {
                 install(new FactoryModuleBuilder().implement(
                         IMultiBlockChangeManager.class, TestMultiBlockChangeManager.class)
-                        .build(MultiBlockChangeManagerFactory.class));
+                        .build(IMultiBlockChangeManager.Factory.class));
 
                 install(new FactoryModuleBuilder().implement(
                         IPlayerBlockStates.class, PlayerBlockStates.class)
-                        .build(PlayerBlockStatesFactory.class));
+                        .build(IPlayerBlockStates.Factory.class));
                 install(new TestLoggerModule());
             }
         });
@@ -46,7 +44,7 @@ public class PlayerBlockStatesTests {
         ServerMock server = MockBukkit.mock();
         PlayerMock player = server.addPlayer();
 
-        blockView = injector.getInstance(PlayerBlockStatesFactory.class).create(player);
+        blockView = injector.getInstance(IPlayerBlockStates.Factory.class).create(player);
     }
 
     @After

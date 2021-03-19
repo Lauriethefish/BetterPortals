@@ -7,6 +7,5 @@ public class CommandsModule extends AbstractModule {
     public void configure() {
         bind(MainCommands.class).asEagerSingleton();
         bind(CustomPortalCommands.class).asEagerSingleton();
-        bind(TestingCommands.class).asEagerSingleton();
     }
 }
