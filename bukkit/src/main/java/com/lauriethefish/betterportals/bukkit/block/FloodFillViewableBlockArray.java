@@ -43,7 +43,9 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
     private final IPortal portal;
     private final Matrix destToOrigin;
     private final Matrix rotateDestToOrigin;
-    private final Matrix originToDest;
+    private final Matrix rotateOriginToDest;
+    private final IntVector portalOriginPos;
+    private final IntVector portalDestPos;
 
     private final IntVector centerPos;
     private final World originWorld;
@@ -60,10 +62,12 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
         this.centerPos = new IntVector(portal.getDestPos().getVector());
         this.destToOrigin = portal.getTransformations().getDestinationToOrigin();
         this.rotateDestToOrigin = portal.getTransformations().getRotateToOrigin();
-        this.originToDest = portal.getTransformations().getOriginToDestination();
+        this.rotateOriginToDest = portal.getTransformations().getRotateToDestination();
         this.originWorld = portal.getOriginPos().getWorld();
         this.destDirection = portal.getDestPos().getDirection();
         this.dataFetcherFactory = dataFetcherFactory;
+        this.portalDestPos = new IntVector(portal.getDestPos().getVector());
+        this.portalOriginPos = new IntVector(portal.getOriginPos().getVector());
 
         reset();
     }
@@ -88,12 +92,13 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
         }
 
         List<IntVector> stack = new ArrayList<>(renderConfig.getTotalArrayLength());
-        stack.add(destToOrigin.transform(start));
 
+        stack.add(destToOrigin.transform(start).subtract(portalOriginPos));
         while(stack.size() > 0) {
-            IntVector originPos = stack.remove(stack.size() - 1);
-            IntVector destPos = originToDest.transform(originPos);
-            IntVector relPos = destPos.subtract(centerPos);
+            IntVector originRelPos = stack.remove(stack.size() - 1);
+            IntVector originPos = originRelPos.add(portalOriginPos);
+            IntVector destRelPos = rotateOriginToDest.transform(originRelPos);
+            IntVector destPos = destRelPos.add(portalDestPos);
 
             BlockData destData = dataFetcher.getData(destPos);
             boolean isOccluding = destData.getType().isOccluding();
@@ -101,7 +106,7 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
             BlockData originData = BlockData.create(originPos.getBlock(originWorld));
 
             ViewableBlockInfo blockInfo = new ViewableBlockInfo(originData, destData);
-            boolean isEdge = renderConfig.isOutsideBounds(relPos);
+            boolean isEdge = renderConfig.isOutsideBounds(originRelPos);
             if(isEdge && !isOccluding) {
                 blockInfo.setRenderedDestData(backgroundData);
             }   else    {
@@ -110,7 +115,7 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
             nonObscuredStates.put(originPos, blockInfo);
 
             boolean canSkip = destData.equals(originData) && firstUpdate && !isEdge;
-            boolean isInLine = isInLine(relPos);
+            boolean isInLine = isInLine(destRelPos);
             if (!isInLine && !canSkip) {
                 viewableStates.put(originPos, blockInfo);
             }
@@ -120,8 +125,8 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
 
             // Continue for any surrounding blocks that haven't been checked yet
             for(IntVector offset : renderConfig.getSurroundingOffsets()) {
-                IntVector offsetPos = originPos.add(offset);
-                if (!nonObscuredStates.containsKey(offsetPos)) {
+                IntVector offsetPos = originRelPos.add(offset);
+                if (!nonObscuredStates.containsKey(offsetPos.add(portalOriginPos))) {
                     stack.add(offsetPos);
                 }
             }
@@ -137,7 +142,7 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
         for(Map.Entry<IntVector, ViewableBlockInfo> entry : nonObscuredStates.entrySet()) {
             ViewableBlockInfo blockInfo = entry.getValue();
 
-            IntVector destPos = originToDest.transform(entry.getKey());
+            IntVector destPos = rotateOriginToDest.transform(entry.getKey().subtract(portalOriginPos)).add(portalDestPos); // Avoid directly using the matrix to fix floating point precision issues
             BlockData newDestData = dataFetcher.getData(destPos);
             if(!newDestData.equals(blockInfo.getBaseDestData())) {
                 logger.finer("Destination block change");
