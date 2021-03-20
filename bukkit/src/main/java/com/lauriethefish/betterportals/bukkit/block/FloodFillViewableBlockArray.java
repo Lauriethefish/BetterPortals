@@ -82,18 +82,6 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
      * @param start Start position of the flood fill
      */
     private void searchFromBlock(IntVector start) {
-        IntVector a = new IntVector(1250001, 69, -1);
-        IntVector b = new IntVector(1250001, 69, -1);
-
-        boolean equal = a.equals(b);
-        logger.finer("Equal (%s == %s): %b", a, b, equal);
-
-        IntVector first = new IntVector(10000003, 64, 60);
-        IntVector atDest = originToDest.transform(first);
-        IntVector backAtOrigin = destToOrigin.transform(atDest);
-
-        logger.finer("Transform equals test. First: %s, transformed: %s, back: %s", first, atDest, backAtOrigin);
-
         WrappedBlockData backgroundData = renderConfig.getBackgroundBlockData();
         if(backgroundData == null) {
             backgroundData = MaterialUtil.PORTAL_EDGE_DATA; // Use the default if not overridden in the config
