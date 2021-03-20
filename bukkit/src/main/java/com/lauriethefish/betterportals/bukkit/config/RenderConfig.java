@@ -86,11 +86,11 @@ public class RenderConfig {
         }
     }
 
-    public boolean isEdge(int x, int y, int z) {
-        return x == minXZ || x == maxXZ || y == minY || y == maxY || z == minXZ || z == maxXZ;
+    public boolean isOutsideBounds(int x, int y, int z) {
+        return x <= minXZ || x >= maxXZ || y <= minY || y >= maxY || z <= minXZ || z >= maxXZ;
     }
 
-    public boolean isEdge(IntVector vec) {
-        return isEdge(vec.getX(), vec.getY(), vec.getZ());
+    public boolean isOutsideBounds(IntVector vec) {
+        return isOutsideBounds(vec.getX(), vec.getY(), vec.getZ());
     }
 }

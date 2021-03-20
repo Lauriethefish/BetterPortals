@@ -17,7 +17,6 @@ import com.lauriethefish.betterportals.bukkit.util.performance.IPerformanceWatch
 import com.lauriethefish.betterportals.bukkit.util.performance.OperationTimer;
 import com.lauriethefish.betterportals.shared.logging.Logger;
 import lombok.Getter;
-import org.bukkit.Material;
 import org.bukkit.World;
 
 import java.util.ArrayList;
@@ -89,20 +88,20 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
         }
 
         List<IntVector> stack = new ArrayList<>(renderConfig.getTotalArrayLength());
-        stack.add(start);
+        stack.add(destToOrigin.transform(start));
 
         while(stack.size() > 0) {
-            IntVector destPos = stack.remove(stack.size() - 1);
+            IntVector originPos = stack.remove(stack.size() - 1);
+            IntVector destPos = originToDest.transform(originPos);
             IntVector relPos = destPos.subtract(centerPos);
 
             BlockData destData = dataFetcher.getData(destPos);
             boolean isOccluding = destData.getType().isOccluding();
 
-            IntVector originPos = destToOrigin.transform(destPos);
             BlockData originData = BlockData.create(originPos.getBlock(originWorld));
 
             ViewableBlockInfo blockInfo = new ViewableBlockInfo(originData, destData);
-            boolean isEdge = renderConfig.isEdge(relPos);
+            boolean isEdge = renderConfig.isOutsideBounds(relPos);
             if(isEdge && !isOccluding) {
                 blockInfo.setRenderedDestData(backgroundData);
             }   else    {
@@ -123,7 +122,7 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
             for(IntVector offset : renderConfig.getSurroundingOffsets()) {
                 IntVector offsetPos = originPos.add(offset);
                 if (!nonObscuredStates.containsKey(offsetPos)) {
-                    stack.add(originToDest.transform(offsetPos));
+                    stack.add(offsetPos);
                 }
             }
         }
