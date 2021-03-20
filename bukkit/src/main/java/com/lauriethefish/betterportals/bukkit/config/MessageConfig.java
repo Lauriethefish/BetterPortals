@@ -1,11 +1,12 @@
 package com.lauriethefish.betterportals.bukkit.config;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.lauriethefish.betterportals.bukkit.command.framework.CommandException;
 import com.lauriethefish.betterportals.bukkit.util.VersionUtil;
 import com.lauriethefish.betterportals.bukkit.util.nms.NBTTagUtil;
+import com.lauriethefish.betterportals.shared.logging.Logger;
 import lombok.Getter;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -40,6 +41,7 @@ public class MessageConfig {
 
     private static final String PORTAL_WAND_TAG = "portalWand";
 
+    private final Logger logger;
     private final Map<String, String> messageMap = new HashMap<>();
 
     private String portalWandName;
@@ -47,6 +49,11 @@ public class MessageConfig {
     @Getter private String messageColor;
 
     private ItemStack portalWand = null;
+
+    @Inject
+    public MessageConfig(Logger logger) {
+        this.logger = logger;
+    }
 
     public void load(FileConfiguration file) {
         ConfigurationSection messagesSection = Objects.requireNonNull(file.getConfigurationSection("chatMessages"), "Missing chat messages section");
@@ -79,7 +86,11 @@ public class MessageConfig {
             if(recordingHex) {
                 if(c == ')') {
                     recordingHex = false;
-                    translatedMessage.append(net.md_5.bungee.api.ChatColor.of(currentHex.toString()));
+                    try {
+                        translatedMessage.append(net.md_5.bungee.api.ChatColor.of(currentHex.toString()));
+                    }   catch(IllegalArgumentException ex) {
+                        logger.warning("Failed to parse hex colour: %s", currentHex.toString());
+                    }
                     continue;
                 }
 
