@@ -67,7 +67,12 @@ public class MessageConfig {
         messageColor = translateColorCodes(Objects.requireNonNull(messagesSection.getString("messageColor"), "Missing messageColor"));
     }
 
-    private String translateColorCodes(String message) {
+    /**
+     * Translates both the <code>&</code> color codes, and hex colours if on 1.16 spigot.
+     * @param message The message to translate
+     * @return The translated message with the colours
+     */
+    private @NotNull String translateColorCodes(@NotNull String message) {
         message = ChatColor.translateAlternateColorCodes('&', message);
 
         if (HEX_COLOR_CODES_AVAILABLE) {
@@ -77,7 +82,13 @@ public class MessageConfig {
         }
     }
 
-    private String translateHexColors(String message) {
+    /**
+     * Translates hex colour codes in <code>message</code>, e.g. <code>{(#000000)}</code> is black.
+     * Invalid colour codes print a warning and are removed.
+     * @param message The message to translate
+     * @return The translated message with the colours
+     */
+    private @NotNull String translateHexColors(@NotNull String message) {
         boolean previousWasOpenBrace = false;
         boolean recordingHex = false;
         StringBuilder currentHex = null;
