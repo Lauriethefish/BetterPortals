@@ -7,7 +7,7 @@ import java.io.Serializable;
 
 /**
  * Before the client is connected, it needs to send information about the plugin and game version for other servers to see.
- * This is also used to guarantee that the plugin version on the client & server is the same.
+ * This is also used to guarantee that the plugin versions on the client and server are the same.
  */
 @Getter
 @Setter

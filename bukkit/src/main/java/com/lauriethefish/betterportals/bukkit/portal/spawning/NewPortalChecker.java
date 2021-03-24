@@ -18,9 +18,11 @@ import org.jetbrains.annotations.Nullable;
  * Finds new valid portal positions in a chunk
  *
  * Valid portal spawn positions are defined here as follows:
+ * <ul>
  * <li>The portal base must be solid blocks</li>
  * <li>The area above the portal base, but not the portal roof (the top of the frame), must be air blocks.</li>
- * <li>There aren't any portals within {@link PortalSpawnConfig#getMinimumPortalSpawnDistance()} blocks.</li>
+ * <li>There aren't any portals within the minimum spawn distance</li>
+ * </ul>
  * These rules are on the line of the portal frame, as well as the two blocks going through the portal (represented as the Z below)
  */
 @Singleton

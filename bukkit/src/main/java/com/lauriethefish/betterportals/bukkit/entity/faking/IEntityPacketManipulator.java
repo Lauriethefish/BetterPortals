@@ -47,7 +47,7 @@ public interface IEntityPacketManipulator {
     void sendEntityMove(EntityInfo tracker, Vector offset, Collection<Player> players);
 
     /**
-     * Sends a move & look packet to <code>players</code> for <code>tracker</code>.
+     * Sends a move and look packet to <code>players</code> for <code>tracker</code>.
      * This <i>must</i> be used instead of two separate move then look packets, as otherwise it'll break on newer versions.
      * @param tracker Entity to move/look
      * @param movementOffset Movement amount, in destination coordinate space. All of the coordinates must be less than 8 blocks!

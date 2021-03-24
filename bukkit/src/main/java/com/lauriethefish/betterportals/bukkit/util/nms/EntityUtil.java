@@ -107,6 +107,7 @@ public class EntityUtil {
     /**
      * Bukkit for some reason returns the head rotation instead of the actual yaw for living entities, which causes some issues with
      * entities' rotation looking incorrect while moving.
+     * @param entity The entity to get the location of
      * @return A direction vector with the actual entity yaw
      */
     @NotNull

@@ -1,7 +1,40 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+apply plugin: 'java-library'
+apply plugin: 'maven-publish'
+
 repositories {
     mavenCentral()
-    maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
     maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
+    maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+afterEvaluate {
+    publishing {
+        publications  {
+            mavenJava(MavenPublication) {
+                from components.java
+                groupId = "$rootProject.group.$rootProject.name"
+
+                artifactId = "$project.name"
+
+                print("Publishing version ${project.version}")
+                java {
+                    withJavadocJar()
+                    withSourcesJar()
+                }
+
+            }
+        }
+    }
 }
 
 dependencies {
