@@ -52,7 +52,7 @@ public class API extends BetterPortalsAPI {
     }
 
     @Override
-    public BetterPortal createPortal(@NotNull PortalPosition originPosition, @NotNull PortalPosition destinationPosition, @NotNull Vector size, @Nullable UUID owner, @Nullable String name, boolean isCustom) {
+    public @NotNull BetterPortal createPortal(@NotNull PortalPosition originPosition, @NotNull PortalPosition destinationPosition, @NotNull Vector size, @Nullable UUID owner, @Nullable String name, boolean isCustom) {
         verifyEnabled();
 
         IPortal portal = portalFactory.create(originPosition, destinationPosition, size, isCustom, UUID.randomUUID(), owner, name);

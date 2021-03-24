@@ -19,7 +19,7 @@ public abstract class BetterPortalsAPI {
      * @return The current API instance.
      * @throws IllegalStateException if BetterPortals is not enabled
      */
-    public static BetterPortalsAPI get() {
+    public static @NotNull BetterPortalsAPI get() {
         if(instance == null) {
             throw new IllegalStateException("Attempted to call API when BetterPortals was not enabled");
         }
@@ -38,7 +38,7 @@ public abstract class BetterPortalsAPI {
      * @return The newly created portal.
      * @throws IllegalStateException if BetterPortals is not enabled
      */
-    public abstract BetterPortal createPortal(@NotNull PortalPosition originPosition, @NotNull PortalPosition destinationPosition, @NotNull Vector size, @Nullable UUID owner, @Nullable String name, boolean isCustom);
+    public abstract @NotNull BetterPortal createPortal(@NotNull PortalPosition originPosition, @NotNull PortalPosition destinationPosition, @NotNull Vector size, @Nullable UUID owner, @Nullable String name, boolean isCustom);
 
     /**
      * Creates a custom portal and registers it with the plugin so that it can be seen and teleported through.
@@ -50,7 +50,7 @@ public abstract class BetterPortalsAPI {
      * @return The newly created portal.
      * @throws IllegalStateException if BetterPortals is not enabled
      */
-    public BetterPortal createPortal(@NotNull PortalPosition originPosition, @NotNull PortalPosition destinationPosition, @NotNull Vector size, @Nullable UUID owner, @Nullable String name) {
+    public @NotNull BetterPortal createPortal(@NotNull PortalPosition originPosition, @NotNull PortalPosition destinationPosition, @NotNull Vector size, @Nullable UUID owner, @Nullable String name) {
         return createPortal(originPosition, destinationPosition, size, owner, name, true);
     }
 
@@ -62,7 +62,7 @@ public abstract class BetterPortalsAPI {
      * @return The newly created portal.
      * @throws IllegalStateException if BetterPortals is not enabled
      */
-    public BetterPortal createPortal(@NotNull PortalPosition originPosition, @NotNull PortalPosition destinationPosition, @NotNull Vector size) {
+    public @NotNull BetterPortal createPortal(@NotNull PortalPosition originPosition, @NotNull PortalPosition destinationPosition, @NotNull Vector size) {
         return createPortal(originPosition, destinationPosition, size, null, null);
     }
 
@@ -94,5 +94,5 @@ public abstract class BetterPortalsAPI {
      * @param id The ID of the portal
      * @return The portal, or null if there is none with this ID
      */
-    public abstract BetterPortal getPortalById(@NotNull UUID id);
+    public abstract @Nullable BetterPortal getPortalById(@NotNull UUID id);
 }
