@@ -22,10 +22,12 @@ import java.util.Collection;
 /**
  * Finds valid existing portal frames within a chunk to avoid respawning portals when one already exists.
  * Valid existing portal frames are defined as follows:
+ * <ul>
  * <li>A portal block is one not on the corners, but on the rest of the frame or inside of the portal.</li>
  * <li>At least {@link ExistingPortalChecker#VALIDITY_THRESHOLD} proportion of these blocks must be obsidian/air blocks if inside the frame.</li>
  * <li>There must be no portals within the configured number of blocks.</li>
- * <li>There aren't any portals within {@link PortalSpawnConfig#getMinimumPortalSpawnDistance()} blocks.</li>
+ * <li>There aren't any portals within the minimum spawn distance.</li>
+ * </ul>
  */
 @Singleton
 public class ExistingPortalChecker implements IChunkChecker    {

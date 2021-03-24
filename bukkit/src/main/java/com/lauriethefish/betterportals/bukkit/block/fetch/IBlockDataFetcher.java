@@ -18,6 +18,7 @@ public interface IBlockDataFetcher {
     /**
      * Reads the data at <code>position</code>.
      * @param position The position to get the data at. The destination world is implied
+     * @return The block data at that position
      */
     @NotNull BlockData getData(@NotNull IntVector position);
 }

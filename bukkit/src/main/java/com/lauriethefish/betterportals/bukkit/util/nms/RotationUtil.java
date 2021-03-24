@@ -97,7 +97,7 @@ public class RotationUtil {
     /**
      * Emulates MathHelper.d(float) in the game's code.
      * This is used for some, but not all, rotations in packets.
-     * Some packets just directly multiply by 256 then divide by 360, then cast from float -> int -> byte, and avoid the clamping.
+     * Some packets just directly multiply by 256 then divide by 360, then cast from float to int to byte, and avoid the clamping.
      * @param angle Angle to convert
      * @return Integer "clamped" value.
      */

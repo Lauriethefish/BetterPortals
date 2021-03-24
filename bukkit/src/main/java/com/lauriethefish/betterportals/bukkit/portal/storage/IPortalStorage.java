@@ -26,11 +26,13 @@ public abstract class IPortalStorage implements Runnable    {
 
     /**
      * Loads all stored portals and registers them in the {@link IPortalManager}
+     * @throws IOException If reading the file failed
      */
     public abstract void loadPortals() throws IOException;
 
     /**
      * Saves all currently registered portals in {@link IPortalManager}
+     * @throws IOException If writing the file failed
      */
     public abstract void savePortals() throws IOException;
 

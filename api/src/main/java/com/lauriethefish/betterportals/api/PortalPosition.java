@@ -21,7 +21,9 @@ import java.util.UUID;
  * Stores the coordinates, world, server, and direction at one side of the portal.
  * This makes handling of cross-server portals more ergonomic.
  * <br>Some notes:
+ * <ul>
  * <li>Portal positions are at the <i>exact center</i> of the portal window. Not in the bottom left</li>
+ * </ul>
  */
 public class PortalPosition implements Serializable, ConfigurationSerializable {
     private static final long serialVersionUID = 7309245176857806033L;

@@ -45,6 +45,7 @@ public interface IPlayerDataManager {
 
     /**
      * Makes it so that when the player with the ID in <code>request</code> joins the game, they will be teleported to the destination position.
+     * @param request The request used by another server to set this
      */
     void setTeleportOnJoin(TeleportRequest request);
 
@@ -58,6 +59,7 @@ public interface IPlayerDataManager {
     /**
      * Gets the destination selection of the player that is cached upon logout for syncing purposes.
      * @param uniqueId The ID of the player
+     * @return The cached selection
      */
     @Nullable IPortalSelection getDestinationSelectionWhenLoggedOut(UUID uniqueId);
 }
