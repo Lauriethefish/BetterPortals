@@ -122,7 +122,7 @@ public class PlayerBlockView implements IPlayerBlockView   {
                     PacketContainer nbtUpdatePacket = viewableBlockArray.getDestinationTileEntityPacket(entry.getKey());
                     if(nbtUpdatePacket != null) {
                         queuedTileEntityUpdates.add(nbtUpdatePacket);
-                        logger.fine("Queueing tile state update at destination. NBT: %s", nbtUpdatePacket.getNbtModifier().read(0).toString());
+                        logger.finest("Queueing tile state update at destination");
                     }
                 }
             }   else    {
@@ -132,7 +132,7 @@ public class PlayerBlockView implements IPlayerBlockView   {
                     PacketContainer nbtUpdatePacket = viewableBlockArray.getOriginTileEntityPacket(entry.getKey());
                     if(nbtUpdatePacket != null) {
                         queuedTileEntityUpdates.add(nbtUpdatePacket);
-                        logger.fine("Queueing tile state update at origin. NBT: %s", nbtUpdatePacket.getNbtModifier().read(0).toString());
+                        logger.fine("Queueing tile state update at origin");
                     }
                 }
             }
