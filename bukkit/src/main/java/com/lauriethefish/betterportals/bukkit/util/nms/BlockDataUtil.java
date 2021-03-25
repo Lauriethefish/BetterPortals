@@ -9,6 +9,7 @@ import com.lauriethefish.betterportals.shared.util.ReflectionUtil.ReflectionExce
 import org.bukkit.block.TileState;
 import org.bukkit.block.data.BlockData;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
 
@@ -70,10 +71,13 @@ public class BlockDataUtil {
      * @param tileState The tile entity to get the packet of
      * @return The ProtocolLib wrapper
      */
-    public static @NotNull PacketContainer getUpdatePacket(@NotNull TileState tileState) {
+    public static @Nullable PacketContainer getUpdatePacket(@NotNull TileState tileState) {
         try {
             Object nmsTileEntity = GET_TILE_ENTITY.invoke(tileState);
             Object unwrappedPacket = GET_UPDATE_PACKET.invoke(nmsTileEntity);
+            if(unwrappedPacket == null) {
+                return null;
+            }
 
             return PacketContainer.fromPacket(unwrappedPacket);
         }   catch(ReflectiveOperationException ex) {

@@ -1,7 +1,6 @@
 package com.lauriethefish.betterportals.bukkit.block;
 
 import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.WrappedBlockData;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -168,10 +167,12 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
                     Block destBlock = destPos.getBlock(portal.getDestPos().getWorld());
 
                     PacketContainer updatePacket = BlockDataUtil.getUpdatePacket((TileState) destBlock.getState());
-                    BlockDataUtil.setTileEntityPosition(updatePacket, entry.getKey());
-                    logger.fine("Position set %s", entry.getKey());
+                    if(updatePacket != null) {
+                        BlockDataUtil.setTileEntityPosition(updatePacket, entry.getKey());
+                        logger.fine("Position set %s", entry.getKey());
 
-                    destTileStates.put(entry.getKey(), updatePacket);
+                        destTileStates.put(entry.getKey(), updatePacket);
+                    }
                 }
             }
 
@@ -179,7 +180,10 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
             BlockData newOriginData = BlockData.create(originBlock);
             if(MaterialUtil.isTileEntity(originBlock.getType()))  {
                 logger.finer("Adding tile state to map . . .");
-                originTileStates.put(entry.getKey(), BlockDataUtil.getUpdatePacket((TileState) originBlock.getState()));
+                PacketContainer updatePacket = BlockDataUtil.getUpdatePacket((TileState) originBlock.getState());
+                if(updatePacket != null) {
+                    originTileStates.put(entry.getKey(), updatePacket);
+                }
             }
 
             if(!newOriginData.equals(blockInfo.getBaseOriginData())) {
