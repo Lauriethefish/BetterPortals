@@ -1,6 +1,7 @@
 package com.lauriethefish.betterportals.bukkit.net.requests;
 
 import com.lauriethefish.betterportals.api.IntVector;
+import com.lauriethefish.betterportals.bukkit.math.Matrix;
 import com.lauriethefish.betterportals.shared.net.requests.Request;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,6 +19,7 @@ public class GetBlockDataChangesRequest extends Request {
 
     private UUID changeSetId;
     private IntVector position;
+    private Matrix rotateOriginToDest;
     private UUID worldId;
     private String worldName; // Used if a world with ID worldId cannot be found
 

@@ -102,8 +102,11 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
 
         List<IntVector> stack = new ArrayList<>(renderConfig.getTotalArrayLength());
 
+        int i = 0;
         stack.add(destToOrigin.transform(start).subtract(portalOriginPos));
         while(stack.size() > 0) {
+            i++;
+
             IntVector originRelPos = stack.remove(stack.size() - 1);
             IntVector originPos = originRelPos.add(portalOriginPos);
             IntVector destRelPos = rotateOriginToDest.transform(originRelPos);

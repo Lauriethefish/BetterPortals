@@ -4,10 +4,14 @@ import com.lauriethefish.betterportals.api.IntVector;
 import com.lauriethefish.betterportals.api.PortalDirection;
 import org.bukkit.util.Vector;
 
+import java.io.Serializable;
+
 /**
  * Represents a 4x4 matrix, used for efficiently representing portal transformations.
  */
-public class Matrix {
+public class Matrix implements Serializable {
+    private static final long serialVersionUID = 1;
+
     public double[][] m;
 
     public Matrix(double[][] matrix)  {

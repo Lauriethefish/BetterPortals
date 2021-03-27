@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.lauriethefish.betterportals.bukkit.block.data.BlockData;
 import com.lauriethefish.betterportals.api.IntVector;
+import com.lauriethefish.betterportals.bukkit.math.Matrix;
 import com.lauriethefish.betterportals.bukkit.net.requests.GetBlockDataChangesRequest;
 import com.lauriethefish.betterportals.bukkit.util.performance.IPerformanceWatcher;
 import com.lauriethefish.betterportals.bukkit.util.performance.OperationTimer;
@@ -17,6 +18,7 @@ import java.util.Map;
 public class BlockChangeWatcher implements IBlockChangeWatcher  {
     private final IPerformanceWatcher performanceWatcher;
     private final IntVector center;
+    private final Matrix rotationMatrix;
     private World world;
 
     private final int xAndZRadius;
@@ -28,6 +30,7 @@ public class BlockChangeWatcher implements IBlockChangeWatcher  {
     public BlockChangeWatcher(@Assisted GetBlockDataChangesRequest request, IPerformanceWatcher performanceWatcher) {
         this.performanceWatcher = performanceWatcher;
         this.center = request.getPosition();
+        this.rotationMatrix = request.getRotateOriginToDest();
         this.xAndZRadius = request.getXAndZRadius();
         this.yRadius = request.getYRadius();
         this.world = Bukkit.getWorld(request.getWorldId());
@@ -40,11 +43,10 @@ public class BlockChangeWatcher implements IBlockChangeWatcher  {
         Map<IntVector, Integer> result = new HashMap<>();
 
         OperationTimer timer = new OperationTimer();
-        for(int x = -xAndZRadius; x <= xAndZRadius; x++) {
+        for(int x = -xAndZRadius; x <= xAndZRadius ; x++) {
             for(int z = -xAndZRadius; z <= xAndZRadius; z++) {
                 for(int y = -yRadius; y <= yRadius; y++) {
-                    IntVector relPos = new IntVector(x, y, z);
-                    IntVector blockPos = relPos.add(center);
+                    IntVector blockPos = rotationMatrix.transform(new IntVector(x, y, z)).add(center);
 
                     BlockData data = BlockData.create(blockPos.getBlock(world));
                     BlockData oldData = previousData.get(blockPos);
