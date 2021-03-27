@@ -115,6 +115,26 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
             Block originBlock = originPos.getBlock(originWorld);
             BlockData originData = BlockData.create(originBlock);
 
+            if(!portal.isCrossServer() && MaterialUtil.isTileEntity(destData.getType())) {
+                logger.finer("Adding tile state to map . . .");
+                Block destBlock = destPos.getBlock(portal.getDestPos().getWorld());
+
+                PacketContainer updatePacket = BlockDataUtil.getUpdatePacket(destBlock.getState());
+                if(updatePacket != null) {
+                    BlockDataUtil.setTileEntityPosition(updatePacket, originPos);
+
+                    destTileStates.put(originPos, updatePacket);
+                }
+            }
+
+            if(MaterialUtil.isTileEntity(originBlock.getType()))  {
+                logger.finer("Adding tile state to map . . .");
+                PacketContainer updatePacket = BlockDataUtil.getUpdatePacket(originBlock.getState());
+                if(updatePacket != null) {
+                    originTileStates.put(originPos, updatePacket);
+                }
+            }
+
             ViewableBlockInfo blockInfo = new ViewableBlockInfo(originData, destData);
             boolean isEdge = renderConfig.isOutsideBounds(originRelPos);
             if(isEdge && !isOccluding) {
@@ -168,7 +188,6 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
                     PacketContainer updatePacket = BlockDataUtil.getUpdatePacket(destBlock.getState());
                     if(updatePacket != null) {
                         BlockDataUtil.setTileEntityPosition(updatePacket, entry.getKey());
-                        logger.fine("Position set %s", entry.getKey());
 
                         destTileStates.put(entry.getKey(), updatePacket);
                     }
