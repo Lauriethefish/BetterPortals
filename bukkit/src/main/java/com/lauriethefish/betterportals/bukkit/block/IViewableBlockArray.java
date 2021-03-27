@@ -1,9 +1,12 @@
 package com.lauriethefish.betterportals.bukkit.block;
 
+import com.comphenix.protocol.events.PacketContainer;
 import com.lauriethefish.betterportals.bukkit.config.RenderConfig;
 import com.lauriethefish.betterportals.api.IntVector;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.ConcurrentMap;
 
@@ -27,6 +30,26 @@ public interface IViewableBlockArray {
      * @return The current map of viewable states.
      */
     ConcurrentMap<IntVector, ViewableBlockInfo> getViewableStates();
+
+
+    /**
+     * Finds if the origin block stored at <code>position</code> is mapped as a tile entity.
+     * If it is, the pre-fetched (on the main thread) packet used to set the data of this entity is returned.
+     * Otherwise, <code>null</code> is returned
+     * @param position The absolute position of the tile entity
+     * @return The packet used to update.
+     */
+    @Nullable PacketContainer getOriginTileEntityPacket(@NotNull IntVector position);
+
+    /**
+     * Finds if the destination block stored at <code>position</code> is mapped as a tile entity.
+     * If it is, the pre-fetched (on the main thread) packet used to set the data of this entity is returned.
+     * Otherwise, <code>null</code> is returned
+     * @param position The absolute position of the tile entity
+     * @return The packet used to update.
+     */
+    @Nullable PacketContainer getDestinationTileEntityPacket(@NotNull IntVector position);
+
 
     /**
      * Clears the currently rendered array to save memory.

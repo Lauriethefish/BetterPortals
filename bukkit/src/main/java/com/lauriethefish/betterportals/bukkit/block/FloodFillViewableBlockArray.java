@@ -1,5 +1,6 @@
 package com.lauriethefish.betterportals.bukkit.block;
 
+import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.WrappedBlockData;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -13,11 +14,16 @@ import com.lauriethefish.betterportals.bukkit.math.Matrix;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import com.lauriethefish.betterportals.api.PortalDirection;
 import com.lauriethefish.betterportals.bukkit.util.MaterialUtil;
+import com.lauriethefish.betterportals.bukkit.util.nms.BlockDataUtil;
 import com.lauriethefish.betterportals.bukkit.util.performance.IPerformanceWatcher;
 import com.lauriethefish.betterportals.bukkit.util.performance.OperationTimer;
 import com.lauriethefish.betterportals.shared.logging.Logger;
 import lombok.Getter;
 import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +45,9 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
 
     private ConcurrentMap<IntVector, ViewableBlockInfo> nonObscuredStates;
     @Getter private ConcurrentMap<IntVector, ViewableBlockInfo> viewableStates;
+
+    private final ConcurrentMap<IntVector, PacketContainer> originTileStates = new ConcurrentHashMap<>();
+    private final ConcurrentMap<IntVector, PacketContainer> destTileStates = new ConcurrentHashMap<>();
 
     private final IPortal portal;
     private final Matrix destToOrigin;
@@ -93,8 +102,11 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
 
         List<IntVector> stack = new ArrayList<>(renderConfig.getTotalArrayLength());
 
+        int i = 0;
         stack.add(destToOrigin.transform(start).subtract(portalOriginPos));
         while(stack.size() > 0) {
+            i++;
+
             IntVector originRelPos = stack.remove(stack.size() - 1);
             IntVector originPos = originRelPos.add(portalOriginPos);
             IntVector destRelPos = rotateOriginToDest.transform(originRelPos);
@@ -103,7 +115,28 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
             BlockData destData = dataFetcher.getData(destPos);
             boolean isOccluding = destData.getType().isOccluding();
 
-            BlockData originData = BlockData.create(originPos.getBlock(originWorld));
+            Block originBlock = originPos.getBlock(originWorld);
+            BlockData originData = BlockData.create(originBlock);
+
+            if(!portal.isCrossServer() && MaterialUtil.isTileEntity(destData.getType())) {
+                logger.finer("Adding tile state to map . . .");
+                Block destBlock = destPos.getBlock(portal.getDestPos().getWorld());
+
+                PacketContainer updatePacket = BlockDataUtil.getUpdatePacket(destBlock.getState());
+                if(updatePacket != null) {
+                    BlockDataUtil.setTileEntityPosition(updatePacket, originPos);
+
+                    destTileStates.put(originPos, updatePacket);
+                }
+            }
+
+            if(MaterialUtil.isTileEntity(originBlock.getType()))  {
+                logger.finer("Adding tile state to map . . .");
+                PacketContainer updatePacket = BlockDataUtil.getUpdatePacket(originBlock.getState());
+                if(updatePacket != null) {
+                    originTileStates.put(originPos, updatePacket);
+                }
+            }
 
             ViewableBlockInfo blockInfo = new ViewableBlockInfo(originData, destData);
             boolean isEdge = renderConfig.isOutsideBounds(originRelPos);
@@ -144,12 +177,35 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
 
             IntVector destPos = rotateOriginToDest.transform(entry.getKey().subtract(portalOriginPos)).add(portalDestPos); // Avoid directly using the matrix to fix floating point precision issues
             BlockData newDestData = dataFetcher.getData(destPos);
+
             if(!newDestData.equals(blockInfo.getBaseDestData())) {
                 logger.finer("Destination block change");
                 searchFromBlock(destPos);
             }
 
-            BlockData newOriginData = BlockData.create(entry.getKey().getBlock(originWorld));
+            if(!portal.isCrossServer()) {
+                if (MaterialUtil.isTileEntity(newDestData.getType())) {
+                    logger.finer("Adding tile state to map . . .");
+                    Block destBlock = destPos.getBlock(portal.getDestPos().getWorld());
+
+                    PacketContainer updatePacket = BlockDataUtil.getUpdatePacket(destBlock.getState());
+                    if(updatePacket != null) {
+                        BlockDataUtil.setTileEntityPosition(updatePacket, entry.getKey());
+
+                        destTileStates.put(entry.getKey(), updatePacket);
+                    }
+                }
+            }
+
+            Block originBlock = entry.getKey().getBlock(originWorld);
+            BlockData newOriginData = BlockData.create(originBlock);
+            if(MaterialUtil.isTileEntity(originBlock.getType()))  {
+                logger.finer("Adding tile state to map . . .");
+                PacketContainer updatePacket = BlockDataUtil.getUpdatePacket(originBlock.getState());
+                if(updatePacket != null) {
+                    originTileStates.put(entry.getKey(), updatePacket);
+                }
+            }
 
             if(!newOriginData.equals(blockInfo.getBaseOriginData())) {
                 logger.finer("Origin block change");
@@ -157,6 +213,30 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
                 if(!newOriginData.equals(newDestData) && !portal.getOriginPos().isInLine(entry.getKey())) {
                     viewableStates.put(entry.getKey(), entry.getValue());
                 }
+            }
+        }
+
+        updateTileStateMap(originTileStates, originWorld, false);
+        if(!portal.isCrossServer()) {
+            updateTileStateMap(destTileStates, portal.getDestPos().getWorld(), true);
+        }
+    }
+
+    private void updateTileStateMap(ConcurrentMap<IntVector, PacketContainer> map, World world, boolean isDestination) {
+        for(Map.Entry<IntVector, PacketContainer> entry : map.entrySet()) {
+            IntVector position;
+            if(isDestination) {
+                IntVector portalRelativePos = entry.getKey().subtract(portalOriginPos);
+                position = rotateOriginToDest.transform(portalRelativePos).add(portalDestPos);
+            }   else    {
+                position = entry.getKey();
+            }
+
+            Block block = position.getBlock(world);
+            BlockState state = block.getState();
+            if(!MaterialUtil.isTileEntity(state.getType())) {
+                logger.finer("Removing tile state from map . . . %b", isDestination);
+                map.remove(entry.getKey());
             }
         }
     }
@@ -189,10 +269,22 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
     }
 
     @Override
+    public @Nullable PacketContainer getOriginTileEntityPacket(@NotNull IntVector position) {
+        return originTileStates.get(position);
+    }
+
+    @Override
+    public @Nullable PacketContainer getDestinationTileEntityPacket(@NotNull IntVector position) {
+        return destTileStates.get(position);
+    }
+
+    @Override
     public void reset() {
         logger.finer("Clearing block array to save memory");
         nonObscuredStates = new ConcurrentHashMap<>();
         viewableStates = new ConcurrentHashMap<>();
+        originTileStates.clear();
+        destTileStates.clear();
         firstUpdate = true;
         dataFetcher = null;
     }

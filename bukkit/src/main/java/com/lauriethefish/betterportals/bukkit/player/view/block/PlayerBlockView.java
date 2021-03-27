@@ -1,5 +1,7 @@
 package com.lauriethefish.betterportals.bukkit.player.view.block;
 
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.WrappedBlockData;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -13,6 +15,7 @@ import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import com.lauriethefish.betterportals.api.PortalDirection;
 import com.lauriethefish.betterportals.bukkit.tasks.BlockUpdateFinisher;
 import com.lauriethefish.betterportals.bukkit.util.MaterialUtil;
+import com.lauriethefish.betterportals.bukkit.util.nms.BlockDataUtil;
 import com.lauriethefish.betterportals.bukkit.util.performance.IPerformanceWatcher;
 import com.lauriethefish.betterportals.bukkit.util.performance.OperationTimer;
 import com.lauriethefish.betterportals.shared.logging.Logger;
@@ -20,6 +23,9 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -93,6 +99,8 @@ public class PlayerBlockView implements IPlayerBlockView   {
         statesLock.lock();
 
         IMultiBlockChangeManager multiBlockChangeManager = multiBlockChangeManagerFactory.create(player);
+        List<PacketContainer> queuedTileEntityUpdates = new ArrayList<>();
+
         PlaneIntersectionChecker intersectionChecker = portal.getTransformations().createIntersectionChecker(playerPosition);
 
         OperationTimer timer = new OperationTimer();
@@ -110,16 +118,35 @@ public class PlayerBlockView implements IPlayerBlockView   {
             if(visible) {
                 if(blockStates.setViewable(position, block) || refresh) {
                     multiBlockChangeManager.addChange(position, block.getDestData());
+
+                    PacketContainer nbtUpdatePacket = viewableBlockArray.getDestinationTileEntityPacket(entry.getKey());
+                    if(nbtUpdatePacket != null) {
+                        queuedTileEntityUpdates.add(nbtUpdatePacket);
+                        logger.finest("Queueing tile state update at destination");
+                    }
                 }
             }   else    {
                 if(blockStates.setNonViewable(position, block)) {
                     multiBlockChangeManager.addChange(position, block.getOriginData());
+
+                    PacketContainer nbtUpdatePacket = viewableBlockArray.getOriginTileEntityPacket(entry.getKey());
+                    if(nbtUpdatePacket != null) {
+                        queuedTileEntityUpdates.add(nbtUpdatePacket);
+                        logger.fine("Queueing tile state update at origin");
+                    }
                 }
             }
         }
 
         // Show the player the changed states
         multiBlockChangeManager.sendChanges();
+        try {
+            for (PacketContainer packet : queuedTileEntityUpdates) {
+                ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);
+            }
+        }   catch(InvocationTargetException ex) {
+            throw new RuntimeException(ex);
+        }
 
         performanceWatcher.putTimeTaken("Player block update (threaded)", timer);
         logger.finest("Performed viewable block process. Time taken: %fms", timer.getTimeTakenMillis());
