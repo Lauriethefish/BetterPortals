@@ -22,7 +22,6 @@ import lombok.Getter;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
-import org.bukkit.block.TileState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -166,7 +165,7 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
                     logger.finer("Adding tile state to map . . .");
                     Block destBlock = destPos.getBlock(portal.getDestPos().getWorld());
 
-                    PacketContainer updatePacket = BlockDataUtil.getUpdatePacket((TileState) destBlock.getState());
+                    PacketContainer updatePacket = BlockDataUtil.getUpdatePacket(destBlock.getState());
                     if(updatePacket != null) {
                         BlockDataUtil.setTileEntityPosition(updatePacket, entry.getKey());
                         logger.fine("Position set %s", entry.getKey());
@@ -180,7 +179,7 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
             BlockData newOriginData = BlockData.create(originBlock);
             if(MaterialUtil.isTileEntity(originBlock.getType()))  {
                 logger.finer("Adding tile state to map . . .");
-                PacketContainer updatePacket = BlockDataUtil.getUpdatePacket((TileState) originBlock.getState());
+                PacketContainer updatePacket = BlockDataUtil.getUpdatePacket(originBlock.getState());
                 if(updatePacket != null) {
                     originTileStates.put(entry.getKey(), updatePacket);
                 }
@@ -213,7 +212,7 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
 
             Block block = position.getBlock(world);
             BlockState state = block.getState();
-            if(!(state instanceof TileState)) {
+            if(!MaterialUtil.isTileEntity(state.getType())) {
                 logger.finer("Removing tile state from map . . . %b", isDestination);
                 map.remove(entry.getKey());
             }

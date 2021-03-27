@@ -3,7 +3,6 @@ package com.lauriethefish.betterportals.bukkit.util;
 import com.comphenix.protocol.wrappers.WrappedBlockData;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.TileState;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -185,7 +184,7 @@ public class MaterialUtil {
     /**
      * Checks if a block with type <code>material</code> would be a tile entity.
      * This is used for optimisation, because calling {@link Block#getState}
-     * and then checking if it's an instance of {@link TileState} is expensive, so this reduces it to a hashmap lookup.
+     * and then checking if it's an instance of TileState is expensive and doesn't work on 1.12, so this reduces it to a hashmap lookup.
      * @param material The material to test
      * @return Whether or not it is the type of a tile entity
      */
