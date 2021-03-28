@@ -55,6 +55,10 @@ public class PortalTeleportationEvents implements Listener {
         if(isPluginPortal(event.getPlayer()) && isNetherPortal) {
             event.setCancelled(true);
         }   else if(isNetherPortal) {
+            if(spawnConfig.isWorldDisabled(event.getFrom().getWorld()) || spawnConfig.isWorldDisabled(event.getTo().getWorld())) {
+                return;
+            }
+
             // Send a warning for vanilla nether portals, since players might not realise that they need relighting
             String warning = messageConfig.getWarningMessage("vanillaPortal");
             if(!warning.isEmpty()) {
