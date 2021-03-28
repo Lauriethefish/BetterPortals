@@ -1,20 +1,24 @@
 package com.lauriethefish.betterportals.bukkit.config;
 
 import com.comphenix.protocol.wrappers.WrappedBlockData;
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.lauriethefish.betterportals.api.IntVector;
-import com.lauriethefish.betterportals.bukkit.util.MaterialUtil;
+import com.lauriethefish.betterportals.shared.logging.Logger;
 import lombok.Getter;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.util.Vector;
 
+import java.util.Locale;
 import java.util.Objects;
 
 @Singleton
 @Getter
 public class RenderConfig {
+    private final Logger logger;
+
     private double minXZ;
     private double maxXZ;
     private double minY;
@@ -45,6 +49,11 @@ public class RenderConfig {
     @Getter private boolean portalBlocksHidden;
 
     private int blockStateRefreshInterval;
+
+    @Inject
+    public RenderConfig(Logger logger) {
+        this.logger = logger;
+    }
 
     public void load(FileConfiguration file) {
         maxXZ = file.getInt("portalEffectSizeXZ");
@@ -81,8 +90,15 @@ public class RenderConfig {
         String bgBlockString = file.getString("backgroundBlock", "");
         assert bgBlockString != null;
 
-        if(!bgBlockString.isEmpty()) {
-            backgroundBlockData = WrappedBlockData.createData(Material.valueOf(bgBlockString));
+        if(bgBlockString.isEmpty()) {
+            backgroundBlockData = null;
+        }   else    {
+            try {
+                backgroundBlockData = WrappedBlockData.createData(Material.valueOf(bgBlockString.toUpperCase(Locale.ROOT)));
+            }   catch(IllegalArgumentException ex) {
+                logger.warning("Unknown material for portal edge block " + bgBlockString);
+                logger.warning("Using default of black concrete");
+            }
         }
     }
 
