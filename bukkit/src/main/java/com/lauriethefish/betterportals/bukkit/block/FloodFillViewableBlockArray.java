@@ -106,9 +106,6 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
             IntVector originRelPos = stack.remove(stack.size() - 1);
             IntVector originPos = originRelPos.add(portalOriginPos);
             IntVector destRelPos = rotateOriginToDest.transform(originRelPos);
-            if(originRelPos.equals(new IntVector(0, 0, 0))) {
-                logger.fine("Dest rel pos: %s", destRelPos);
-            }
             IntVector destPos = destRelPos.add(portalDestPos);
 
             BlockData destData = dataFetcher.getData(destPos);
