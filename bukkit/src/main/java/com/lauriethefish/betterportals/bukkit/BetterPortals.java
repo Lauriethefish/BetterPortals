@@ -50,21 +50,13 @@ public class BetterPortals extends JavaPlugin {
         if(firstEnable) {
             startup();
             if(didEnableFail) {return;}
-        }
 
-        try {
-            configManager.loadValues(getConfig(), this);
-        }   catch(RuntimeException ex) {
-            logger.severe("Failed to load the config file. Is it definitely valid YAML?");
-            logger.warning("%s: %s", ex.getClass().getName(), ex.getMessage());
-            didEnableFail = true;
-            return;
-        }
-
-        if(firstEnable) {
             if(miscConfig.isTestingCommandsEnabled()) {
                 commandTree.registerTestCommands();
             }
+        }   else    {
+            reloadConfig();
+            loadConfig();
         }
 
         if(proxyConfig.isEnabled()) {
@@ -73,9 +65,6 @@ public class BetterPortals extends JavaPlugin {
         }
 
         if(!firstEnable) {
-            reloadConfig();
-            loadConfig();
-
             eventRegistrar.onPluginReload();
             portalManager.onReload();
         }
