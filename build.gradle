@@ -9,7 +9,7 @@ allprojects {
     targetCompatibility = 1.8
 
     group = "com.lauriethefish.betterportals"
-    version = '0.8.0-rc1'
+    version = '0.8.0-rc2'
 
     // Optional, just for showing name
     afterEvaluate {
