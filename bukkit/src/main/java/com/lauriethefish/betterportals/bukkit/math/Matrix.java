@@ -156,13 +156,13 @@ public class Matrix implements Serializable {
     public IntVector transform(IntVector in) {
         float[] result = new float[4];
         for(int i = 0; i < 4; i++) {
-            result[i] = (float) ((in.getX() + 0.5) * m[i][0] + (in.getY() + 0.5) * m[i][1] + (in.getZ() + 0.5) * m[i][2] + m[i][3]);
+            result[i] = (float) ((in.getX()) * m[i][0] + (in.getY()) * m[i][1] + (in.getZ()) * m[i][2] + m[i][3]);
         }
 
         return new IntVector(
-            (int) Math.floor(result[0] / result[3]),
-            (int) Math.floor(result[1] / result[3]),
-            (int) Math.floor(result[2] / result[3])
+            Math.round(result[0] / result[3]),
+            Math.round(result[1] / result[3]),
+            Math.round(result[2] / result[3])
         );
     }
 }

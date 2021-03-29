@@ -50,7 +50,6 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
     private final ConcurrentMap<IntVector, PacketContainer> destTileStates = new ConcurrentHashMap<>();
 
     private final IPortal portal;
-    private final Matrix destToOrigin;
     private final Matrix rotateDestToOrigin;
     private final Matrix rotateOriginToDest;
     private final IntVector portalOriginPos;
@@ -68,8 +67,7 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
         this.renderConfig = renderConfig;
         this.performanceWatcher = performanceWatcher;
         this.blockRotator = blockRotator;
-        this.centerPos = new IntVector(portal.getDestPos().getVector());
-        this.destToOrigin = portal.getTransformations().getDestinationToOrigin();
+        this.centerPos = new IntVector(portal.getOriginPos().getVector());
         this.rotateDestToOrigin = portal.getTransformations().getRotateToOrigin();
         this.rotateOriginToDest = portal.getTransformations().getRotateToDestination();
         this.originWorld = portal.getOriginPos().getWorld();
@@ -92,7 +90,7 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
      * <br>Some notes:
      * - There used to be a check to see if the origin and destination states are the same, but this added too much complexity when checking for changes, so I decided to remove it.
      * - That unfortunately reduces the performance of the threaded bit slightly, but I think it's worth it for the gains here.
-     * @param start Start position of the flood fill
+     * @param start Start position of the flood fill, at the origin
      */
     private void searchFromBlock(IntVector start) {
         WrappedBlockData backgroundData = renderConfig.getBackgroundBlockData();
@@ -102,14 +100,15 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
 
         List<IntVector> stack = new ArrayList<>(renderConfig.getTotalArrayLength());
 
-        int i = 0;
-        stack.add(destToOrigin.transform(start).subtract(portalOriginPos));
+        logger.fine("Starting at %s", start.subtract(centerPos));
+        stack.add(start.subtract(centerPos));
         while(stack.size() > 0) {
-            i++;
-
             IntVector originRelPos = stack.remove(stack.size() - 1);
             IntVector originPos = originRelPos.add(portalOriginPos);
             IntVector destRelPos = rotateOriginToDest.transform(originRelPos);
+            if(originRelPos.equals(new IntVector(0, 0, 0))) {
+                logger.fine("Dest rel pos: %s", destRelPos);
+            }
             IntVector destPos = destRelPos.add(portalDestPos);
 
             BlockData destData = dataFetcher.getData(destPos);
@@ -180,7 +179,7 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
 
             if(!newDestData.equals(blockInfo.getBaseDestData())) {
                 logger.finer("Destination block change");
-                searchFromBlock(destPos);
+                searchFromBlock(entry.getKey());
             }
 
             if(!portal.isCrossServer()) {
