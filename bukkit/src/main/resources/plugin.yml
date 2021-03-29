@@ -1,6 +1,6 @@
 main: com.lauriethefish.betterportals.bukkit.BetterPortals
 name: BetterPortals
-version: 0.8.0-rc3
+version: 0.8.0
 author: lauriethefish@outlook.com
 api-version: 1.13
 softdepend: [Multiverse-Core]
