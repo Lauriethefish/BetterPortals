@@ -10,8 +10,11 @@ import org.bukkit.entity.Player;
  */
 public interface IPortalPredicateManager {
     void addActivationPredicate(PortalPredicate predicate);
+    boolean removeActivationPredicate(PortalPredicate predicate);
     void addViewPredicate(PortalPredicate predicate);
+    boolean removeViewPredicate(PortalPredicate predicate);
     void addTeleportPredicate(PortalPredicate predicate);
+    boolean removeTeleportPredicate(PortalPredicate predicate);
 
     boolean isActivatable(IPortal portal, Player player);
     boolean isViewable(IPortal portal, Player player);
