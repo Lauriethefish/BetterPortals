@@ -68,19 +68,37 @@ public abstract class BetterPortalsAPI {
 
     /**
      * Adds a predicate for activating a portal.
-     * Each portal that is activated is checked against this every tick for each player, so try not to make it too complex!
+     * Each portal that is within activation distance is checked against this every tick for each player, so try not to make it too complex!
      * If this returns false, the portal will not be activated, so it cannot be viewed through, or teleported through by any player.
      * @param predicate The predicate to add
      * @throws IllegalStateException if BetterPortals is not enabled
+
      */
     public abstract void addPortalActivationPredicate(@NotNull PortalPredicate predicate);
 
     /**
+     * Removes the added predicate <code>predicate</code> for activating a portal.
+     * @param predicate The predicate to remove
+     * @throws IllegalStateException if BetterPortals is not enabled
+     * @throws UnknownPredicateException if the predicate wasn't added
+     */
+    public abstract void removePortalActivationPredicate(@NotNull PortalPredicate predicate);
+
+    /**
      * Adds a predicate for viewing through a portal. If this fails, the player will still be able to teleport but will not be able to view through.
+     * This is called every tick for each portal that a player views, so don't make it too complex!
      * @param predicate The predicate to add
      * @throws IllegalStateException if BetterPortals is not enabled
      */
     public abstract void addPortalViewPredicate(@NotNull PortalPredicate predicate);
+
+    /**
+     * Removes the added predicate <code>predicate</code> for viewing a portal.
+     * @param predicate The predicate to remove
+     * @throws IllegalStateException if BetterPortals is not enabled
+     * @throws UnknownPredicateException if the predicate wasn't added
+     */
+    public abstract void removePortalViewPredicate(@NotNull PortalPredicate predicate);
 
     /**
      * Adds a predicate for teleporting through a portal. If this fails, the player will not be able to teleport.
@@ -88,6 +106,14 @@ public abstract class BetterPortalsAPI {
      * @throws IllegalStateException if BetterPortals is not enabled
      */
     public abstract void addPortalTeleportPredicate(@NotNull PortalPredicate predicate);
+
+    /**
+     * Removes the added predicate <code>predicate</code> for teleporting through a portal.
+     * @param predicate The predicate to remove
+     * @throws IllegalStateException if BetterPortals is not enabled
+     * @throws UnknownPredicateException if the predicate wasn't added
+     */
+    public abstract void removePortalTeleportPredicate(@NotNull PortalPredicate predicate);
 
     /**
      * Fetches a portal by its unique ID, as obtained by {@link BetterPortal#getId()}
