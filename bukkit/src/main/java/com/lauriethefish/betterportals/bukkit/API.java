@@ -1,10 +1,7 @@
 package com.lauriethefish.betterportals.bukkit;
 
 import com.google.inject.Inject;
-import com.lauriethefish.betterportals.api.BetterPortal;
-import com.lauriethefish.betterportals.api.BetterPortalsAPI;
-import com.lauriethefish.betterportals.api.PortalPosition;
-import com.lauriethefish.betterportals.api.PortalPredicate;
+import com.lauriethefish.betterportals.api.*;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import com.lauriethefish.betterportals.bukkit.portal.IPortalManager;
 import com.lauriethefish.betterportals.bukkit.portal.predicate.IPortalPredicateManager;
@@ -69,6 +66,15 @@ public class API extends BetterPortalsAPI {
     }
 
     @Override
+    public void removePortalActivationPredicate(@NotNull PortalPredicate predicate) {
+        verifyEnabled();
+
+        if(!portalPredicateManager.removeActivationPredicate(predicate)) {
+            throw new UnknownPredicateException(predicate);
+        }
+    }
+
+    @Override
     public void addPortalViewPredicate(@NotNull PortalPredicate predicate) {
         verifyEnabled();
 
@@ -76,10 +82,28 @@ public class API extends BetterPortalsAPI {
     }
 
     @Override
+    public void removePortalViewPredicate(@NotNull PortalPredicate predicate) {
+        verifyEnabled();
+
+        if(!portalPredicateManager.removeViewPredicate(predicate)) {
+            throw new UnknownPredicateException(predicate);
+        }
+    }
+
+    @Override
     public void addPortalTeleportPredicate(@NotNull PortalPredicate predicate) {
         verifyEnabled();
 
         portalPredicateManager.addTeleportPredicate(predicate);
+    }
+
+    @Override
+    public void removePortalTeleportPredicate(@NotNull PortalPredicate predicate) {
+        verifyEnabled();
+
+        if(!portalPredicateManager.removeTeleportPredicate(predicate)) {
+            throw new UnknownPredicateException(predicate);
+        }
     }
 
     @Override

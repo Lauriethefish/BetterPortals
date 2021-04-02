@@ -37,15 +37,33 @@ public class PortalPredicateManager implements IPortalPredicateManager  {
     }
 
     @Override
+    public boolean removeActivationPredicate(PortalPredicate predicate) {
+        logger.fine("Portal activation predicate removed of type %s", predicate.getClass().getName());
+        return activationPredicates.remove(predicate);
+    }
+
+    @Override
     public void addViewPredicate(PortalPredicate predicate) {
         logger.fine("Portal view predicate added of type %s", predicate.getClass().getName());
         viewPredicates.add(predicate);
     }
 
     @Override
+    public boolean removeViewPredicate(PortalPredicate predicate) {
+        logger.fine("Portal view predicate removed of type %s", predicate.getClass().getName());
+        return viewPredicates.remove(predicate);
+    }
+
+    @Override
     public void addTeleportPredicate(PortalPredicate predicate) {
         logger.fine("Portal teleportation predicate added of type %s", predicate.getClass().getName());
         teleportationPredicates.add(predicate);
+    }
+
+    @Override
+    public boolean removeTeleportPredicate(PortalPredicate predicate) {
+        logger.fine("Portal teleportation predicate removed of type %s", predicate.getClass().getName());
+        return teleportationPredicates.remove(predicate);
     }
 
     @Override
