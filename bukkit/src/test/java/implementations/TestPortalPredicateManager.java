@@ -18,11 +18,26 @@ public class TestPortalPredicateManager implements IPortalPredicateManager {
     public void addActivationPredicate(PortalPredicate predicate) { }
 
     @Override
+    public boolean removeActivationPredicate(PortalPredicate predicate) {
+        return false;
+    }
+
+    @Override
     public void addViewPredicate(PortalPredicate predicate) { }
+
+    @Override
+    public boolean removeViewPredicate(PortalPredicate predicate) {
+        return false;
+    }
 
     @Override
     public void addTeleportPredicate(PortalPredicate predicate) {
 
+    }
+
+    @Override
+    public boolean removeTeleportPredicate(PortalPredicate predicate) {
+        return false;
     }
 
     @Override
