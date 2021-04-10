@@ -2,13 +2,9 @@ package com.lauriethefish.betterportals.bukkit.config;
 
 import com.lauriethefish.betterportals.shared.logging.Logger;
 import lombok.Getter;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Objects;
 
 /**
  * Link that contains extra parameters specific to spawning nether portals
