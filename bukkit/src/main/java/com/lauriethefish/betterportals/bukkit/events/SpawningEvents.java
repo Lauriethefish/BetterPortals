@@ -55,6 +55,7 @@ public class SpawningEvents implements Listener {
     public void onPortalCreate(PortalCreateEvent event) {
         // Some worlds can be configured to use vanilla portal logic
         if(spawnConfig.isWorldDisabled(event.getWorld())) {return;}
+        if(event.getReason() != PortalCreateEvent.CreateReason.FIRE) {return;}
 
         Vector highPosition = null;
         Vector lowPosition = null;
