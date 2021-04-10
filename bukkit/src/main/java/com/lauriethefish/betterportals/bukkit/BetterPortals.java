@@ -81,7 +81,8 @@ public class BetterPortals extends JavaPlugin {
         try {
             configManager.loadValues(getConfig(), this);
         }   catch(RuntimeException ex) {
-            logger.warning("Failed to reload the config file. Please check your YAML syntax!: %s: %s", ex.getClass().getName(), ex.getMessage());
+            logger.severe("Failed to reload the config file. Please check your YAML syntax!");
+            ex.printStackTrace();
             return false;
         }
         return true;
