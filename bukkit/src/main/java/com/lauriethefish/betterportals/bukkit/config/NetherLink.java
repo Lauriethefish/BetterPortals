@@ -1,0 +1,45 @@
+package com.lauriethefish.betterportals.bukkit.config;
+
+import lombok.Getter;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.configuration.ConfigurationSection;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
+
+/**
+ * Link that contains extra parameters specific to spawning nether portals
+ */
+@Getter
+public class NetherLink extends WorldLink   {
+    private final int minSpawnY;
+    private final int maxSpawnY;
+
+    private final double coordinateRescalingFactor;
+
+    public NetherLink(ConfigurationSection config)    {
+        super(config);
+
+        minSpawnY = config.getInt("minSpawnY");
+        maxSpawnY = config.getInt("maxSpawnY");
+        coordinateRescalingFactor = config.getDouble("coordinateRescalingFactor");
+    }
+
+    public boolean isValid()    {
+        return originWorld != null && destinationWorld != null;
+    }
+
+    @NotNull
+    public Location moveFromOriginWorld(@NotNull Location loc) {
+        assert loc.getWorld() == originWorld;
+        loc = loc.clone();
+
+        // Avoid multiplying the Y coordinate
+        loc.setX(loc.getX() * coordinateRescalingFactor);
+        loc.setZ(loc.getZ() * coordinateRescalingFactor);
+        loc.setWorld(destinationWorld);
+        return loc;
+    }
+}

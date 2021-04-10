@@ -5,7 +5,7 @@ import com.google.inject.Singleton;
 import com.lauriethefish.betterportals.bukkit.chunk.chunkpos.ChunkPosition;
 import com.lauriethefish.betterportals.bukkit.chunk.generation.IChunkGenerationChecker;
 import com.lauriethefish.betterportals.bukkit.config.PortalSpawnConfig;
-import com.lauriethefish.betterportals.bukkit.config.WorldLink;
+import com.lauriethefish.betterportals.bukkit.config.NetherLink;
 import com.lauriethefish.betterportals.bukkit.portal.IPortalManager;
 import com.lauriethefish.betterportals.api.PortalDirection;
 import com.lauriethefish.betterportals.bukkit.util.MaterialUtil;
@@ -66,7 +66,7 @@ public class ExistingPortalChecker implements IChunkChecker    {
         }
 
         int frameSize = context.getSize().getBlockY() + 2;
-        Collection<Location> obsidianBlocks = searchForObsidianBlocks(chunk, frameSize, context.getWorldLink());
+        Collection<Location> obsidianBlocks = searchForObsidianBlocks(chunk, frameSize, context.getNetherLink());
 
         PortalSpawnPosition closestPosition = null;
         double closestDistance = Double.POSITIVE_INFINITY;
@@ -99,17 +99,17 @@ public class ExistingPortalChecker implements IChunkChecker    {
     /**
      * We first do a (relatively) quick check for all the obsidian blocks in the chunk to make this faster.
      * @param yIncrement We can skip some of the blocks in the chunk for larger portals, because they are so tall we can skip even 1 out of 5 blocks and we'll always hit at least one obsidian
-     * @param worldLink Used for the minimum and maximum spawn height
+     * @param netherLink Used for the minimum and maximum spawn height
      * @return The list of obsidian blocks
      */
-    private Collection<Location> searchForObsidianBlocks(ChunkPosition chunkPos, int yIncrement, WorldLink worldLink) {
+    private Collection<Location> searchForObsidianBlocks(ChunkPosition chunkPos, int yIncrement, NetherLink netherLink) {
         Collection<Location> result = new ArrayList<>();
 
         Chunk chunk = chunkPos.getChunk();
         // The yIncrement is used to skip checking some Y levels as for 5 tall portals, we only need to check every fifth Y coordinate to guarantee that we hit one of the obsidian blocks
         // Then we can just search the surrounding area for portal positions afterwards
         // This helps performance a ton
-        for(int y = worldLink.getMinSpawnY(); y < worldLink.getMaxSpawnY(); y += yIncrement) {
+        for(int y = netherLink.getMinSpawnY(); y < netherLink.getMaxSpawnY(); y += yIncrement) {
             for(int z = 0; z < 16; z += 1) {
                 for(int x = 0; x < 16; x += 1) {
                     Block block = chunk.getBlock(x, y, z);

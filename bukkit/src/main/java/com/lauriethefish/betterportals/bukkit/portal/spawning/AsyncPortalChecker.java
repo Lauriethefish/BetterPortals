@@ -2,6 +2,7 @@ package com.lauriethefish.betterportals.bukkit.portal.spawning;
 
 import com.lauriethefish.betterportals.bukkit.chunk.chunkpos.ChunkPosition;
 import com.lauriethefish.betterportals.bukkit.chunk.chunkpos.SpiralChunkAreaIterator;
+import com.lauriethefish.betterportals.bukkit.config.NetherLink;
 import com.lauriethefish.betterportals.bukkit.config.PortalSpawnConfig;
 import com.lauriethefish.betterportals.bukkit.util.performance.OperationTimer;
 import com.lauriethefish.betterportals.shared.logging.Logger;
@@ -49,7 +50,7 @@ public class AsyncPortalChecker implements Runnable {
 
     /**
      * Starts checking for portals in a spiral area
-     * @param context Position/size to check for and {@link com.lauriethefish.betterportals.bukkit.config.WorldLink} to use.
+     * @param context Position/size to check for and {@link NetherLink} to use.
      * @param chunkChecker Used to find the closest {@link PortalSpawnPosition} in each chunk.
      * @param onFinish Called with the spawn position (may be null), when this check is complete
      */

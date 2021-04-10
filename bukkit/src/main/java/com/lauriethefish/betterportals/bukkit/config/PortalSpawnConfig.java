@@ -2,7 +2,6 @@ package com.lauriethefish.betterportals.bukkit.config;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.google.inject.name.Named;
 import com.lauriethefish.betterportals.shared.logging.Logger;
 import lombok.Getter;
 import org.bukkit.Bukkit;
@@ -19,7 +18,7 @@ import java.util.*;
 public class PortalSpawnConfig {
     private final Logger logger;
 
-    private Map<World, WorldLink> worldLinks;
+    private Map<World, NetherLink> netherLinks;
     private Set<World> disabledWorlds;
 
     @Getter private Vector maxPortalSize; // Maximum size of natural/nether portals
@@ -38,7 +37,7 @@ public class PortalSpawnConfig {
     }
 
     public void load(FileConfiguration file) {
-        worldLinks = new HashMap<>();
+        netherLinks = new HashMap<>();
         disabledWorlds = new HashSet<>();
 
         ConfigurationSection dimBlendSection = Objects.requireNonNull(file.getConfigurationSection("dimensionBlend"));
@@ -48,20 +47,20 @@ public class PortalSpawnConfig {
         ConfigurationSection worldLinksSection = Objects.requireNonNull(file.getConfigurationSection("worldConnections"), "World connections section missing");
 
         for (String s : worldLinksSection.getKeys(false)) {
-            WorldLink newLink = new WorldLink(Objects.requireNonNull(worldLinksSection.getConfigurationSection(s)));
+            NetherLink newLink = new NetherLink(Objects.requireNonNull(worldLinksSection.getConfigurationSection(s)));
             if (!newLink.isValid()) {
                 logger.warning("An invalid worldConnection was found in the config, please check that your world names are correct.");
                 if (newLink.getOriginWorld() == null) {
-                    logger.warning("No world with name \"%s\" exists (for the origin)", newLink.getOriginWorldName());
+                    logger.warning("No world with name \"%s\" exists (for the origin)", newLink.getOriginWorld().getName());
                 }
                 if(newLink.getDestinationWorld() == null) {
-                    logger.warning("No world with name \"%s\" exists (for the destination)", newLink.getDestWorldName());
+                    logger.warning("No world with name \"%s\" exists (for the destination)", newLink.getDestinationWorld().getName());
                 }
 
                 continue;
             }
 
-            worldLinks.put(newLink.getOriginWorld(), newLink);
+            netherLinks.put(newLink.getOriginWorld(), newLink);
         }
 
         List<String> disabledWorldsString = file.getStringList("disabledWorlds");
@@ -85,7 +84,7 @@ public class PortalSpawnConfig {
         return disabledWorlds.contains(world);
     }
 
-    public @Nullable WorldLink getWorldLink(@NotNull World originWorld) {
-        return worldLinks.get(originWorld);
+    public @Nullable NetherLink getWorldLink(@NotNull World originWorld) {
+        return netherLinks.get(originWorld);
     }
 }

@@ -4,7 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.lauriethefish.betterportals.bukkit.chunk.chunkpos.ChunkPosition;
 import com.lauriethefish.betterportals.bukkit.config.PortalSpawnConfig;
-import com.lauriethefish.betterportals.bukkit.config.WorldLink;
+import com.lauriethefish.betterportals.bukkit.config.NetherLink;
 import com.lauriethefish.betterportals.bukkit.portal.IPortalManager;
 import com.lauriethefish.betterportals.api.PortalDirection;
 import com.lauriethefish.betterportals.bukkit.util.MaterialUtil;
@@ -46,7 +46,7 @@ public class NewPortalChecker implements IChunkChecker  {
         PortalSpawnPosition currentClosest = null;
         double closestDistance = Double.POSITIVE_INFINITY;
 
-        WorldLink link = context.getWorldLink();
+        NetherLink link = context.getNetherLink();
         for(int y = link.getMinSpawnY(); y < link.getMaxSpawnY(); y++) {
             for(int x = 0; x < 16; x++) {
                 for(int z = 0; z < 16; z++) {

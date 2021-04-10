@@ -3,7 +3,7 @@ package com.lauriethefish.betterportals.bukkit.portal.spawning;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.lauriethefish.betterportals.bukkit.config.PortalSpawnConfig;
-import com.lauriethefish.betterportals.bukkit.config.WorldLink;
+import com.lauriethefish.betterportals.bukkit.config.NetherLink;
 import com.lauriethefish.betterportals.api.PortalDirection;
 import com.lauriethefish.betterportals.bukkit.portal.blend.IDimensionBlendManager;
 import com.lauriethefish.betterportals.bukkit.util.MaterialUtil;
@@ -48,7 +48,7 @@ public class PortalSpawner implements IPortalSpawner {
         World originWorld = originPosition.getWorld();
         assert originWorld != null;
 
-        WorldLink link = config.getWorldLink(originWorld);
+        NetherLink link = config.getWorldLink(originWorld);
         if(link == null) {
             logger.fine("Unable to find world link for lit portal at origin position %s with size %s", originPosition, originSize);
             return false;
