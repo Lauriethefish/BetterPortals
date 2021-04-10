@@ -108,9 +108,15 @@ public class LocalEntityTeleportManager implements IEntityTeleportManager {
         PortalTransformations transformations = portal.getTransformations();
 
         Location destPos;
-        destPos = limitToBlockHitbox(transformations.moveToDestination(entity.getLocation()));
+        destPos = entity.getLocation().subtract(portal.getOriginPos().getVector());
+        destPos = transformations.getRotateToDestination().transform(destPos.toVector()).toLocation(portal.getDestPos().getWorld());
+        destPos.add(portal.getDestPos().getVector());
 
-        destPos.setDirection(transformations.rotateToDestination(entity.getLocation().getDirection()));
+        if(entity instanceof Player) {
+            destPos = limitToBlockHitbox(destPos);
+        }   else    {
+            destPos.add(0.0, 0.2, 0.0);
+        }
 
         // Teleporting an entity removes the velocity, so we have to re-add it
         Vector velocity = entity.getVelocity();
