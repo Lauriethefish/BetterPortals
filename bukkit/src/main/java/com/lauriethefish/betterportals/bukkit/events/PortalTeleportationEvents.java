@@ -3,8 +3,8 @@ package com.lauriethefish.betterportals.bukkit.events;
 import com.google.inject.Inject;
 import com.lauriethefish.betterportals.bukkit.config.MessageConfig;
 import com.lauriethefish.betterportals.bukkit.config.PortalSpawnConfig;
+import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import com.lauriethefish.betterportals.bukkit.portal.IPortalManager;
-import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -31,19 +31,17 @@ public class PortalTeleportationEvents implements Listener {
         eventRegistrar.register(this);
     }
 
-    private boolean isPluginPortal(@NotNull Entity entity) {
+    private boolean isPluginNetherPortal(@NotNull Entity entity) {
         Vector maxPortalSize = spawnConfig.getMaxPortalSize();
         double portalExistenceRadius = Math.max(maxPortalSize.getX(), maxPortalSize.getY()) + 2;
 
-        return portalManager.findClosestPortal(entity.getLocation(), portalExistenceRadius) != null;
+        IPortal portal = portalManager.findClosestPortal(entity.getLocation(), portalExistenceRadius);
+        return portal != null && portal.isNetherPortal();
     }
 
     @EventHandler
     public void onEntityPortal(EntityPortalEvent event) {
-        Material blockType = event.getEntity().getLocation().getBlock().getType();
-
-        boolean isNetherPortal = blockType != Material.END_PORTAL && blockType != Material.END_GATEWAY;
-        if(isPluginPortal(event.getEntity()) && isNetherPortal) {
+        if(isPluginNetherPortal(event.getEntity())) {
             event.setCancelled(true);
         }
     }
@@ -52,7 +50,7 @@ public class PortalTeleportationEvents implements Listener {
     public void onPlayerPortal(PlayerPortalEvent event) {
 
         boolean isNetherPortal = event.getCause() == PlayerTeleportEvent.TeleportCause.NETHER_PORTAL;
-        if(isPluginPortal(event.getPlayer()) && isNetherPortal) {
+        if(isPluginNetherPortal(event.getPlayer()) && isNetherPortal) {
             event.setCancelled(true);
         }   else if(isNetherPortal) {
             if(spawnConfig.isWorldDisabled(event.getFrom().getWorld()) || spawnConfig.isWorldDisabled(event.getTo().getWorld())) {
