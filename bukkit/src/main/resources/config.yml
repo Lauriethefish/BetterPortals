@@ -28,7 +28,7 @@ entityCheckInterval: 5 # How often the portal will check for surrounding entitie
 
 # Setting this to true will allow you to see straight through a portal
 # NOTE: This generally makes it look a bit less convincing, since it's easier to see when the player's client doesn't quite keep up
-hidePortalBlocks: false
+hidePortalBlocks: true
 
 # How close portals can spawn to each other, in blocks
 minimumPortalSpawnDistance: 6
