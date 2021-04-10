@@ -48,7 +48,7 @@ public class PortalSpawner implements IPortalSpawner {
         World originWorld = originPosition.getWorld();
         assert originWorld != null;
 
-        NetherLink link = config.getWorldLink(originWorld);
+        NetherLink link = config.getNetherLink(originWorld);
         if(link == null) {
             logger.fine("Unable to find world link for lit portal at origin position %s with size %s", originPosition, originSize);
             return false;

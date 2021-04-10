@@ -28,7 +28,7 @@ entityCheckInterval: 5 # How often the portal will check for surrounding entitie
 
 # Setting this to true will allow you to see straight through a portal
 # NOTE: This generally makes it look a bit less convincing, since it's easier to see when the player's client doesn't quite keep up
-hidePortalBlocks: false
+hidePortalBlocks: true
 
 # How close portals can spawn to each other, in blocks
 minimumPortalSpawnDistance: 6
@@ -73,7 +73,7 @@ backgroundBlock: ''
 
 teleportCooldown: 2 # How long to wait before a player can go back after going through a portal (0 to disable)
 
-# Stores the links between worlds. By default this links the overworld and the nether with portals
+# Stores the links between nethers. By default this links the overworld and the nether with portals
 # There are two links for the overworld and the nether - one for each way.
 # This is to allow one way links between dimensions
 # The x and z coordinates of the portals are multiplied by the coordinateRescalingFactor to spawn portals
@@ -91,6 +91,12 @@ worldConnections:
     minSpawnY: 5
     maxSpawnY: 250
     coordinateRescalingFactor: 8.0
+
+# Same as the above, but for end portals instead
+endPortalConnections:
+  '0':
+    originWorld: 'world'
+    destinationWorld: 'world_the_end'
 
 # While a portal is finding a destination position, it checks the chunks over multiple ticks to avoid completely freezing the server
 # This specifies the amount of time allowed per-tick (in milliseconds)

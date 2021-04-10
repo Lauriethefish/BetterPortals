@@ -1,5 +1,6 @@
 package com.lauriethefish.betterportals.bukkit.config;
 
+import com.lauriethefish.betterportals.shared.logging.Logger;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -19,8 +20,14 @@ public class NetherLink extends WorldLink   {
 
     private final double coordinateRescalingFactor;
 
-    public NetherLink(ConfigurationSection config)    {
-        super(config);
+    public NetherLink(ConfigurationSection config, Logger logger)    {
+        super(config, logger);
+        if(!isValid) {
+            minSpawnY = -1;
+            maxSpawnY = -1;
+            coordinateRescalingFactor = -1;
+            return;
+        }
 
         minSpawnY = config.getInt("minSpawnY");
         maxSpawnY = config.getInt("maxSpawnY");

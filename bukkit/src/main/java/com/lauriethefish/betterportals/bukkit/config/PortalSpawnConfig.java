@@ -19,6 +19,7 @@ public class PortalSpawnConfig {
     private final Logger logger;
 
     private Map<World, NetherLink> netherLinks;
+    private Map<World, WorldLink> endLinks;
     private Set<World> disabledWorlds;
 
     @Getter private Vector maxPortalSize; // Maximum size of natural/nether portals
@@ -38,29 +39,30 @@ public class PortalSpawnConfig {
 
     public void load(FileConfiguration file) {
         netherLinks = new HashMap<>();
+        endLinks = new HashMap<>();
         disabledWorlds = new HashSet<>();
 
         ConfigurationSection dimBlendSection = Objects.requireNonNull(file.getConfigurationSection("dimensionBlend"));
         dimensionBlendEnabled = dimBlendSection.getBoolean("enable");
         blendFallOff = dimBlendSection.getDouble("fallOffRate");
 
-        ConfigurationSection worldLinksSection = Objects.requireNonNull(file.getConfigurationSection("worldConnections"), "World connections section missing");
+        ConfigurationSection netherLinksSection = Objects.requireNonNull(file.getConfigurationSection("worldConnections"), "World connections section missing");
 
-        for (String s : worldLinksSection.getKeys(false)) {
-            NetherLink newLink = new NetherLink(Objects.requireNonNull(worldLinksSection.getConfigurationSection(s)));
-            if (!newLink.isValid()) {
-                logger.warning("An invalid worldConnection was found in the config, please check that your world names are correct.");
-                if (newLink.getOriginWorld() == null) {
-                    logger.warning("No world with name \"%s\" exists (for the origin)", newLink.getOriginWorld().getName());
-                }
-                if(newLink.getDestinationWorld() == null) {
-                    logger.warning("No world with name \"%s\" exists (for the destination)", newLink.getDestinationWorld().getName());
-                }
-
-                continue;
-            }
+        logger.fine("Loading nether links . . .");
+        for (String s : netherLinksSection.getKeys(false)) {
+            NetherLink newLink = new NetherLink(Objects.requireNonNull(netherLinksSection.getConfigurationSection(s)), logger);
+            if (!newLink.isValid()) {continue;}
 
             netherLinks.put(newLink.getOriginWorld(), newLink);
+        }
+
+        logger.fine("Loading end links . . .");
+        ConfigurationSection endLinksSection = Objects.requireNonNull(file.getConfigurationSection("endPortalConnections"), "End connections section missing");
+        for (String s : endLinksSection.getKeys(false)) {
+            WorldLink newLink = new WorldLink(Objects.requireNonNull(endLinksSection.getConfigurationSection(s)), logger);
+            if (!newLink.isValid()) {continue;}
+
+            endLinks.put(newLink.getOriginWorld(), newLink);
         }
 
         List<String> disabledWorldsString = file.getStringList("disabledWorlds");
@@ -84,7 +86,9 @@ public class PortalSpawnConfig {
         return disabledWorlds.contains(world);
     }
 
-    public @Nullable NetherLink getWorldLink(@NotNull World originWorld) {
+    public @Nullable NetherLink getNetherLink(@NotNull World originWorld) {
         return netherLinks.get(originWorld);
     }
+
+    public @Nullable WorldLink getEndLink(@NotNull World originWorld) {return endLinks.get(originWorld);}
 }
