@@ -17,6 +17,8 @@ import java.util.UUID;
 @Getter
 @Setter
 public class GetSelectionRequest extends Request {
+    private static final long serialVersionUID = 1L;
+
     @Getter
     public static class ExternalSelectionInfo implements Serializable {
         private final PortalPosition position;

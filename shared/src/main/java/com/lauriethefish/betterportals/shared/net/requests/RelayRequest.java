@@ -10,6 +10,8 @@ import java.io.*;
  * The proxy will send the inner request to the client server.
  */
 public class RelayRequest extends Request   {
+    private static final long serialVersionUID = 1L;
+
     @Getter @Setter private String destination;
     /**
      * The inner request is stored as a byte array, since it contains types that the proxy might not be able to deserialize.

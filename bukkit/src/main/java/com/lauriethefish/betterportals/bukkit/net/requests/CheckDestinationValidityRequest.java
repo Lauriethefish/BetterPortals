@@ -15,6 +15,8 @@ import java.util.UUID;
 @Getter
 @Setter
 public class CheckDestinationValidityRequest extends Request {
+    private static final long serialVersionUID = 1L;
+
     private String destinationWorldName;
     private UUID destinationWorldId; // Used if a world with ID worldId cannot be found
     private String originGameVersion;

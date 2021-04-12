@@ -15,7 +15,7 @@ import java.util.UUID;
 @Getter
 @Setter
 public class GetBlockDataChangesRequest extends Request {
-    private static final long serialVersionUID = 1;
+    private static final long serialVersionUID = 1L;
 
     private UUID changeSetId;
     private IntVector position;

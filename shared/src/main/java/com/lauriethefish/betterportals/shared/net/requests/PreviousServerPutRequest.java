@@ -11,6 +11,8 @@ import java.util.UUID;
 @Getter
 @Setter
 public class PreviousServerPutRequest extends Request   {
+    private static final long serialVersionUID = 1L;
+
     private UUID playerId;
     private String previousServer;
 }

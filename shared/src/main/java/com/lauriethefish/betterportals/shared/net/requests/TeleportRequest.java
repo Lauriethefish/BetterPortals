@@ -8,6 +8,8 @@ import java.util.UUID;
 @Getter
 @Setter
 public class TeleportRequest extends Request    {
+    private static final long serialVersionUID = 1L;
+
     private UUID playerId;
     private String destServer;
     private UUID destWorldId;
@@ -26,6 +28,4 @@ public class TeleportRequest extends Request    {
     private double destVelX;
     private double destVelY;
     private double destVelZ;
-
-
 }

@@ -8,5 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class TestForwardedRequest extends Request {
+    private static final long serialVersionUID = 1L;
+
     private IntVector testField;
 }

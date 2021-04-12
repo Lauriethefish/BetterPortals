@@ -10,6 +10,8 @@ import java.io.Serializable;
  */
 @Setter
 public class Response implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     /**
      * Used to preserve request/response ordering.
      */
