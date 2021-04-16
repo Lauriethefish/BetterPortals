@@ -109,8 +109,9 @@ public class LocalEntityTeleportManager implements IEntityTeleportManager {
 
         Location destPos;
         destPos = entity.getLocation().subtract(portal.getOriginPos().getVector());
-        destPos = transformations.getRotateToDestination().transform(destPos.toVector()).toLocation(portal.getDestPos().getWorld());
+        destPos = transformations.rotateToDestination(destPos.toVector()).toLocation(portal.getDestPos().getWorld());
         destPos.add(portal.getDestPos().getVector());
+        destPos.setDirection(transformations.rotateToDestination(entity.getLocation().getDirection()));
 
         if(entity instanceof Player) {
             destPos = limitToBlockHitbox(destPos);
