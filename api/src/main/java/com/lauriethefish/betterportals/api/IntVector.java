@@ -41,7 +41,7 @@ public class IntVector implements Cloneable, Serializable {
      * Creates a new instance using the block coordinates of <code>location</code>.
      * @param location Coordinates for this block
      */
-    public IntVector(Location location) {
+    public IntVector(@NotNull Location location) {
         this(location.getBlockX(), location.getBlockY(), location.getBlockZ());
     }
 
@@ -49,15 +49,15 @@ public class IntVector implements Cloneable, Serializable {
      * Creates a new instance using the block coordinates of <code>vector</code>.
      * @param vector Coordinates for this block
      */
-    public IntVector(Vector vector) {
-        this(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
+    public IntVector(@NotNull Vector vector) {
+        this(vector.getX(), vector.getBlockY(), vector.getBlockZ());
     }
 
     /**
      * Converts this instance into a Bukkit {@link BlockVector}
      * @return The Bukkit vector.
      */
-    public BlockVector toVector() {
+    public @NotNull BlockVector toVector() {
         return new BlockVector(x, y, z);
     }
 
@@ -65,8 +65,7 @@ public class IntVector implements Cloneable, Serializable {
      * Gets the coordinate at the center of the block represented by this vector.
      * @return The center coordinate of the block
      */
-    @NotNull
-    public Vector getCenterPos() {
+    public @NotNull Vector getCenterPos() {
         return new Vector(x + 0.5, y + 0.5, z + 0.5);
     }
 
@@ -75,8 +74,7 @@ public class IntVector implements Cloneable, Serializable {
      * @param other The vector to add to
      * @return A new instance.
      */
-    @NotNull
-    public IntVector add(@NotNull IntVector other) {
+    public @NotNull IntVector add(@NotNull IntVector other) {
         return new IntVector(
             x + other.x,
             y + other.y,
@@ -85,16 +83,45 @@ public class IntVector implements Cloneable, Serializable {
     }
 
     /**
+     * Adds <code>x</code>, <code>y</code> and <code>z</code> and this vector's coordinates to a new vector.
+     * @param x X coordinate
+     * @param y Y coordinate
+     * @param z Z coordinate
+     * @return A new instance
+     */
+    public @NotNull IntVector add(int x, int y, int z) {
+        return new IntVector(
+            this.x + x,
+            this.y + y,
+            this.z + z
+        );
+    }
+
+    /**
      * Subtracts the coordinates of <code>other</code> from this instance,
      * @param other The vector to add to
      * @return A new instance.
      */
-    @NotNull
-    public IntVector subtract(@NotNull IntVector other) {
+    public @NotNull IntVector subtract(@NotNull IntVector other) {
         return new IntVector(
             x - other.x,
             y - other.y,
             z - other.z
+        );
+    }
+
+    /**
+     * Subtracts <code>x</code>, <code>y</code> and <code>z</code> from this vector's coordinates and puts the result into a new vector.
+     * @param x X coordinate
+     * @param y Y coordinate
+     * @param z Z coordinate
+     * @return A new instance
+     */
+    public @NotNull IntVector subtract(int x, int y, int z) {
+        return new IntVector(
+                this.x - x,
+                this.y - y,
+                this.z - z
         );
     }
 
@@ -104,8 +131,7 @@ public class IntVector implements Cloneable, Serializable {
      * @param world World to get the block in
      * @return The block at this position
      */
-    @NotNull
-    public Block getBlock(@NotNull World world) {
+    public @NotNull Block getBlock(@NotNull World world) {
         return world.getBlockAt(x, y, z);
     }
 
@@ -114,8 +140,7 @@ public class IntVector implements Cloneable, Serializable {
      * @param world World for the Location
      * @return The Location
      */
-    @NotNull
-    public Location toLocation(@NotNull World world) {
+    public @NotNull Location toLocation(@NotNull World world) {
         return new Location(world, x, y, z);
     }
 
@@ -138,7 +163,7 @@ public class IntVector implements Cloneable, Serializable {
         return result;
     }
 
-    public IntVector clone() {
+    public @NotNull IntVector clone() {
         try {
             return (IntVector) super.clone();
         }   catch(CloneNotSupportedException ex) {

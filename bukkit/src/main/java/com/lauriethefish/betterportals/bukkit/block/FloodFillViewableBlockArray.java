@@ -10,6 +10,7 @@ import com.lauriethefish.betterportals.bukkit.block.fetch.IBlockDataFetcher;
 import com.lauriethefish.betterportals.bukkit.block.rotation.IBlockRotator;
 import com.lauriethefish.betterportals.bukkit.config.RenderConfig;
 import com.lauriethefish.betterportals.api.IntVector;
+import com.lauriethefish.betterportals.bukkit.math.MathUtil;
 import com.lauriethefish.betterportals.bukkit.math.Matrix;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import com.lauriethefish.betterportals.api.PortalDirection;
@@ -22,6 +23,7 @@ import lombok.Getter;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,10 +75,22 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
         this.originWorld = portal.getOriginPos().getWorld();
         this.destDirection = portal.getDestPos().getDirection();
         this.dataFetcherFactory = dataFetcherFactory;
-        this.portalDestPos = new IntVector(portal.getDestPos().getVector());
         this.portalOriginPos = new IntVector(portal.getOriginPos().getVector());
+        this.portalDestPos = roundBasedOnDirection(portal);
+        logger.fine("Origin pos: %s, Dest pos: %s", portalOriginPos, portalDestPos);
+        logger.fine("Origin direction: %s, Dest Direction: %s", portal.getOriginPos().getDirection(), portal.getDestPos().getDirection());
 
         reset();
+    }
+
+    private IntVector roundBasedOnDirection(IPortal portal) {
+        Vector originPosVec = portal.getOriginPos().getVector();
+        Vector originPosCenter = MathUtil.moveToCenterOfBlock(originPosVec);
+        Vector relOriginPos = originPosCenter.clone().subtract(originPosVec);
+        Vector relDestPos = portal.getTransformations().rotateToDestination(relOriginPos);
+        Vector destPosCenter = portal.getDestPos().getVector().add(relDestPos);
+
+        return new IntVector(destPosCenter);
     }
 
     private boolean isInLine(IntVector relPos) {
