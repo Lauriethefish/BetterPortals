@@ -15,7 +15,6 @@ import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import com.lauriethefish.betterportals.api.PortalDirection;
 import com.lauriethefish.betterportals.bukkit.tasks.BlockUpdateFinisher;
 import com.lauriethefish.betterportals.bukkit.util.MaterialUtil;
-import com.lauriethefish.betterportals.bukkit.util.nms.BlockDataUtil;
 import com.lauriethefish.betterportals.bukkit.util.performance.IPerformanceWatcher;
 import com.lauriethefish.betterportals.bukkit.util.performance.OperationTimer;
 import com.lauriethefish.betterportals.shared.logging.Logger;
@@ -86,8 +85,11 @@ public class PlayerBlockView implements IPlayerBlockView   {
             }
 
             statesLock.lock();
-            blockStates.resetAndUpdate();
-            statesLock.unlock();
+            try {
+                blockStates.resetAndUpdate();
+            }   finally {
+                statesLock.unlock();
+            }
         }
     }
 
@@ -98,60 +100,62 @@ public class PlayerBlockView implements IPlayerBlockView   {
         }
         statesLock.lock();
 
-        IMultiBlockChangeManager multiBlockChangeManager = multiBlockChangeManagerFactory.create(player);
-        List<PacketContainer> queuedTileEntityUpdates = new ArrayList<>();
-
-        PlaneIntersectionChecker intersectionChecker = portal.getTransformations().createIntersectionChecker(playerPosition);
-
-        OperationTimer timer = new OperationTimer();
-
-        IViewableBlockArray viewableBlockArray = portal.getViewableBlocks();
-        for(Map.Entry<IntVector, ViewableBlockInfo> entry : viewableBlockArray.getViewableStates().entrySet()) {
-            Vector position = entry.getKey().getCenterPos();
-
-            ViewableBlockInfo block = entry.getValue();
-            boolean visible = intersectionChecker.checkIfIntersects(position);
-
-            // If visible/non-visible, change to the new state
-            // However, don't bother resending the packet again if the block has already been changed
-            // (unless we're refreshing the sent blocks)
-            if(visible) {
-                if(blockStates.setViewable(position, block) || refresh) {
-                    multiBlockChangeManager.addChange(position, block.getDestData());
-
-                    PacketContainer nbtUpdatePacket = viewableBlockArray.getDestinationTileEntityPacket(entry.getKey());
-                    if(nbtUpdatePacket != null) {
-                        queuedTileEntityUpdates.add(nbtUpdatePacket);
-                        logger.fine("Queueing tile state update at destination");
-                    }
-                }
-            }   else    {
-                if(blockStates.setNonViewable(position, block)) {
-                    multiBlockChangeManager.addChange(position, block.getOriginData());
-
-                    PacketContainer nbtUpdatePacket = viewableBlockArray.getOriginTileEntityPacket(entry.getKey());
-                    if(nbtUpdatePacket != null) {
-                        queuedTileEntityUpdates.add(nbtUpdatePacket);
-                        logger.fine("Queueing tile state update at origin");
-                    }
-                }
-            }
-        }
-
-        // Show the player the changed states
-        multiBlockChangeManager.sendChanges();
         try {
-            for (PacketContainer packet : queuedTileEntityUpdates) {
-                ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);
+            IMultiBlockChangeManager multiBlockChangeManager = multiBlockChangeManagerFactory.create(player);
+            List<PacketContainer> queuedTileEntityUpdates = new ArrayList<>();
+
+            PlaneIntersectionChecker intersectionChecker = portal.getTransformations().createIntersectionChecker(playerPosition);
+
+            OperationTimer timer = new OperationTimer();
+
+            IViewableBlockArray viewableBlockArray = portal.getViewableBlocks();
+            for (Map.Entry<IntVector, ViewableBlockInfo> entry : viewableBlockArray.getViewableStates().entrySet()) {
+                Vector position = entry.getKey().getCenterPos();
+
+                ViewableBlockInfo block = entry.getValue();
+                boolean visible = intersectionChecker.checkIfIntersects(position);
+
+                // If visible/non-visible, change to the new state
+                // However, don't bother resending the packet again if the block has already been changed
+                // (unless we're refreshing the sent blocks)
+                if (visible) {
+                    if (blockStates.setViewable(position, block) || refresh) {
+                        multiBlockChangeManager.addChange(position, block.getDestData());
+
+                        PacketContainer nbtUpdatePacket = viewableBlockArray.getDestinationTileEntityPacket(entry.getKey());
+                        if (nbtUpdatePacket != null) {
+                            queuedTileEntityUpdates.add(nbtUpdatePacket);
+                            logger.fine("Queueing tile state update at destination");
+                        }
+                    }
+                } else {
+                    if (blockStates.setNonViewable(position, block)) {
+                        multiBlockChangeManager.addChange(position, block.getOriginData());
+
+                        PacketContainer nbtUpdatePacket = viewableBlockArray.getOriginTileEntityPacket(entry.getKey());
+                        if (nbtUpdatePacket != null) {
+                            queuedTileEntityUpdates.add(nbtUpdatePacket);
+                            logger.fine("Queueing tile state update at origin");
+                        }
+                    }
+                }
             }
-        }   catch(InvocationTargetException ex) {
-            throw new RuntimeException(ex);
+
+            // Show the player the changed states
+            multiBlockChangeManager.sendChanges();
+            try {
+                for (PacketContainer packet : queuedTileEntityUpdates) {
+                    ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);
+                }
+            } catch (InvocationTargetException ex) {
+                throw new RuntimeException(ex);
+            }
+
+            performanceWatcher.putTimeTaken("Player block update (threaded)", timer);
+            logger.finest("Performed viewable block process. Time taken: %fms", timer.getTimeTakenMillis());
+        }   finally     {
+            statesLock.unlock();
         }
-
-        performanceWatcher.putTimeTaken("Player block update (threaded)", timer);
-        logger.finest("Performed viewable block process. Time taken: %fms", timer.getTimeTakenMillis());
-
-        statesLock.unlock();
     }
 
     // Gets the right rotation of portal block depending on the portal's direction
