@@ -14,6 +14,7 @@ import com.lauriethefish.betterportals.bukkit.portal.IPortalManager;
 import com.lauriethefish.betterportals.bukkit.portal.storage.IPortalStorage;
 import com.lauriethefish.betterportals.bukkit.tasks.BlockUpdateFinisher;
 import com.lauriethefish.betterportals.bukkit.tasks.MainUpdate;
+import com.lauriethefish.betterportals.bukkit.util.performance.OperationTimer;
 import com.lauriethefish.betterportals.shared.logging.Logger;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -45,6 +46,7 @@ public class BetterPortals extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        OperationTimer timer = new OperationTimer();
         saveDefaultConfig();
 
         if(firstEnable) {
@@ -75,6 +77,7 @@ public class BetterPortals extends JavaPlugin {
 
         apiImplementation.onEnable();
         firstEnable = false;
+        logger.fine("Startup took %.03fms", timer.getTimeTakenMillis());
     }
 
     private boolean loadConfig() {
