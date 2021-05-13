@@ -6,6 +6,6 @@ repositories {
 
 dependencies {
     implementation 'org.bstats:bstats-bungeecord:2.1.0'
-    compile project(':shared')
+    implementation project(':shared')
     compileOnly 'net.md-5:bungeecord-api:1.16-R0.5-SNAPSHOT'
 }
