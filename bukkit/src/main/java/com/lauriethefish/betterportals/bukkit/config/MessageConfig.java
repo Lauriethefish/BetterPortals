@@ -89,50 +89,48 @@ public class MessageConfig {
      * @return The translated message with the colours
      */
     private @NotNull String translateHexColors(@NotNull String message) {
-        boolean previousWasOpenBrace = false;
-        boolean recordingHex = false;
-        StringBuilder currentHex = null;
-        StringBuilder translatedMessage = new StringBuilder();
+        StringBuilder result = new StringBuilder();
+        StringBuilder currentSegment = null;
+
         for(char c : message.toCharArray()) {
-            if(recordingHex) {
-                if(c == ')') {
-                    recordingHex = false;
-                    try {
-                        translatedMessage.append(net.md_5.bungee.api.ChatColor.of(currentHex.toString()));
-                    }   catch(IllegalArgumentException ex) {
-                        logger.warning("Failed to parse hex colour: %s", currentHex.toString());
-                    }
-                    continue;
-                }
+            // Start a new segment if we reach an opening curly bracket
+            if(c == '{' && currentSegment == null) {
+                currentSegment = new StringBuilder();
+            }
 
-                if(c == '}') {
-                    previousWasOpenBrace = false;
-                    continue;
-                }
-
-                currentHex.append(c);
+            // Add to the current {...} segment if we are in one, otherwise we just add to the resultant string
+            if(currentSegment == null) {
+                result.append(c);
             }   else    {
-                if(c == '}') {
-                    previousWasOpenBrace = false;
-                    continue;
+                currentSegment.append(c);
+            }
+
+            // If we reach a closing curly bracket, we have reached the end of the current segment
+            if(c == '}' && currentSegment != null) {
+                String segment = currentSegment.toString();
+                boolean parsingFailed = true;
+                // Hex colours should be {(#000000)}, so the 2nd and 2nd to last character of the segment should be ( and ) respectively (segments include the curly brackets)
+                if(segment.charAt(1) == '(' && segment.charAt(segment.length() - 2) == ')') {
+                    String hexString = segment.substring(2, segment.length() - 2); // Get the #000000 part of the segment
+
+                    try {
+                        result.append(net.md_5.bungee.api.ChatColor.of(hexString));
+                        parsingFailed = false;
+                    }   catch(IllegalArgumentException ex) {
+                        logger.warning("Failed to parse hex colour: %s", hexString);
+                    }
                 }
 
-                if(c == '(' && previousWasOpenBrace) {
-                    recordingHex = true;
-                    currentHex = new StringBuilder();
-                    continue;
+                // Just add the segment as it was if parsing fails
+                if(parsingFailed) {
+                    result.append(segment);
                 }
 
-                if(c == '{') {
-                    previousWasOpenBrace = true;
-                    continue;
-                }
-
-                translatedMessage.append(c);
+                currentSegment = null;
             }
         }
 
-        return translatedMessage.toString();
+        return result.toString();
     }
 
     /**
