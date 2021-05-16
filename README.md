@@ -22,5 +22,4 @@ Of course, being a plugin, there are several limitations.
 - Much longer render distances lag both players and the server.
 
 ## Future Plans
-- Fix sign text issues.
 - Improve performance to allow for much longer render distances.
