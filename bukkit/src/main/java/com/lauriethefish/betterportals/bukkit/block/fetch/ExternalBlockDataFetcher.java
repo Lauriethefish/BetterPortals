@@ -1,15 +1,16 @@
 package com.lauriethefish.betterportals.bukkit.block.fetch;
 
-import com.lauriethefish.betterportals.bukkit.block.data.BlockData;
 import com.lauriethefish.betterportals.bukkit.config.RenderConfig;
 import com.lauriethefish.betterportals.api.IntVector;
 import com.lauriethefish.betterportals.bukkit.net.IPortalClient;
 import com.lauriethefish.betterportals.bukkit.net.requests.GetBlockDataChangesRequest;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
+import com.lauriethefish.betterportals.bukkit.util.nms.BlockDataUtil;
 import com.lauriethefish.betterportals.bukkit.util.performance.IPerformanceWatcher;
 import com.lauriethefish.betterportals.bukkit.util.performance.OperationTimer;
 import com.lauriethefish.betterportals.shared.logging.Logger;
 import com.lauriethefish.betterportals.shared.net.RequestException;
+import org.bukkit.block.data.BlockData;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -63,7 +64,7 @@ public class ExternalBlockDataFetcher implements IBlockDataFetcher  {
                 logger.finer("Received response to get block data request");
                 Map<IntVector, Integer> serializedChanges = (Map<IntVector, Integer>) response.getResult();
 
-                serializedChanges.forEach((position, newValue) -> currentStates.put(position, BlockData.create(newValue)));
+                serializedChanges.forEach((position, newValue) -> currentStates.put(position, BlockDataUtil.getByCombinedId(newValue)));
 
                 if(!hasFirstRequestFinished) {
                     performanceWatcher.putTimeTaken("Initial external block data deserialization (int -> bukkit)", timer);

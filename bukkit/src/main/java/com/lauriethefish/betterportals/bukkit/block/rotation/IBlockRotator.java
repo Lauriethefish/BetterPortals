@@ -1,7 +1,7 @@
 package com.lauriethefish.betterportals.bukkit.block.rotation;
 
-import com.lauriethefish.betterportals.bukkit.block.data.BlockData;
 import com.lauriethefish.betterportals.bukkit.math.Matrix;
+import org.bukkit.block.data.BlockData;
 import org.jetbrains.annotations.NotNull;
 
 /**

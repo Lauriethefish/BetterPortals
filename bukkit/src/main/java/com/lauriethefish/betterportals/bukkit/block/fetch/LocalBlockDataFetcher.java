@@ -1,9 +1,9 @@
 package com.lauriethefish.betterportals.bukkit.block.fetch;
 
-import com.lauriethefish.betterportals.bukkit.block.data.BlockData;
 import com.lauriethefish.betterportals.api.IntVector;
 import com.lauriethefish.betterportals.bukkit.portal.IPortal;
 import org.bukkit.World;
+import org.bukkit.block.data.BlockData;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -29,6 +29,6 @@ public class LocalBlockDataFetcher implements IBlockDataFetcher {
 
     @Override
     public @NotNull BlockData getData(@NotNull IntVector position) {
-        return BlockData.create(position.getBlock(destinationWorld));
+        return position.getBlock(destinationWorld).getBlockData();
     }
 }

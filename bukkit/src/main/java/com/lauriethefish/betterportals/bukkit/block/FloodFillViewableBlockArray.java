@@ -4,7 +4,6 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.WrappedBlockData;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import com.lauriethefish.betterportals.bukkit.block.data.BlockData;
 import com.lauriethefish.betterportals.bukkit.block.fetch.BlockDataFetcherFactory;
 import com.lauriethefish.betterportals.bukkit.block.fetch.IBlockDataFetcher;
 import com.lauriethefish.betterportals.bukkit.block.rotation.IBlockRotator;
@@ -23,6 +22,7 @@ import lombok.Getter;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -123,12 +123,12 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
             IntVector destPos = destRelPos.add(portalDestPos);
 
             BlockData destData = dataFetcher.getData(destPos);
-            boolean isOccluding = destData.getType().isOccluding();
+            boolean isOccluding = destData.getMaterial().isOccluding();
 
             Block originBlock = originPos.getBlock(originWorld);
-            BlockData originData = BlockData.create(originBlock);
+            BlockData originData = originBlock.getBlockData();
 
-            if(!portal.isCrossServer() && MaterialUtil.isTileEntity(destData.getType())) {
+            if(!portal.isCrossServer() && MaterialUtil.isTileEntity(destData.getMaterial())) {
                 logger.finer("Adding tile state to map . . .");
                 Block destBlock = destPos.getBlock(portal.getDestPos().getWorld());
 
@@ -153,7 +153,7 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
             if(isEdge && !isOccluding) {
                 blockInfo.setRenderedDestData(backgroundData);
             }   else    {
-                blockInfo.setRenderedDestData(blockRotator.rotateByMatrix(rotateDestToOrigin, destData).toProtocolLib());
+                blockInfo.setRenderedDestData(WrappedBlockData.createData(blockRotator.rotateByMatrix(rotateDestToOrigin, destData)));
             }
             nonObscuredStates.put(originPos, blockInfo);
 
@@ -194,7 +194,7 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
             }
 
             if(!portal.isCrossServer()) {
-                if (MaterialUtil.isTileEntity(newDestData.getType())) {
+                if (MaterialUtil.isTileEntity(newDestData.getMaterial())) {
                     logger.finer("Adding tile state to map . . .");
                     Block destBlock = destPos.getBlock(portal.getDestPos().getWorld());
 
@@ -208,7 +208,7 @@ public class FloodFillViewableBlockArray implements IViewableBlockArray    {
             }
 
             Block originBlock = entry.getKey().getBlock(originWorld);
-            BlockData newOriginData = BlockData.create(originBlock);
+            BlockData newOriginData = originBlock.getBlockData();
             if(MaterialUtil.isTileEntity(originBlock.getType()))  {
                 logger.finer("Adding tile state to map . . .");
                 PacketContainer updatePacket = BlockDataUtil.getUpdatePacket(originBlock.getState());

@@ -2,14 +2,15 @@ package com.lauriethefish.betterportals.bukkit.block.external;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import com.lauriethefish.betterportals.bukkit.block.data.BlockData;
 import com.lauriethefish.betterportals.api.IntVector;
 import com.lauriethefish.betterportals.bukkit.math.Matrix;
 import com.lauriethefish.betterportals.bukkit.net.requests.GetBlockDataChangesRequest;
+import com.lauriethefish.betterportals.bukkit.util.nms.BlockDataUtil;
 import com.lauriethefish.betterportals.bukkit.util.performance.IPerformanceWatcher;
 import com.lauriethefish.betterportals.bukkit.util.performance.OperationTimer;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.block.data.BlockData;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -48,11 +49,11 @@ public class BlockChangeWatcher implements IBlockChangeWatcher  {
                 for(int y = -yRadius; y <= yRadius; y++) {
                     IntVector blockPos = rotationMatrix.transform(new IntVector(x, y, z)).add(center);
 
-                    BlockData data = BlockData.create(blockPos.getBlock(world));
+                    BlockData data = blockPos.getBlock(world).getBlockData();
                     BlockData oldData = previousData.get(blockPos);
 
                     if(!data.equals(oldData)) {
-                        result.put(blockPos, data.getCombinedId());
+                        result.put(blockPos, BlockDataUtil.getCombinedId(data));
                         previousData.put(blockPos, data);
                     }
                 }

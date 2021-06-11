@@ -1,8 +1,8 @@
 package com.lauriethefish.betterportals.bukkit.block;
 
 import com.comphenix.protocol.wrappers.WrappedBlockData;
-import com.lauriethefish.betterportals.bukkit.block.data.BlockData;
 import lombok.Getter;
+import org.bukkit.block.data.BlockData;
 
 // Represents each block that is not fully obscured and will be rendered through the portal
 // A collection of these is built by IViewableBlockArray
@@ -16,7 +16,7 @@ public class ViewableBlockInfo {
     public ViewableBlockInfo(BlockData originData, BlockData destData) {
         this.baseOriginData = originData;
         this.baseDestData = destData;
-        this.originData = originData.toProtocolLib();
+        this.originData = WrappedBlockData.createData(originData);
     }
 
     // Test constructor
@@ -24,7 +24,7 @@ public class ViewableBlockInfo {
 
     public void setOriginData(BlockData originData) {
         this.baseOriginData = originData;
-        this.originData = originData.toProtocolLib();
+        this.originData = WrappedBlockData.createData(originData);
     }
 
     public void setRenderedDestData(WrappedBlockData destData) {

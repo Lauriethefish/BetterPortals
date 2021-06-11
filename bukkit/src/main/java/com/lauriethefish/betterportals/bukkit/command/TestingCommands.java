@@ -2,8 +2,6 @@ package com.lauriethefish.betterportals.bukkit.command;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.lauriethefish.betterportals.bukkit.block.data.BlockData;
-import com.lauriethefish.betterportals.bukkit.block.data.ModernBlockData;
 import com.lauriethefish.betterportals.bukkit.command.framework.annotations.*;
 import com.lauriethefish.betterportals.bukkit.config.MiscConfig;
 import com.lauriethefish.betterportals.bukkit.entity.faking.EntityInfo;
@@ -14,12 +12,14 @@ import com.lauriethefish.betterportals.bukkit.net.requests.TestForwardedRequest;
 import com.lauriethefish.betterportals.api.PortalDirection;
 import com.lauriethefish.betterportals.bukkit.portal.spawning.NewPortalChecker;
 import com.lauriethefish.betterportals.bukkit.util.MaterialUtil;
+import com.lauriethefish.betterportals.bukkit.util.nms.BlockDataUtil;
 import com.lauriethefish.betterportals.bukkit.util.performance.IPerformanceWatcher;
 import com.lauriethefish.betterportals.bukkit.util.performance.Operation;
 import com.lauriethefish.betterportals.bukkit.util.performance.OperationTimer;
 import com.lauriethefish.betterportals.shared.net.RequestException;
 import org.bukkit.Chunk;
 import org.bukkit.block.BlockState;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -38,7 +38,7 @@ public class TestingCommands {
     private List<Integer> storedData;
 
     @Inject
-    public TestingCommands(IPerformanceWatcher performanceWatcher, NewPortalChecker spawnChecker, IEntityPacketManipulator entityPacketManipulator, IPortalClient portalClient, MiscConfig miscConfig) {
+    public TestingCommands(IPerformanceWatcher performanceWatcher, NewPortalChecker spawnChecker, IEntityPacketManipulator entityPacketManipulator, IPortalClient portalClient) {
         this.performanceWatcher = performanceWatcher;
         this.spawnChecker = spawnChecker;
         this.entityPacketManipulator = entityPacketManipulator;
@@ -137,8 +137,8 @@ public class TestingCommands {
         for(int x = -10; x < 10; x++) {
             for(int y = -10; y < 10; y++) {
                 for(int z = -10; z < 10; z++) {
-                    BlockData blockData = ModernBlockData.create(player.getLocation().add(x, y, z).getBlock());
-                    result.add(blockData.getCombinedId());
+                    BlockData blockData = player.getLocation().add(x, y, z).getBlock().getBlockData();
+                    result.add(BlockDataUtil.getCombinedId(blockData));
                 }
             }
         }
@@ -158,9 +158,9 @@ public class TestingCommands {
             for(int y = -10; y < 10; y++) {
                 for(int z = -10; z < 10; z++) {
                     int storedCombinedId = storedData.get(i);
-                    BlockData blockData = BlockData.create(storedCombinedId);
+                    BlockData blockData = BlockDataUtil.getByCombinedId(storedCombinedId);
 
-                    player.getLocation().add(x, y, z).getBlock().setBlockData((org.bukkit.block.data.BlockData) blockData.getUnderlying());
+                    player.getLocation().add(x, y, z).getBlock().setBlockData(blockData);
 
                     i++;
                 }
