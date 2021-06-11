@@ -13,6 +13,6 @@ dependencies {
     implementation project(':shared')
     implementation project(':api')
 
-    compileOnly 'org.spigotmc:spigot-api:1.16.2-R0.1-SNAPSHOT'
+    compileOnly 'org.spigotmc:spigot-api:1.17-R0.1-SNAPSHOT'
     compileOnly 'com.comphenix.protocol:ProtocolLib:4.6.0'
 }
