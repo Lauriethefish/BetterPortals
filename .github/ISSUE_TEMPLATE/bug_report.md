@@ -19,4 +19,5 @@ Please enable debug logging by setting `logLevel` in the config file to `FINER`,
 If you can't do this for security reasons, an excerpt of log will probably suffice.
 
 **Additional context**
-Any other info.
+Plugin Version:
+Game Version: 
