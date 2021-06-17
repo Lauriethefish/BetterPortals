@@ -6,7 +6,6 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import static com.lauriethefish.betterportals.bukkit.util.nms.MinecraftReflectionUtil.findCraftBukkitClass;
-import static com.lauriethefish.betterportals.bukkit.util.nms.MinecraftReflectionUtil.findVersionedNMSClass;
 import static com.lauriethefish.betterportals.shared.util.ReflectionUtil.newInstance;
 import static com.lauriethefish.betterportals.shared.util.ReflectionUtil.runMethod;
 
