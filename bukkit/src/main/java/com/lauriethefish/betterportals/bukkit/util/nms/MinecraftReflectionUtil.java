@@ -19,11 +19,12 @@ public class MinecraftReflectionUtil {
     }
 
     /**
-     * Finds a class in the <code>net.minecraft.server.version</code> package
+     * Finds a class in the <code>net.minecraft.server.version</code> package.
+     * Should ONLY be used for pre-1.17 classes, since post-1.17 classes are no longer versioned, and follow minecraft class naming.
      * @param name Name of the class relative to this package, with no dot at the start.
      * @return The located class
      */
-    public static Class<?> findNMSClass(String name) {
+    public static Class<?> findVersionedNMSClass(String name) {
         return ReflectionUtil.findClass(minecraftClassPrefix + name);
     }
 
