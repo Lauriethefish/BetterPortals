@@ -14,28 +14,44 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.sql.Ref;
 
 public class EntityUtil {
     private static final Method GET_HANDLE;
-    private static final Field DATA_WATCHER;
+    private static Field DATA_WATCHER;
     private static final Field ENTITY_YAW;
     private static final boolean USE_DIRECT_ENTITY_PACKET;
     private static Method GET_ENTITY_SPAWN_PACKET = null;
     private static final Constructor<?> ENTITY_TRACKER_ENTRY_NEW;
 
     static {
-        Class<?> NMS_ENTITY = MinecraftReflectionUtil.findNMSClass("Entity");
+        boolean packageNamesMapped = VersionUtil.isMcVersionAtLeast("1.17.0");
+        Class<?> NMS_ENTITY = packageNamesMapped ? ReflectionUtil.findClass("net.minecraft.world.entity.Entity") : MinecraftReflectionUtil.findVersionedNMSClass("Entity");
+        Class<?> NMS_DATA_WATCHER = packageNamesMapped ? ReflectionUtil.findClass("net.minecraft.network.syncher.DataWatcher") : MinecraftReflectionUtil.findVersionedNMSClass("DataWatcher");
 
         GET_HANDLE = ReflectionUtil.findMethod(MinecraftReflectionUtil.findCraftBukkitClass("entity.CraftEntity"), "getHandle");
-        DATA_WATCHER = ReflectionUtil.findField(NMS_ENTITY, "datawatcher");
-        ENTITY_YAW = ReflectionUtil.findField(NMS_ENTITY, "yaw");
+
+        // Find the field that corresponds to the Entity's data watcher
+        boolean foundDataWatcher = false;
+        for(Field field : NMS_ENTITY.getDeclaredFields()) {
+            if(field.getType().equals(NMS_DATA_WATCHER)) {
+                field.setAccessible(true);
+                DATA_WATCHER = field;
+                break;
+            }
+        }
+        if (VersionUtil.isMcVersionAtLeast("1.17.0")) {
+            ENTITY_YAW = null;
+        }   else {
+            ENTITY_YAW = ReflectionUtil.findField(NMS_ENTITY, "yaw");
+        }
 
         // On newer versions of the game, the Entity NMS class have an abstract method for getting the correct spawn packet that is overridden by every entity.
         if(VersionUtil.isMcVersionAtLeast("1.14")) {
             USE_DIRECT_ENTITY_PACKET = true;
             ENTITY_TRACKER_ENTRY_NEW = null;
 
-            Class<?> NMS_PACKET = MinecraftReflectionUtil.findNMSClass("Packet");
+            Class<?> NMS_PACKET = packageNamesMapped ? ReflectionUtil.findClass("net.minecraft.network.protocol.Packet") : MinecraftReflectionUtil.findVersionedNMSClass("Packet");
             for(Method method : NMS_ENTITY.getMethods()) {
                 if(method.getReturnType().equals(NMS_PACKET) && Modifier.isAbstract(method.getModifiers())) {
                     GET_ENTITY_SPAWN_PACKET = method;
@@ -50,7 +66,7 @@ public class EntityUtil {
             // On older versions, we create a dummy EntityTrackerEntry and use that to generate our packet
             USE_DIRECT_ENTITY_PACKET = false;
 
-            Class<?> TRACKER_ENTRY = MinecraftReflectionUtil.findNMSClass("EntityTrackerEntry");
+            Class<?> TRACKER_ENTRY = packageNamesMapped ? ReflectionUtil.findClass("net.minecraft.server.level.EntityTrackerEntry") : MinecraftReflectionUtil.findVersionedNMSClass("EntityTrackerEntry");
 
             try {
                 ENTITY_TRACKER_ENTRY_NEW = TRACKER_ENTRY.getConstructor(NMS_ENTITY, int.class, int.class, int.class, boolean.class);
@@ -112,6 +128,10 @@ public class EntityUtil {
      */
     @NotNull
     public static Vector getActualEntityDirection(@NotNull Entity entity) {
+        if(ENTITY_YAW == null) {
+            return entity.getLocation().getDirection();
+        }
+
         try {
             Object nmsEntity = GET_HANDLE.invoke(entity);
 

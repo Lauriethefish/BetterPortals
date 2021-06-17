@@ -23,10 +23,12 @@ public class BlockDataUtil {
     private static final Method GET_UPDATE_PACKET;
 
     static {
+        boolean packageNamesMapped = VersionUtil.isMcVersionAtLeast("1.17.0");
+
         if(VersionUtil.isMcVersionAtLeast("1.13.0")) {
-            Class<?> nmsBlock = MinecraftReflectionUtil.findNMSClass("Block");
+            Class<?> nmsBlock = packageNamesMapped ? ReflectionUtil.findClass("net.minecraft.world.level.block.Block") : MinecraftReflectionUtil.findVersionedNMSClass("Block");
             Class<?> craftBlockData = MinecraftReflectionUtil.findCraftBukkitClass("block.data.CraftBlockData");
-            Class<?> nmsBlockData = MinecraftReflectionUtil.findNMSClass("IBlockData");
+            Class<?> nmsBlockData = packageNamesMapped ? ReflectionUtil.findClass("net.minecraft.world.level.block.state.IBlockData") : MinecraftReflectionUtil.findVersionedNMSClass("IBlockData");
 
             GET_HANDLE = ReflectionUtil.findMethod(craftBlockData, "getState");
             GET_COMBINED_ID = ReflectionUtil.findMethod(nmsBlock, "getCombinedId", new Class[]{nmsBlockData});
@@ -41,7 +43,7 @@ public class BlockDataUtil {
         }
 
         Class<?> blockEntityState = MinecraftReflectionUtil.findCraftBukkitClass("block.CraftBlockEntityState");
-        Class<?> nmsTileEntity = MinecraftReflectionUtil.findNMSClass("TileEntity");
+        Class<?> nmsTileEntity = packageNamesMapped ? ReflectionUtil.findClass("net.minecraft.world.level.block.entity.TileEntity") : MinecraftReflectionUtil.findVersionedNMSClass("TileEntity");
         GET_TILE_ENTITY = ReflectionUtil.findMethod(blockEntityState, "getTileEntity");
         GET_UPDATE_PACKET = ReflectionUtil.findMethod(nmsTileEntity, "getUpdatePacket");
     }

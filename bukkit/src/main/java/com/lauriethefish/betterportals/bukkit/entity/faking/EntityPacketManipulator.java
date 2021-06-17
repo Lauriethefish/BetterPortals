@@ -41,6 +41,8 @@ import java.util.Map;
 public class EntityPacketManipulator implements IEntityPacketManipulator {
     private final Logger logger;
 
+    private static final boolean useHideEntityArray = !VersionUtil.isMcVersionAtLeast("1.17.0");
+
     @Inject
     public EntityPacketManipulator(Logger logger) {
         this.logger = logger;
@@ -159,7 +161,11 @@ public class EntityPacketManipulator implements IEntityPacketManipulator {
     public void hideEntity(EntityInfo tracker, Collection<Player> players) {
         PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_DESTROY);
 
-        packet.getIntegerArrays().write(0, new int[]{tracker.getEntityId()});
+        if(useHideEntityArray) {
+            packet.getIntegerArrays().write(0, new int[]{tracker.getEntityId()});
+        }   else    {
+            packet.getIntegers().write(0, tracker.getEntityId());
+        }
         sendPacket(packet, players);
     }
 
