@@ -1,10 +1,12 @@
 package com.lauriethefish.betterportals.bukkit.util.nms;
 
+import com.lauriethefish.betterportals.bukkit.util.VersionUtil;
+import com.lauriethefish.betterportals.shared.util.ReflectionUtil;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import static com.lauriethefish.betterportals.bukkit.util.nms.MinecraftReflectionUtil.findCraftBukkitClass;
-import static com.lauriethefish.betterportals.bukkit.util.nms.MinecraftReflectionUtil.findNMSClass;
+import static com.lauriethefish.betterportals.bukkit.util.nms.MinecraftReflectionUtil.findVersionedNMSClass;
 import static com.lauriethefish.betterportals.shared.util.ReflectionUtil.newInstance;
 import static com.lauriethefish.betterportals.shared.util.ReflectionUtil.runMethod;
 
@@ -15,6 +17,25 @@ public class NBTTagUtil {
     private static final String MARKER_PREFIX = "BetterPortals_marker_";
     private static final String MARKER_VALUE = "marked";
     private static final Class<?> CRAFT_ITEM_STACK = findCraftBukkitClass("inventory.CraftItemStack");
+
+    private static final Class<?> NBT_TAG_STRING;
+    private static final Class<?> NBT_BASE;
+    private static final Class<?> NBT_TAG_COMPOUND;
+    private static final Class<?> ITEM_STACK;
+
+    static  {
+        if(VersionUtil.isMcVersionAtLeast("1.17.0")) {
+            NBT_TAG_STRING = ReflectionUtil.findClass("net.minecraft.nbt.NBTTagString");
+            NBT_BASE = ReflectionUtil.findClass("net.minecraft.nbt.NBTBase");
+            NBT_TAG_COMPOUND = ReflectionUtil.findClass("net.minecraft.nbt.NBTTagCompound");
+            ITEM_STACK = ReflectionUtil.findClass("net.minecraft.world.item.ItemStack");
+        }   else    {
+            NBT_TAG_STRING = MinecraftReflectionUtil.findVersionedNMSClass("NBTTagString");
+            NBT_BASE = MinecraftReflectionUtil.findVersionedNMSClass("NBTBase");
+            NBT_TAG_COMPOUND = MinecraftReflectionUtil.findVersionedNMSClass("NBTTagCompound");
+            ITEM_STACK = MinecraftReflectionUtil.findVersionedNMSClass("ItemStack");
+        }
+    }
 
     /**
      * Adds a marker NBT tag to <code>item</code>.
@@ -27,10 +48,10 @@ public class NBTTagUtil {
         Object nmsItem = getNMSItemStack(item);
 
         // Get the NBT tag, or create one if the item doesn't have one
-        Object itemTag = ((boolean) runMethod(nmsItem, "hasTag")) ? runMethod(nmsItem, "getTag") : newInstance(findNMSClass("NBTTagCompound"));
-        Object stringValue = newInstance(findNMSClass("NBTTagString"), new Class[]{String.class}, MARKER_VALUE);
+        Object itemTag = ((boolean) runMethod(nmsItem, "hasTag")) ? runMethod(nmsItem, "getTag") : newInstance(NBT_TAG_COMPOUND);
+        Object stringValue = newInstance(NBT_TAG_STRING, new Class[]{String.class}, MARKER_VALUE);
 
-        runMethod(itemTag, "set", new Class[]{String.class, findNMSClass("NBTBase")}, MARKER_PREFIX + name, stringValue); // Set the value
+        runMethod(itemTag, "set", new Class[]{String.class, NBT_BASE}, MARKER_PREFIX + name, stringValue); // Set the value
 
         return getBukkitItemStack(nmsItem);
     }
@@ -59,6 +80,6 @@ public class NBTTagUtil {
 
     @NotNull
     private static ItemStack getBukkitItemStack(@NotNull Object nmsItem) {
-        return (ItemStack) runMethod(null, CRAFT_ITEM_STACK, "asBukkitCopy", new Class[]{findNMSClass("ItemStack")}, new Object[]{nmsItem});
+        return (ItemStack) runMethod(null, CRAFT_ITEM_STACK, "asBukkitCopy", new Class[]{ITEM_STACK}, new Object[]{nmsItem});
     }
 }
