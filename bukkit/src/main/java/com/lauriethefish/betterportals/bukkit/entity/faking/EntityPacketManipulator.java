@@ -5,10 +5,7 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.reflect.StructureModifier;
-import com.comphenix.protocol.wrappers.BlockPosition;
-import com.comphenix.protocol.wrappers.EnumWrappers;
-import com.comphenix.protocol.wrappers.Pair;
-import com.comphenix.protocol.wrappers.WrappedDataWatcher;
+import com.comphenix.protocol.wrappers.*;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.lauriethefish.betterportals.bukkit.math.MathUtil;
@@ -27,10 +24,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -41,7 +35,8 @@ import java.util.Map;
 public class EntityPacketManipulator implements IEntityPacketManipulator {
     private final Logger logger;
 
-    private static final boolean useHideEntityArray = !VersionUtil.isMcVersionAtLeast("1.17.0");
+    private static final boolean useHideEntityArray = !VersionUtil.isMcVersionAtLeast("1.17.0") && !VersionUtil.isMcVersionAtLeast("1.17.1");
+    private static final boolean useHideEntityList = VersionUtil.isMcVersionAtLeast("1.17.1");
 
     @Inject
     public EntityPacketManipulator(Logger logger) {
@@ -163,7 +158,9 @@ public class EntityPacketManipulator implements IEntityPacketManipulator {
 
         if(useHideEntityArray) {
             packet.getIntegerArrays().write(0, new int[]{tracker.getEntityId()});
-        }   else    {
+        }   else  if(useHideEntityList) {
+            packet.getIntLists().write(0, Collections.singletonList(tracker.getEntityId()));
+        } else  {
             packet.getIntegers().write(0, tracker.getEntityId());
         }
         sendPacket(packet, players);
